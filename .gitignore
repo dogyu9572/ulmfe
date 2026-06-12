@@ -1,7 +1,11 @@
 # Local account/runtime files
 /.agents/
 /.cache/
-/.codex/
+/.codex/*
+!/.codex/skills/
+!/.codex/skills/*/
+!/.codex/skills/*/SKILL.md
+/.codex/skills/.system/
 /.config/
 /.dotnet/
 /.m2/
