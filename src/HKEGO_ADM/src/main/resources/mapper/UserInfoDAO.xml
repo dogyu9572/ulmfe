@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.UserInfoDAO">
+	<select id="selectUserList" resultType="egovframework.let.adm.service.vo.UserInfoVO">
+		SELECT
+			USER_SN,
+			USER_SE_CD,
+			AUTHRT_CD,
+			USER_ID,
+			ENPSWD,
+			USER_NM,
+			MBL_TELNO,
+			EML_ADDR,
+			ZIP,
+			ADDR,
+			DTL_ADDR,
+			CO_NM,
+			DEPT_NM,
+			JBGD_NM,
+			MMPL_STTS_CD,
+			LAST_CNTN_DT,
+			REG_DT,
+			RGTR,
+			MDFCN_DT,
+			MDTR,
+			DEL_DT,
+			DELTR
+		FROM USER_MST
+		WHERE DEL_DT IS NULL
+		<if test="userSeCd != null and userSeCd != ''">
+			AND USER_SE_CD = #{userSeCd}
+		</if>
+		<if test="authrtCd != null and authrtCd != ''">
+			AND AUTHRT_CD = #{authrtCd}
+		</if>
+		<if test="mmplSttsCd != null and mmplSttsCd != ''">
+			AND MMPL_STTS_CD = #{mmplSttsCd}
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND DATE(REG_DT) &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND DATE(REG_DT) &lt;= #{endDate}
+		</if>
+		<if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test='"userId".equals(searchType)'>
+					AND USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test='"userNm".equals(searchType)'>
+					AND USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test='"mblTelno".equals(searchType)'>
+					AND MBL_TELNO = #{searchKeyword}
+				</when>
+				<when test='"emlAddr".equals(searchType)'>
+					AND EML_ADDR = #{searchKeyword}
+				</when>
+				<otherwise>
+					AND (
+						USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+						<if test="encryptedKeyword != null and encryptedKeyword != ''">
+							OR MBL_TELNO = #{encryptedKeyword}
+							OR EML_ADDR = #{encryptedKeyword}
+						</if>
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DT DESC
+		<if test="limit != null and limit > 0">
+			LIMIT #{limit} OFFSET #{offset}
+		</if>
+	</select>
+
+	<select id="selectUserListCount" resultType="int">
+		SELECT COUNT(*)
+		FROM USER_MST
+		WHERE DEL_DT IS NULL
+		<if test="userSeCd != null and userSeCd != ''">
+			AND USER_SE_CD = #{userSeCd}
+		</if>
+		<if test="authrtCd != null and authrtCd != ''">
+			AND AUTHRT_CD = #{authrtCd}
+		</if>
+		<if test="mmplSttsCd != null and mmplSttsCd != ''">
+			AND MMPL_STTS_CD = #{mmplSttsCd}
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND DATE(REG_DT) &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND DATE(REG_DT) &lt;= #{endDate}
+		</if>
+		<if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test='"userId".equals(searchType)'>
+					AND USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test='"userNm".equals(searchType)'>
+					AND USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test='"mblTelno".equals(searchType)'>
+					AND MBL_TELNO = #{searchKeyword}
+				</when>
+				<when test='"emlAddr".equals(searchType)'>
+					AND EML_ADDR = #{searchKeyword}
+				</when>
+				<otherwise>
+					AND (
+						USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+						<if test="encryptedKeyword != null and encryptedKeyword != ''">
+							OR MBL_TELNO = #{encryptedKeyword}
+							OR EML_ADDR = #{encryptedKeyword}
+						</if>
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+
+	<select id="selectUser" resultType="egovframework.let.adm.service.vo.UserInfoVO">
+		SELECT
+			USER_SN,
+			USER_SE_CD,
+			AUTHRT_CD,
+			USER_ID,
+			ENPSWD,
+			USER_NM,
+			MBL_TELNO,
+			EML_ADDR,
+			ZIP,
+			ADDR,
+			DTL_ADDR,
+			CO_NM,
+			DEPT_NM,
+			JBGD_NM,
+			MMPL_STTS_CD,
+			LAST_CNTN_DT,
+			REG_DT,
+			RGTR,
+			MDFCN_DT,
+			MDTR,
+			DEL_DT,
+			DELTR
+		FROM USER_MST
+		WHERE USER_SN = #{userSn}
+	</select>
+
+	<select id="selectUserById" resultType="egovframework.let.adm.service.vo.UserInfoVO">
+		SELECT
+			USER_SN,
+			USER_SE_CD,
+			AUTHRT_CD,
+			USER_ID,
+			ENPSWD,
+			USER_NM,
+			MBL_TELNO,
+			EML_ADDR,
+			ZIP,
+			ADDR,
+			DTL_ADDR,
+			CO_NM,
+			DEPT_NM,
+			JBGD_NM,
+			MMPL_STTS_CD,
+			LAST_CNTN_DT,
+			REG_DT,
+			RGTR,
+			MDFCN_DT,
+			MDTR,
+			DEL_DT,
+			DELTR
+		FROM USER_MST
+		WHERE USER_ID = #{userId}
+			AND DEL_DT IS NULL
+	</select>
+
+	<insert id="insertUser" parameterType="egovframework.let.adm.service.vo.UserInfoVO" useGeneratedKeys="true" keyProperty="userSn">
+		INSERT INTO USER_MST (
+			USER_SE_CD,
+			AUTHRT_CD,
+			USER_ID,
+			ENPSWD,
+			USER_NM,
+			MBL_TELNO,
+			EML_ADDR,
+			ZIP,
+			ADDR,
+			DTL_ADDR,
+			CO_NM,
+			DEPT_NM,
+			JBGD_NM,
+			MMPL_STTS_CD,
+			RGTR
+		) VALUES (
+			#{userSeCd},
+			#{authrtCd},
+			#{userId},
+			#{enpswd},
+			#{userNm},
+			#{mblTelno},
+			#{emlAddr},
+			#{zip},
+			#{addr},
+			#{dtlAddr},
+			#{coNm},
+			#{deptNm},
+			#{jbgdNm},
+			#{mmplSttsCd},
+			#{rgtr}
+		)
+	</insert>
+
+	<update id="updateUser" parameterType="egovframework.let.adm.service.vo.UserInfoVO">
+		UPDATE USER_MST SET
+			USER_SE_CD = #{userSeCd},
+			AUTHRT_CD = #{authrtCd},
+			<if test="enpswd != null and enpswd != ''">
+				ENPSWD = #{enpswd},
+			</if>
+			USER_NM = #{userNm},
+			MBL_TELNO = #{mblTelno},
+			EML_ADDR = #{emlAddr},
+			ZIP = #{zip},
+			ADDR = #{addr},
+			DTL_ADDR = #{dtlAddr},
+			CO_NM = #{coNm},
+			DEPT_NM = #{deptNm},
+			JBGD_NM = #{jbgdNm},
+			MMPL_STTS_CD = #{mmplSttsCd},
+			MDTR = #{mdtr}
+		WHERE USER_SN = #{userSn}
+	</update>
+
+	<update id="updateUserStatus">
+		UPDATE USER_MST SET
+			MMPL_STTS_CD = #{mmplSttsCd},
+			MDTR = #{mdtr}
+		WHERE USER_SN = #{userSn}
+	</update>
+
+	<update id="updatePassword">
+		UPDATE USER_MST SET
+			ENPSWD = #{enpswd},
+			MDTR = #{mdtr}
+		WHERE USER_SN = #{userSn}
+	</update>
+
+	<update id="withdrawUser">
+		UPDATE USER_MST SET
+			USER_ID = CONCAT('DEL_', USER_SN),
+			ENPSWD = '',
+			USER_NM = '',
+			MBL_TELNO = NULL,
+			EML_ADDR = NULL,
+			ZIP = NULL,
+			ADDR = NULL,
+			DTL_ADDR = NULL,
+			CO_NM = NULL,
+			DEPT_NM = NULL,
+			JBGD_NM = NULL,
+			MMPL_STTS_CD = 'N',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE USER_SN = #{userSn}
+			AND DEL_DT IS NULL
+	</update>
+</mapper>

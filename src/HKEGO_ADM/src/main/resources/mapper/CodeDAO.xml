@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.CodeDAO">
+	<resultMap id="CodeMaResultMap" type="egovframework.let.adm.service.vo.CodeMaVO">
+		<result property="cdId" column="CD_ID"/>
+		<result property="cdNm" column="CD_NM"/>
+		<result property="cdCn" column="CD_CN"/>
+		<result property="useYn" column="USE_YN"/>
+	</resultMap>
+
+	<resultMap id="CodeDtResultMap" type="egovframework.let.adm.service.vo.CodeDtVO">
+		<result property="cdId" column="CD_ID"/>
+		<result property="cdDtlId" column="CD_DTL_ID"/>
+		<result property="cdDtlNm" column="CD_DTL_NM"/>
+		<result property="cdDtlCn" column="CD_DTL_CN"/>
+		<result property="seq" column="SEQ"/>
+		<result property="useYn" column="USE_YN"/>
+		<result property="etc1" column="ETC1"/>
+		<result property="etc2" column="ETC2"/>
+		<result property="etc3" column="ETC3"/>
+		<result property="atchFileMngNo" column="ATCH_FILE_MNG_NO"/>
+		<result property="regDt" column="REG_DT"/>
+		<result property="rgtr" column="RGTR"/>
+	</resultMap>
+
+	<select id="selectCodeMaList" resultMap="CodeMaResultMap">
+		SELECT CD_ID, CD_NM, CD_CN, USE_YN
+		FROM CMMN_CD_MST
+		<where>
+			<if test="useYn != null and useYn != ''">
+				AND USE_YN = #{useYn}
+			</if>
+		</where>
+		ORDER BY CD_ID
+	</select>
+
+	<select id="selectCodeMa" resultMap="CodeMaResultMap">
+		SELECT CD_ID, CD_NM, CD_CN, USE_YN
+		FROM CMMN_CD_MST
+		WHERE CD_ID = #{cdId}
+	</select>
+
+	<select id="selectCodeDtList" resultMap="CodeDtResultMap">
+		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
+		FROM CMMN_CD_DTL
+		<where>
+			<if test="cdId != null and cdId != ''">
+				AND CD_ID = #{cdId}
+			</if>
+			<if test="useYn != null and useYn != ''">
+				AND USE_YN = #{useYn}
+			</if>
+		</where>
+		ORDER BY SEQ, CD_DTL_ID
+	</select>
+
+	<select id="selectCodeDt" resultMap="CodeDtResultMap">
+		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
+		FROM CMMN_CD_DTL
+		WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
+	</select>
+
+	<insert id="insertCodeMa">
+		INSERT INTO CMMN_CD_MST (CD_ID, CD_NM, CD_CN, USE_YN)
+		VALUES (#{cdId}, #{cdNm}, #{cdCn}, #{useYn})
+	</insert>
+
+	<insert id="insertCodeDt">
+		INSERT INTO CMMN_CD_DTL (CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR)
+		VALUES (#{cdId}, #{cdDtlId}, #{cdDtlNm}, #{cdDtlCn}, #{seq}, #{useYn}, #{etc1}, #{etc2}, #{etc3}, #{atchFileMngNo}, NOW(), #{rgtr})
+	</insert>
+
+	<update id="updateCodeMa">
+		UPDATE CMMN_CD_MST SET
+			CD_NM = #{cdNm},
+			CD_CN = #{cdCn},
+			USE_YN = #{useYn}
+		WHERE CD_ID = #{cdId}
+	</update>
+
+	<update id="updateCodeDt">
+		UPDATE CMMN_CD_DTL SET
+			CD_DTL_NM = #{cdDtlNm},
+			CD_DTL_CN = #{cdDtlCn},
+			SEQ = #{seq},
+			USE_YN = #{useYn},
+			ETC1 = #{etc1},
+			ETC2 = #{etc2},
+			ETC3 = #{etc3},
+			ATCH_FILE_MNG_NO = #{atchFileMngNo}
+		WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
+	</update>
+
+	<delete id="deleteCodeMa">
+		DELETE FROM CMMN_CD_MST WHERE CD_ID = #{cdId}
+	</delete>
+
+	<delete id="deleteCodeDt">
+		DELETE FROM CMMN_CD_DTL WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
+	</delete>
+</mapper>
+

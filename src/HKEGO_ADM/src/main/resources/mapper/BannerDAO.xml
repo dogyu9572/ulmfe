@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.BannerDAO">
+
+	<sql id="bannerSelectColumns">
+		BNR_SN,
+		BNR_NM,
+		BNR_MAIN_CN,
+		BNR_SUB_CN,
+		PDT_YMD,
+		NEW_BADGE_YN,
+		LNKG_URL_ADDR,
+		LNKG_SE_CD,
+		PSTG_BGNG_YMD,
+		PSTG_END_YMD,
+		PSTG_PRD_USE_YN,
+		PC_ATCH_FILE_ID,
+		MOBL_ATCH_FILE_ID,
+		SORT_SEQ,
+		USE_YN,
+		REG_DT,
+		RGTR,
+		MDFCN_DT,
+		MDTR,
+		DEL_DT,
+		DELTR
+	</sql>
+
+	<sql id="bannerListWhere">
+		FROM BANNER_MST
+		WHERE DEL_DT IS NULL
+		<if test="useYn != null and useYn != ''">
+			AND USE_YN = #{useYn}
+		</if>
+		<if test="startPublishDate != null and startPublishDate != ''">
+			AND PSTG_BGNG_YMD &gt;= #{startPublishDate}
+		</if>
+		<if test="endPublishDate != null and endPublishDate != ''">
+			AND PSTG_END_YMD &lt;= #{endPublishDate}
+		</if>
+		<if test="startRegDate != null and startRegDate != ''">
+			AND DATE(REG_DT) &gt;= #{startRegDate}
+		</if>
+		<if test="endRegDate != null and endRegDate != ''">
+			AND DATE(REG_DT) &lt;= #{endRegDate}
+		</if>
+		<if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType == 'title'">
+					AND BNR_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'content'">
+					AND (BNR_MAIN_CN LIKE CONCAT('%', #{searchKeyword}, '%') OR BNR_SUB_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</when>
+				<otherwise>
+					AND (BNR_NM LIKE CONCAT('%', #{searchKeyword}, '%') OR BNR_MAIN_CN LIKE CONCAT('%', #{searchKeyword}, '%') OR BNR_SUB_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="countBannerList" resultType="int">
+		SELECT COUNT(*)
+		<include refid="bannerListWhere"/>
+	</select>
+
+	<select id="selectBannerList" resultType="egovframework.let.adm.service.vo.BannerVO">
+		SELECT
+		<include refid="bannerSelectColumns"/>
+		<include refid="bannerListWhere"/>
+		ORDER BY SORT_SEQ ASC, REG_DT DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.BannerVO">
+		SELECT
+		<include refid="bannerSelectColumns"/>
+		FROM BANNER_MST
+		WHERE BNR_SN = #{bnrSn}
+		AND DEL_DT IS NULL
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.BannerVO" useGeneratedKeys="true" keyProperty="bnrSn">
+		INSERT INTO BANNER_MST (
+			BNR_NM,
+			BNR_MAIN_CN,
+			BNR_SUB_CN,
+			PDT_YMD,
+			NEW_BADGE_YN,
+			LNKG_URL_ADDR,
+			LNKG_SE_CD,
+			PSTG_BGNG_YMD,
+			PSTG_END_YMD,
+			PSTG_PRD_USE_YN,
+			PC_ATCH_FILE_ID,
+			MOBL_ATCH_FILE_ID,
+			SORT_SEQ,
+			USE_YN,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{bnrNm},
+			#{bnrMainCn},
+			#{bnrSubCn},
+			#{pdtYmd},
+			#{newBadgeYn},
+			#{lnkgUrlAddr},
+			#{lnkgSeCd},
+			#{pstgBgngYmd},
+			#{pstgEndYmd},
+			#{pstgPrdUseYn},
+			#{pcAtchFileId},
+			#{moblAtchFileId},
+			#{sortSeq},
+			#{useYn},
+			#{rgtr},
+			#{regDt}
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.BannerVO">
+		UPDATE BANNER_MST SET
+			BNR_NM = #{bnrNm},
+			BNR_MAIN_CN = #{bnrMainCn},
+			BNR_SUB_CN = #{bnrSubCn},
+			PDT_YMD = #{pdtYmd},
+			NEW_BADGE_YN = #{newBadgeYn},
+			LNKG_URL_ADDR = #{lnkgUrlAddr},
+			LNKG_SE_CD = #{lnkgSeCd},
+			PSTG_BGNG_YMD = #{pstgBgngYmd},
+			PSTG_END_YMD = #{pstgEndYmd},
+			PSTG_PRD_USE_YN = #{pstgPrdUseYn},
+			PC_ATCH_FILE_ID = #{pcAtchFileId},
+			MOBL_ATCH_FILE_ID = #{moblAtchFileId},
+			SORT_SEQ = #{sortSeq},
+			USE_YN = #{useYn},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE BNR_SN = #{bnrSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="delete">
+		UPDATE BANNER_MST SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE BNR_SN = #{bnrSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="updateSeq">
+		UPDATE BANNER_MST SET
+			SORT_SEQ = #{sortSeq},
+			MDTR = 'admin',
+			MDFCN_DT = NOW()
+		WHERE BNR_SN = #{bnrSn}
+		AND DEL_DT IS NULL
+	</update>
+
+</mapper>

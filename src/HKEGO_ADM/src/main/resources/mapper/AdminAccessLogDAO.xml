@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.AdminAccessLogDAO">
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.AdminAccessLogVO" useGeneratedKeys="true"
+		keyProperty="cntnLogSn">
+		INSERT INTO ADMIN_ACCESS_LOG
+		(
+			USER_SN,
+			USER_ID,
+			USER_NM,
+			IP_ADDR,
+			USER_AGT_NM,
+			RFRER_ADDR,
+			SSN_ID,
+			DMND_URI_ADDR,
+			DMND_MTHD_CD,
+			RSPNS_STTS_CD,
+			CNTN_TYPE_CD
+		)
+		VALUES
+		(
+			#{userSn},
+			#{userId},
+			#{userNm},
+			#{ipAddr},
+			#{userAgtNm},
+			#{rfrerAddr},
+			#{ssnId},
+			#{dmndUriAddr},
+			#{dmndMthdCd},
+			#{rspnsSttsCd},
+			#{cntnTypeCd}
+		)
+	</insert>
+
+	<select id="selectList" resultType="egovframework.let.adm.service.vo.AdminAccessLogVO">
+		SELECT
+			CNTN_LOG_SN as cntnLogSn,
+			USER_SN as userSn,
+			USER_ID as userId,
+			USER_NM as userNm,
+			IP_ADDR as ipAddr,
+			USER_AGT_NM as userAgtNm,
+			RFRER_ADDR as rfrerAddr,
+			SSN_ID as ssnId,
+			DMND_URI_ADDR as dmndUriAddr,
+			DMND_MTHD_CD as dmndMthdCd,
+			RSPNS_STTS_CD as rspnsSttsCd,
+			CNTN_TYPE_CD as cntnTypeCd,
+			REG_DT as regDt
+		FROM ADMIN_ACCESS_LOG
+		WHERE 1=1
+		<if test="userId != null and userId != ''">
+			AND USER_ID LIKE CONCAT('%', #{userId}, '%')
+		</if>
+		<if test="userNm != null and userNm != ''">
+			AND USER_NM LIKE CONCAT('%', #{userNm}, '%')
+		</if>
+		<if test="ipAddr != null and ipAddr != ''">
+			AND IP_ADDR LIKE CONCAT('%', #{ipAddr}, '%')
+		</if>
+		<if test="cntnTypeCd != null and cntnTypeCd != ''">
+			AND CNTN_TYPE_CD = #{cntnTypeCd}
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND DATE(REG_DT) <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND DATE(REG_DT) <![CDATA[<=]]> #{endDate}
+		</if>
+		ORDER BY REG_DT DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="selectCount" resultType="int">
+		SELECT COUNT(*)
+		FROM ADMIN_ACCESS_LOG
+		WHERE 1=1
+		<if test="userId != null and userId != ''">
+			AND USER_ID LIKE CONCAT('%', #{userId}, '%')
+		</if>
+		<if test="userNm != null and userNm != ''">
+			AND USER_NM LIKE CONCAT('%', #{userNm}, '%')
+		</if>
+		<if test="ipAddr != null and ipAddr != ''">
+			AND IP_ADDR LIKE CONCAT('%', #{ipAddr}, '%')
+		</if>
+		<if test="cntnTypeCd != null and cntnTypeCd != ''">
+			AND CNTN_TYPE_CD = #{cntnTypeCd}
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND DATE(REG_DT) <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND DATE(REG_DT) <![CDATA[<=]]> #{endDate}
+		</if>
+	</select>
+</mapper>
+

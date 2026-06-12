@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.PopupDAO">
+
+	<sql id="popupListWhere">
+		FROM POPUP_MST
+		WHERE DEL_DT IS NULL
+		<if test="useYn != null and useYn != ''">
+			AND USE_YN = #{useYn}
+		</if>
+		<if test="startPublishDate != null and startPublishDate != ''">
+			AND PSTG_BGNG_YMD &gt;= #{startPublishDate}
+		</if>
+		<if test="endPublishDate != null and endPublishDate != ''">
+			AND PSTG_END_YMD &lt;= #{endPublishDate}
+		</if>
+		<if test="startRegDate != null and startRegDate != ''">
+			AND DATE(REG_DT) &gt;= #{startRegDate}
+		</if>
+		<if test="endRegDate != null and endRegDate != ''">
+			AND DATE(REG_DT) &lt;= #{endRegDate}
+		</if>
+		<if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType == 'title'">
+					AND POPUP_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'content'">
+					AND POPUP_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (POPUP_NM LIKE CONCAT('%', #{searchKeyword}, '%') OR POPUP_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectPopupCount" resultType="int">
+		SELECT COUNT(*)
+		<include refid="popupListWhere"/>
+	</select>
+
+	<select id="selectPopupList" resultType="egovframework.let.adm.service.vo.PopupVO">
+		SELECT
+			POPUP_SN,
+			POPUP_NM,
+			POPUP_CN,
+			POPUP_PSTN_X,
+			POPUP_PSTN_Y,
+			POPUP_WDTH,
+			POPUP_HGHT,
+			PSTG_BGNG_YMD,
+			PSTG_END_YMD,
+			USE_YN,
+			ATCH_FILE_MNG_NO,
+			POPUP_URL_ADDR,
+			LNKG_SE_CD,
+			RGTR,
+			REG_DT,
+			MDTR,
+			MDFCN_DT,
+			DELTR,
+			DEL_DT
+		<include refid="popupListWhere"/>
+		ORDER BY REG_DT DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectPopupById" resultType="egovframework.let.adm.service.vo.PopupVO">
+		SELECT
+			POPUP_SN,
+			POPUP_NM,
+			POPUP_CN,
+			POPUP_PSTN_X,
+			POPUP_PSTN_Y,
+			POPUP_WDTH,
+			POPUP_HGHT,
+			PSTG_BGNG_YMD,
+			PSTG_END_YMD,
+			USE_YN,
+			ATCH_FILE_MNG_NO,
+			POPUP_URL_ADDR,
+			LNKG_SE_CD,
+			RGTR,
+			REG_DT,
+			MDTR,
+			MDFCN_DT,
+			DELTR,
+			DEL_DT
+		FROM POPUP_MST
+		WHERE POPUP_SN = #{popupSn}
+		AND DEL_DT IS NULL
+	</select>
+
+	<insert id="insertPopup" parameterType="egovframework.let.adm.service.vo.PopupVO" useGeneratedKeys="true" keyProperty="popupSn">
+		INSERT INTO POPUP_MST (
+			POPUP_NM,
+			POPUP_CN,
+			POPUP_PSTN_X,
+			POPUP_PSTN_Y,
+			POPUP_WDTH,
+			POPUP_HGHT,
+			PSTG_BGNG_YMD,
+			PSTG_END_YMD,
+			USE_YN,
+			ATCH_FILE_MNG_NO,
+			POPUP_URL_ADDR,
+			LNKG_SE_CD,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{popupNm},
+			#{popupCn},
+			#{popupPstnX},
+			#{popupPstnY},
+			#{popupWdth},
+			#{popupHght},
+			#{pstgBgngYmd},
+			#{pstgEndYmd},
+			#{useYn},
+			#{atchFileMngNo},
+			#{popupUrlAddr},
+			#{lnkgSeCd},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+
+	<update id="updatePopup" parameterType="egovframework.let.adm.service.vo.PopupVO">
+		UPDATE POPUP_MST SET
+			POPUP_NM = #{popupNm},
+			POPUP_CN = #{popupCn},
+			POPUP_PSTN_X = #{popupPstnX},
+			POPUP_PSTN_Y = #{popupPstnY},
+			POPUP_WDTH = #{popupWdth},
+			POPUP_HGHT = #{popupHght},
+			PSTG_BGNG_YMD = #{pstgBgngYmd},
+			PSTG_END_YMD = #{pstgEndYmd},
+			USE_YN = #{useYn},
+			ATCH_FILE_MNG_NO = #{atchFileMngNo},
+			POPUP_URL_ADDR = #{popupUrlAddr},
+			LNKG_SE_CD = #{lnkgSeCd},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE POPUP_SN = #{popupSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="deletePopup">
+		UPDATE POPUP_MST SET
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE POPUP_SN = #{popupSn}
+		AND DEL_DT IS NULL
+	</update>
+
+</mapper>

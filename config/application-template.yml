@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: ulmfe
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/ulmfe?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: ulmfe
+    password: CHANGE_ME
+
+server:
+  port: CHANGE_ME
+
+logging:
+  file:
+    path: /home/ulmfe/logs

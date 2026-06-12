@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.BbsMasterDAO">
+
+	<resultMap id="BbsMasterResult" type="egovframework.let.adm.service.vo.BbsMasterVO">
+		<result column="BBS_ID" property="bbsId"/>
+		<result column="BBS_NM" property="bbsNm"/>
+		<result column="BBS_CN" property="bbsCn"/>
+		<result column="BBS_SKIN_CD" property="bbsSkinCd"/>
+		<result column="BBS_IMG_FILE_ID" property="bbsImgFileId"/>
+		<result column="PAGE_ARTCL_CNT" property="pageArtclCnt"/>
+		<result column="ATCH_FILE_YN" property="atchFileYn"/>
+		<result column="ATCH_FILE_CNT" property="atchFileCnt"/>
+		<result column="ATCH_FILE_SZ" property="atchFileSz"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="ANS_YN" property="ansYn"/>
+		<result column="CMNT_YN" property="cmntYn"/>
+		<result column="SORT_YN" property="sortYn"/>
+		<result column="MAIN_PSTG_YN" property="mainPstgYn"/>
+		<result column="UPEND_FIX_YN" property="upendFixYn"/>
+		<result column="THMB_YN" property="thmbYn"/>
+		<result column="LNKG_YN" property="lnkgYn"/>
+		<result column="HDN_YN" property="hdnYn"/>
+		<result column="LCK_YN" property="lckYn"/>
+		<result column="NEW_YN" property="newYn"/>
+		<result column="NEW_NMTM" property="newNmtm"/>
+		<result column="POP_YN" property="popYn"/>
+		<result column="POP_INQ_CNT" property="popInqCnt"/>
+		<result column="CTGR_YN" property="ctgrYn"/>
+		<result column="CTGR_CD_ID" property="ctgrCdId"/>
+		<result column="ETC1_USE_YN" property="etc1UseYn"/>
+		<result column="ETC1_NM" property="etc1Nm"/>
+		<result column="ETC1_TYPE_CD" property="etc1TypeCd"/>
+		<result column="ETC1_CD_ID" property="etc1CdId"/>
+		<result column="ETC2_USE_YN" property="etc2UseYn"/>
+		<result column="ETC2_NM" property="etc2Nm"/>
+		<result column="ETC2_TYPE_CD" property="etc2TypeCd"/>
+		<result column="ETC2_CD_ID" property="etc2CdId"/>
+		<result column="ETC3_USE_YN" property="etc3UseYn"/>
+		<result column="ETC3_NM" property="etc3Nm"/>
+		<result column="ETC3_TYPE_CD" property="etc3TypeCd"/>
+		<result column="ETC3_CD_ID" property="etc3CdId"/>
+		<result column="ETC4_USE_YN" property="etc4UseYn"/>
+		<result column="ETC4_NM" property="etc4Nm"/>
+		<result column="ETC4_TYPE_CD" property="etc4TypeCd"/>
+		<result column="ETC4_CD_ID" property="etc4CdId"/>
+		<result column="ETC5_USE_YN" property="etc5UseYn"/>
+		<result column="ETC5_NM" property="etc5Nm"/>
+		<result column="ETC5_TYPE_CD" property="etc5TypeCd"/>
+		<result column="ETC5_CD_ID" property="etc5CdId"/>
+		<result column="LIST_AUTHRT_CD" property="listAuthrtCd"/>
+		<result column="DTL_AUTHRT_CD" property="dtlAuthrtCd"/>
+		<result column="WRT_AUTHRT_CD" property="wrtAuthrtCd"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="MDTR" property="mdtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+	</resultMap>
+
+	<sql id="bbsMasterSelectColumns">
+		BBS_ID, BBS_NM, BBS_CN, BBS_SKIN_CD, BBS_IMG_FILE_ID, PAGE_ARTCL_CNT,
+		ATCH_FILE_YN, ATCH_FILE_CNT, ATCH_FILE_SZ, USE_YN, ANS_YN, CMNT_YN, SORT_YN,
+		MAIN_PSTG_YN, UPEND_FIX_YN, THMB_YN, LNKG_YN, HDN_YN, LCK_YN,
+		NEW_YN, NEW_NMTM, POP_YN, POP_INQ_CNT, CTGR_YN, CTGR_CD_ID,
+		ETC1_USE_YN, ETC1_NM, ETC1_TYPE_CD, ETC1_CD_ID, ETC2_USE_YN, ETC2_NM, ETC2_TYPE_CD, ETC2_CD_ID,
+		ETC3_USE_YN, ETC3_NM, ETC3_TYPE_CD, ETC3_CD_ID, ETC4_USE_YN, ETC4_NM, ETC4_TYPE_CD, ETC4_CD_ID,
+		ETC5_USE_YN, ETC5_NM, ETC5_TYPE_CD, ETC5_CD_ID,
+		LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR, REG_DT, MDTR, MDFCN_DT
+	</sql>
+
+	<sql id="bbsMasterListWhere">
+		FROM BBS_MST
+	</sql>
+
+	<select id="countBbsMasterList" resultType="int">
+		SELECT COUNT(*)
+		<include refid="bbsMasterListWhere"/>
+	</select>
+
+	<select id="selectBbsMasterList" resultMap="BbsMasterResult">
+		SELECT
+		<include refid="bbsMasterSelectColumns"/>
+		<include refid="bbsMasterListWhere"/>
+		ORDER BY REG_DT DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectBbsMasterById" resultMap="BbsMasterResult">
+		SELECT BBS_ID, BBS_NM, BBS_CN, BBS_SKIN_CD, BBS_IMG_FILE_ID, PAGE_ARTCL_CNT,
+			ATCH_FILE_YN, ATCH_FILE_CNT, ATCH_FILE_SZ, USE_YN, ANS_YN, CMNT_YN, SORT_YN,
+			MAIN_PSTG_YN, UPEND_FIX_YN, THMB_YN, LNKG_YN, HDN_YN, LCK_YN,
+			NEW_YN, NEW_NMTM, POP_YN, POP_INQ_CNT, CTGR_YN, CTGR_CD_ID,
+			ETC1_USE_YN, ETC1_NM, ETC1_TYPE_CD, ETC1_CD_ID, ETC2_USE_YN, ETC2_NM, ETC2_TYPE_CD, ETC2_CD_ID,
+			ETC3_USE_YN, ETC3_NM, ETC3_TYPE_CD, ETC3_CD_ID, ETC4_USE_YN, ETC4_NM, ETC4_TYPE_CD, ETC4_CD_ID,
+			ETC5_USE_YN, ETC5_NM, ETC5_TYPE_CD, ETC5_CD_ID,
+			LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR, REG_DT, MDTR, MDFCN_DT
+		FROM BBS_MST
+		WHERE BBS_ID = #{bbsId}
+	</select>
+
+	<insert id="insertBbsMaster">
+		INSERT INTO BBS_MST (
+			BBS_ID, BBS_NM, BBS_CN, BBS_SKIN_CD, BBS_IMG_FILE_ID, PAGE_ARTCL_CNT,
+			ATCH_FILE_YN, ATCH_FILE_CNT, ATCH_FILE_SZ, USE_YN, ANS_YN, CMNT_YN, SORT_YN,
+			MAIN_PSTG_YN, UPEND_FIX_YN, THMB_YN, LNKG_YN, HDN_YN, LCK_YN,
+			NEW_YN, NEW_NMTM, POP_YN, POP_INQ_CNT, CTGR_YN, CTGR_CD_ID,
+			ETC1_USE_YN, ETC1_NM, ETC1_TYPE_CD, ETC1_CD_ID, ETC2_USE_YN, ETC2_NM, ETC2_TYPE_CD, ETC2_CD_ID,
+			ETC3_USE_YN, ETC3_NM, ETC3_TYPE_CD, ETC3_CD_ID, ETC4_USE_YN, ETC4_NM, ETC4_TYPE_CD, ETC4_CD_ID,
+			ETC5_USE_YN, ETC5_NM, ETC5_TYPE_CD, ETC5_CD_ID,
+			LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR, REG_DT, MDTR, MDFCN_DT
+		) VALUES (
+			#{bbsId}, #{bbsNm}, #{bbsCn}, #{bbsSkinCd}, #{bbsImgFileId}, #{pageArtclCnt},
+			#{atchFileYn}, #{atchFileCnt}, #{atchFileSz}, #{useYn}, #{ansYn}, #{cmntYn}, #{sortYn},
+			#{mainPstgYn}, #{upendFixYn}, #{thmbYn}, #{lnkgYn}, #{hdnYn}, #{lckYn},
+			#{newYn}, #{newNmtm}, #{popYn}, #{popInqCnt}, #{ctgrYn}, #{ctgrCdId},
+			#{etc1UseYn}, #{etc1Nm}, #{etc1TypeCd}, #{etc1CdId}, #{etc2UseYn}, #{etc2Nm}, #{etc2TypeCd}, #{etc2CdId},
+			#{etc3UseYn}, #{etc3Nm}, #{etc3TypeCd}, #{etc3CdId}, #{etc4UseYn}, #{etc4Nm}, #{etc4TypeCd}, #{etc4CdId},
+			#{etc5UseYn}, #{etc5Nm}, #{etc5TypeCd}, #{etc5CdId},
+			#{listAuthrtCd}, #{dtlAuthrtCd}, #{wrtAuthrtCd}, #{rgtr}, NOW(), #{mdtr}, NOW()
+		)
+	</insert>
+
+	<update id="updateBbsMaster">
+		UPDATE BBS_MST SET
+			BBS_NM = #{bbsNm}, BBS_CN = #{bbsCn}, BBS_SKIN_CD = #{bbsSkinCd}, BBS_IMG_FILE_ID = #{bbsImgFileId},
+			PAGE_ARTCL_CNT = #{pageArtclCnt}, ATCH_FILE_YN = #{atchFileYn}, ATCH_FILE_CNT = #{atchFileCnt}, ATCH_FILE_SZ = #{atchFileSz},
+			USE_YN = #{useYn}, ANS_YN = #{ansYn}, CMNT_YN = #{cmntYn}, SORT_YN = #{sortYn},
+			MAIN_PSTG_YN = #{mainPstgYn}, UPEND_FIX_YN = #{upendFixYn}, THMB_YN = #{thmbYn}, LNKG_YN = #{lnkgYn},
+			HDN_YN = #{hdnYn}, LCK_YN = #{lckYn}, NEW_YN = #{newYn}, NEW_NMTM = #{newNmtm},
+			POP_YN = #{popYn}, POP_INQ_CNT = #{popInqCnt}, CTGR_YN = #{ctgrYn}, CTGR_CD_ID = #{ctgrCdId},
+			ETC1_USE_YN = #{etc1UseYn}, ETC1_NM = #{etc1Nm}, ETC1_TYPE_CD = #{etc1TypeCd}, ETC1_CD_ID = #{etc1CdId},
+			ETC2_USE_YN = #{etc2UseYn}, ETC2_NM = #{etc2Nm}, ETC2_TYPE_CD = #{etc2TypeCd}, ETC2_CD_ID = #{etc2CdId},
+			ETC3_USE_YN = #{etc3UseYn}, ETC3_NM = #{etc3Nm}, ETC3_TYPE_CD = #{etc3TypeCd}, ETC3_CD_ID = #{etc3CdId},
+			ETC4_USE_YN = #{etc4UseYn}, ETC4_NM = #{etc4Nm}, ETC4_TYPE_CD = #{etc4TypeCd}, ETC4_CD_ID = #{etc4CdId},
+			ETC5_USE_YN = #{etc5UseYn}, ETC5_NM = #{etc5Nm}, ETC5_TYPE_CD = #{etc5TypeCd}, ETC5_CD_ID = #{etc5CdId},
+			LIST_AUTHRT_CD = #{listAuthrtCd}, DTL_AUTHRT_CD = #{dtlAuthrtCd}, WRT_AUTHRT_CD = #{wrtAuthrtCd},
+			MDTR = #{mdtr}, MDFCN_DT = NOW()
+		WHERE BBS_ID = #{bbsId}
+	</update>
+
+	<delete id="deleteBbsMaster">
+		DELETE FROM BBS_MST WHERE BBS_ID = #{bbsId}
+	</delete>
+
+	<select id="checkBbsIdExists" resultType="int">
+		SELECT COUNT(*) FROM BBS_MST WHERE BBS_ID = #{bbsId}
+	</select>
+
+	<sql id="activeBbsMasterListWhere">
+		FROM BBS_MST
+		WHERE USE_YN = 'Y'
+	</sql>
+
+	<select id="countActiveBbsMasterList" resultType="int">
+		SELECT COUNT(*)
+		<include refid="activeBbsMasterListWhere"/>
+	</select>
+
+	<select id="selectActiveBbsMasterList" resultMap="BbsMasterResult">
+		SELECT
+		<include refid="bbsMasterSelectColumns"/>
+		<include refid="activeBbsMasterListWhere"/>
+		ORDER BY BBS_NM ASC
+		LIMIT #{offset}, #{limit}
+	</select>
+</mapper>

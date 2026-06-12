@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.BbsPostDAO">
+
+	<resultMap id="BbsPostResult" type="egovframework.let.adm.service.vo.BbsPostVO">
+		<result column="BBS_ID" property="bbsId"/>
+		<result column="PST_SN" property="pstSn"/>
+		<result column="PST_TTL" property="pstTtl"/>
+		<result column="PST_CN" property="pstCn"/>
+		<result column="WRTR_NM" property="wrtrNm"/>
+		<result column="WRTR_ID" property="wrtrId"/>
+		<result column="SORT_SEQ" property="sortSeq"/>
+		<result column="CTGR_CD" property="ctgrCd"/>
+		<result column="NTC_YN" property="ntcYn"/>
+		<result column="UPEND_FIX_YN" property="upendFixYn"/>
+		<result column="LCK_YN" property="lckYn"/>
+		<result column="LNKG_URL_ADDR" property="lnkgUrlAddr"/>
+		<result column="PSTG_YMD" property="pstgYmd"/>
+		<result column="ATCH_FILE_MNG_NO" property="atchFileMngNo"/>
+		<result column="THMB_FILE_ID" property="thmbFileId"/>
+		<result column="VOD_FILE_ID" property="vodFileId"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="INQ_CNT" property="inqCnt"/>
+		<result column="ETC1" property="etc1"/>
+		<result column="ETC2" property="etc2"/>
+		<result column="ETC3" property="etc3"/>
+		<result column="ETC4" property="etc4"/>
+		<result column="ETC5" property="etc5"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+	</resultMap>
+
+	<select id="selectBbsPostListForAdmin" resultMap="BbsPostResult">
+		SELECT BBS_ID, PST_SN, PST_TTL, PST_CN, WRTR_NM, WRTR_ID, SORT_SEQ,
+			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
+			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
+			ETC1, ETC2, ETC3, ETC4, ETC5,
+			REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM BBS_ARTICLE
+		WHERE BBS_ID = #{bbsId}
+		ORDER BY
+			CASE WHEN UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END ASC,
+			PSTG_YMD DESC,
+			REG_DT DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectBbsPostCountForAdmin" resultType="int">
+		SELECT COUNT(*) FROM BBS_ARTICLE WHERE BBS_ID = #{bbsId}
+	</select>
+
+	<sql id="searchWhere">
+		<where>
+			BBS_ID = #{bbsId}
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'title'">
+						AND PST_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'content'">
+						AND (PST_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+					</when>
+					<when test="searchType == 'all'">
+						AND (PST_TTL LIKE CONCAT('%', #{searchKeyword}, '%') OR PST_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+					</when>
+				</choose>
+			</if>
+			<if test="ctgrCd != null and ctgrCd != ''">
+				AND CTGR_CD = #{ctgrCd}
+			</if>
+			<if test="startDate != null and startDate != ''">
+				AND DATE(REG_DT) &gt;= #{startDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+				AND DATE(REG_DT) &lt;= #{endDate}
+			</if>
+		</where>
+	</sql>
+
+	<select id="selectBbsPostListForAdminSearch" resultMap="BbsPostResult">
+		SELECT BBS_ID, PST_SN, PST_TTL, PST_CN, WRTR_NM, WRTR_ID, SORT_SEQ,
+			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
+			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
+			ETC1, ETC2, ETC3, ETC4, ETC5,
+			REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM BBS_ARTICLE
+		<include refid="searchWhere"/>
+		ORDER BY
+			CASE WHEN UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END ASC,
+			PSTG_YMD DESC,
+			REG_DT DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectBbsPostCountForAdminSearch" resultType="int">
+		SELECT COUNT(*) FROM BBS_ARTICLE
+		<include refid="searchWhere"/>
+	</select>
+
+	<select id="selectBbsPostById" resultMap="BbsPostResult">
+		SELECT BBS_ID, PST_SN, PST_TTL, PST_CN, WRTR_NM, WRTR_ID, SORT_SEQ,
+			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
+			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
+			ETC1, ETC2, ETC3, ETC4, ETC5,
+			REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM BBS_ARTICLE
+		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
+	</select>
+
+	<insert id="insertBbsPost">
+		INSERT INTO BBS_ARTICLE (
+			BBS_ID, PST_SN, PST_TTL, PST_CN, WRTR_NM, WRTR_ID, SORT_SEQ,
+			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
+			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
+			ETC1, ETC2, ETC3, ETC4, ETC5,
+			REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			#{bbsId}, #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, #{sortSeq},
+			#{ctgrCd}, #{ntcYn}, #{upendFixYn}, #{lckYn}, #{lnkgUrlAddr}, #{pstgYmd},
+			#{atchFileMngNo}, #{thmbFileId}, #{vodFileId}, #{useYn}, #{inqCnt},
+			#{etc1}, #{etc2}, #{etc3}, #{etc4}, #{etc5},
+			NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateBbsPost">
+		UPDATE BBS_ARTICLE SET
+			PST_TTL = #{pstTtl}, PST_CN = #{pstCn}, WRTR_NM = #{wrtrNm}, WRTR_ID = #{wrtrId},
+			SORT_SEQ = #{sortSeq}, CTGR_CD = #{ctgrCd}, NTC_YN = #{ntcYn},
+			UPEND_FIX_YN = #{upendFixYn}, LCK_YN = #{lckYn}, LNKG_URL_ADDR = #{lnkgUrlAddr}, PSTG_YMD = #{pstgYmd},
+			ATCH_FILE_MNG_NO = #{atchFileMngNo}, THMB_FILE_ID = #{thmbFileId}, VOD_FILE_ID = #{vodFileId},
+			USE_YN = #{useYn},
+			ETC1 = #{etc1}, ETC2 = #{etc2}, ETC3 = #{etc3},
+			ETC4 = #{etc4}, ETC5 = #{etc5},
+			MDFCN_DT = NOW(), MDTR = #{mdtr}
+		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
+	</update>
+
+	<delete id="deleteBbsPost">
+		DELETE FROM BBS_ARTICLE WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
+	</delete>
+
+	<update id="updateViewCount">
+		UPDATE BBS_ARTICLE SET INQ_CNT = IFNULL(INQ_CNT, 0) + 1
+		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
+	</update>
+
+	<select id="checkPostIdExists" resultType="int">
+		SELECT COUNT(*) FROM BBS_ARTICLE WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
+	</select>
+</mapper>

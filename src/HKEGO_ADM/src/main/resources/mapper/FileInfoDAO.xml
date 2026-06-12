@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.FileInfoDAO">
+
+	<insert id="insertFileInfo" parameterType="egovframework.let.adm.service.vo.FileInfoVO">
+		INSERT INTO ATCH_FILE_INFO (
+			ATCH_FILE_MNG_NO,
+			FILE_SEQ,
+			ORGNL_FILE_NM,
+			STRG_FILE_NM,
+			ATCH_FILE_PATH_NM,
+			FILE_SZ,
+			FILE_EXTN_NM,
+			FILE_TYPE_NM,
+			REG_DT
+		) VALUES (
+			#{atchFileMngNo},
+			#{fileSeq},
+			#{orgnlFileNm},
+			#{strgFileNm},
+			#{atchFilePathNm},
+			#{fileSz},
+			#{fileExtnNm},
+			#{fileTypeNm},
+			NOW()
+		)
+	</insert>
+
+	<select id="selectFileInfoById" resultType="egovframework.let.adm.service.vo.FileInfoVO">
+		SELECT
+			ATCH_FILE_MNG_NO as atchFileMngNo,
+			FILE_SEQ as fileSeq,
+			ORGNL_FILE_NM as orgnlFileNm,
+			STRG_FILE_NM as strgFileNm,
+			ATCH_FILE_PATH_NM as atchFilePathNm,
+			FILE_SZ as fileSz,
+			FILE_EXTN_NM as fileExtnNm,
+			FILE_TYPE_NM as fileTypeNm,
+			REG_DT as regDt
+		FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{atchFileMngNo}
+		ORDER BY FILE_SEQ ASC
+		LIMIT 1
+	</select>
+
+	<select id="selectFileInfoListById" resultType="egovframework.let.adm.service.vo.FileInfoVO">
+		SELECT
+			ATCH_FILE_MNG_NO as atchFileMngNo,
+			FILE_SEQ as fileSeq,
+			ORGNL_FILE_NM as orgnlFileNm,
+			STRG_FILE_NM as strgFileNm,
+			ATCH_FILE_PATH_NM as atchFilePathNm,
+			FILE_SZ as fileSz,
+			FILE_EXTN_NM as fileExtnNm,
+			FILE_TYPE_NM as fileTypeNm,
+			REG_DT as regDt
+		FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{atchFileMngNo}
+		ORDER BY FILE_SEQ ASC
+	</select>
+
+	<select id="selectFileInfoByIdAndSn" resultType="egovframework.let.adm.service.vo.FileInfoVO">
+		SELECT
+			ATCH_FILE_MNG_NO as atchFileMngNo,
+			FILE_SEQ as fileSeq,
+			ORGNL_FILE_NM as orgnlFileNm,
+			STRG_FILE_NM as strgFileNm,
+			ATCH_FILE_PATH_NM as atchFilePathNm,
+			FILE_SZ as fileSz,
+			FILE_EXTN_NM as fileExtnNm,
+			FILE_TYPE_NM as fileTypeNm,
+			REG_DT as regDt
+		FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{atchFileMngNo}
+		  AND FILE_SEQ = #{fileSeq}
+		LIMIT 1
+	</select>
+
+	<select id="selectMaxFiSnById" resultType="int">
+		SELECT COALESCE(MAX(FILE_SEQ), -1)
+		FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{atchFileMngNo}
+	</select>
+
+	<delete id="deleteFileInfoByIdAndSn">
+		DELETE FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{atchFileMngNo}
+		  AND FILE_SEQ = #{fileSeq}
+	</delete>
+
+</mapper>

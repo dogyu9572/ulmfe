@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.AuthDAO">
+	<resultMap id="AuthGroupMap" type="egovframework.let.adm.service.vo.AuthGroupVO">
+		<result property="authrtCd" column="AUTHRT_CD"/>
+		<result property="authrtNm" column="AUTHRT_NM"/>
+		<result property="authrtCn" column="AUTHRT_CN"/>
+		<result property="useYn" column="USE_YN"/>
+		<result property="regDt" column="REG_DT"/>
+		<result property="mdfcnDt" column="MDFCN_DT"/>
+	</resultMap>
+
+	<resultMap id="AuthInfoMap" type="egovframework.let.adm.service.vo.AuthInfoVO">
+		<result property="authrtCd" column="AUTHRT_CD"/>
+		<result property="menuCd" column="MENU_CD"/>
+		<result property="rgtr" column="RGTR"/>
+		<result property="regDt" column="REG_DT"/>
+	</resultMap>
+
+	<sql id="authGroupListWhere">
+		FROM AUTH_GRP
+		<where>
+			<if test="useYn != null and useYn != ''">
+				AND USE_YN = #{useYn}
+			</if>
+		</where>
+	</sql>
+
+	<select id="countAuthGroupList" resultType="int">
+		SELECT COUNT(*)
+		<include refid="authGroupListWhere"/>
+	</select>
+
+	<select id="selectAuthGroupList" resultMap="AuthGroupMap">
+		SELECT AUTHRT_CD, AUTHRT_NM, AUTHRT_CN, USE_YN, REG_DT, MDFCN_DT
+		<include refid="authGroupListWhere"/>
+		ORDER BY REG_DT DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectAuthGroup" resultMap="AuthGroupMap">
+		SELECT AUTHRT_CD, AUTHRT_NM, AUTHRT_CN, USE_YN, REG_DT, MDFCN_DT
+		FROM AUTH_GRP
+		WHERE AUTHRT_CD = #{authrtCd}
+	</select>
+
+	<insert id="insertAuthGroup" parameterType="egovframework.let.adm.service.vo.AuthGroupVO">
+		INSERT INTO AUTH_GRP (AUTHRT_CD, AUTHRT_NM, AUTHRT_CN, USE_YN, REG_DT, MDFCN_DT)
+		VALUES (#{authrtCd}, #{authrtNm}, #{authrtCn}, #{useYn}, NOW(), NOW())
+	</insert>
+
+	<update id="updateAuthGroup" parameterType="egovframework.let.adm.service.vo.AuthGroupVO">
+		UPDATE AUTH_GRP
+		SET AUTHRT_NM = #{authrtNm}, AUTHRT_CN = #{authrtCn}, USE_YN = #{useYn}, MDFCN_DT = NOW()
+		WHERE AUTHRT_CD = #{authrtCd}
+	</update>
+
+	<delete id="deleteAuthGroup">
+		DELETE FROM AUTH_GRP WHERE AUTHRT_CD = #{authrtCd}
+	</delete>
+
+	<select id="countUsersByAuthGroup" resultType="int">
+		SELECT COUNT(*) FROM ADMIN_MST WHERE AUTHRT_CD = #{authId}
+	</select>
+
+	<select id="selectAuthInfoList" resultMap="AuthInfoMap">
+		SELECT AUTHRT_CD, MENU_CD, RGTR, REG_DT
+		FROM AUTH_MENU_MAP
+		WHERE AUTHRT_CD = #{authrtCd}
+		ORDER BY MENU_CD
+	</select>
+
+	<insert id="insertAuthInfo" parameterType="egovframework.let.adm.service.vo.AuthInfoVO">
+		INSERT INTO AUTH_MENU_MAP (AUTHRT_CD, MENU_CD, RGTR, REG_DT)
+		VALUES (#{authrtCd}, #{menuCd}, #{rgtr}, NOW())
+	</insert>
+
+	<delete id="deleteAllAuthInfo">
+		DELETE FROM AUTH_MENU_MAP WHERE AUTHRT_CD = #{authrtCd}
+	</delete>
+</mapper>

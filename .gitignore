@@ -1,0 +1,56 @@
+# Local account/runtime files
+/.agents/
+/.cache/
+/.codex/
+/.config/
+/.dotnet/
+/.m2/
+/.npm/
+/.ssh/
+/.vscode-server/
+/.bash_history
+/.wget-hsts
+
+# Runtime/deploy outputs
+/app/
+/apps/
+/backup/
+/deploy/
+/docs/
+/logs/
+/uploads/
+
+# Secrets
+/config/*.env
+!/config/*.env.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Database dumps with real data
+/src/DB_backup.sql
+
+# Java/Maven build outputs
+**/target/
+
+# Node/frontend dependencies and build outputs
+**/node_modules/
+**/.next/
+**/dist/
+**/node/
+**/.vite/
+**/.vite-temp/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# IDE metadata
+**/.project
+**/.classpath
+**/.settings/
+**/.factorypath
+.idea/
+.vscode/
