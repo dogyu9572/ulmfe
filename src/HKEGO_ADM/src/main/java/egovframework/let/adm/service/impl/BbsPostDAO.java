@@ -74,6 +74,10 @@ public class BbsPostDAO extends EgovAbstractMapper {
 		return update(NS + "updateBbsPost", bbsPost);
 	}
 
+	public int updateBbsPostAnswer(BbsPostVO bbsPost) {
+		return update(NS + "updateBbsPostAnswer", bbsPost);
+	}
+
 	public int deleteBbsPost(String bbsId, String pstSn) {
 		Map<String, Object> param = new HashMap<>();
 		param.put("bbsId", bbsId);

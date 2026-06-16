@@ -9,6 +9,7 @@ type RowActionButtonsProps = {
 	disabled?: boolean
 	/** 추가 버튼 (예: 권한관리). { label, onClick }[] */
 	extra?: Array<{ label: string; onClick: () => void; className?: string }>
+	editLabel?: string
 }
 
 /**
@@ -20,11 +21,12 @@ export const RowActionButtons: React.FC<RowActionButtonsProps> = ({
 	onEdit,
 	onDelete,
 	disabled = false,
-	extra = []
+	extra = [],
+	editLabel = '수정'
 }) => (
 	<div className="row-actions-cell-inner">
 		<button type="button" className="admin-list-btn-edit" onClick={onEdit}>
-			수정
+			{editLabel}
 		</button>
 		<button
 			type="button"

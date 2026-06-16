@@ -98,7 +98,8 @@ const App: React.FC = () => {
 						</AdminManageRoute>
 					}
 				/>
-				<Route path="/admin/codes" element={<CodePage />} />
+				<Route path="/admin/codes" element={<CodePage mode="code" />} />
+				<Route path="/admin/menus" element={<CodePage mode="menu" />} />
 				<Route path="/admin/bbs-master" element={<BbsMasterPage />} />
 				<Route path="/admin/bbs-post/:bbsId" element={<BbsPostPage />} />
 				<Route path="/admin/banners" element={<BannerPage />} />

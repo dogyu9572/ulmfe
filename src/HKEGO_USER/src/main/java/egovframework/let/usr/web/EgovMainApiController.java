@@ -19,7 +19,7 @@ public class EgovMainApiController {
 		Map<String, Object> data = new LinkedHashMap<>();
 		data.put("siteName", "HKEGO");
 		data.put("title", "HKEGO 사용자 포털");
-		data.put("description", "HKEGO 사용자 서비스 메인 페이지입니다.33");
+		data.put("description", "HKEGO 사용자 서비스 메인 페이지입니다.");
 		data.put("serverTime", LocalDateTime.now().toString());
 		return ApiResponse.success("메인 정보를 조회했습니다.", data);
 	}

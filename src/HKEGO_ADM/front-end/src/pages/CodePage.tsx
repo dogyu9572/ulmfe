@@ -32,6 +32,14 @@ type CodeDt = {
 	atchFileMngNo: string
 }
 
+type CodePageMode = 'code' | 'menu'
+
+type CodePageProps = {
+	mode?: CodePageMode
+}
+
+const MENU_CODE_IDS = new Set(['COM001', 'COM002'])
+
 const useYnBadge = (useYn: string) => {
 	const isOn = useYn === 'Y'
 	return (
@@ -81,7 +89,7 @@ const renderEtc3Cell = (value?: string) => {
 	)
 }
 
-export const CodePage: React.FC = () => {
+export const CodePage: React.FC<CodePageProps> = ({ mode = 'code' }) => {
 	const [masters, setMasters] = useState<CodeMa[]>([])
 	const [details, setDetails] = useState<CodeDt[]>([])
 
@@ -119,6 +127,20 @@ export const CodePage: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 
 	const backendBaseUrl = API_BASE_URL
+	const isMenuMode = mode === 'menu'
+	const pageTitle = isMenuMode ? '메뉴 관리' : '코드 관리'
+	const masterTitle = isMenuMode ? '메뉴 구분' : '마스터 코드'
+	const detailTitle = isMenuMode ? '메뉴 목록' : '상세 코드'
+	const masterNewLabel = isMenuMode ? '메뉴 구분 신규' : '마스터 신규'
+	const detailNewLabel = isMenuMode ? '메뉴 신규' : '상세 신규'
+	const masterEmptyMessage = isMenuMode ? '메뉴 구분 데이터가 없습니다.' : '데이터가 없습니다.'
+	const detailEmptyMessage = isMenuMode ? '메뉴 데이터가 없습니다.' : '데이터가 없습니다.'
+	const masterNameLabel = isMenuMode ? '메뉴 구분명' : '코드명'
+	const detailNameLabel = isMenuMode ? '메뉴명' : '코드명'
+	const detailDescriptionLabel = isMenuMode || selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '메뉴 URL' : '설명'
+
+	const filterMastersByMode = (rows: CodeMa[]) =>
+		rows.filter((row) => (isMenuMode ? MENU_CODE_IDS.has(row.cdId) : !MENU_CODE_IDS.has(row.cdId)))
 
 	const fetchMasters = async () => {
 		setError(null)
@@ -132,7 +154,12 @@ export const CodePage: React.FC = () => {
 				setError(result.message || '공통코드 마스터 목록 조회에 실패했습니다.')
 				return
 			}
-			setMasters(result.data || [])
+			const filteredMasters = filterMastersByMode(result.data || [])
+			setMasters(filteredMasters)
+			if (selectedCodeId && !filteredMasters.some((item) => item.cdId === selectedCodeId)) {
+				setSelectedCodeId('')
+				setDetails([])
+			}
 		} catch (e) {
 			setError('공통코드 마스터 목록 조회 중 오류가 발생했습니다.')
 		}
@@ -166,7 +193,7 @@ export const CodePage: React.FC = () => {
 
 	useEffect(() => {
 		fetchMasters()
-	}, [masterUseYnFilter])
+	}, [masterUseYnFilter, mode])
 
 	useEffect(() => {
 		if (selectedCodeId) {
@@ -451,20 +478,20 @@ export const CodePage: React.FC = () => {
 	}
 
 	return (
-		<AdminLayout title="코드관리">
-			<CrudPageCard title="코드관리" error={error} message={message} disableInnerPanel>
+		<AdminLayout title={pageTitle}>
+			<CrudPageCard title={pageTitle} error={error} message={message} disableInnerPanel>
 				<div className="code-layout">
 						<div className="code-master">
 							<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
-								<h4 style={{ marginBottom: 0 }}>마스터 코드</h4>
-								<button type="button" className="admin-list-btn-sky" onClick={openNewMasterPopup}>마스터 신규</button>
+								<h4 style={{ marginBottom: 0 }}>{masterTitle}</h4>
+								<button type="button" className="admin-list-btn-sky" onClick={openNewMasterPopup}>{masterNewLabel}</button>
 							</div>
 
 							<table className="table code-master-list-table">
 								<thead>
 									<tr>
 										<th>코드ID</th>
-										<th>코드명</th>
+										<th>{masterNameLabel}</th>
 										<th>설명</th>
 										<th>사용여부</th>
 										<th>관리</th>
@@ -493,7 +520,7 @@ export const CodePage: React.FC = () => {
 									{masters.length === 0 && (
 										<tr>
 											<td colSpan={5} style={{ textAlign: 'center' }}>
-												데이터가 없습니다.
+												{masterEmptyMessage}
 											</td>
 										</tr>
 									)}
@@ -503,9 +530,9 @@ export const CodePage: React.FC = () => {
 
 						<div className="code-detail">
 							<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
-								<h4 style={{ marginBottom: 0 }}>상세 코드</h4>
+								<h4 style={{ marginBottom: 0 }}>{detailTitle}</h4>
 								<button type="button" className="admin-list-btn-sky" onClick={openNewDetailPopup} disabled={!selectedCodeId}>
-									상세 신규
+									{detailNewLabel}
 								</button>
 							</div>
 
@@ -513,8 +540,8 @@ export const CodePage: React.FC = () => {
 								<thead>
 									<tr>
 										<th style={{ width: '80px'}}>코드</th>
-										<th style={{ width: 'auto'}}>코드명</th>
-										<th>{selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '메뉴 URL' : '설명'}</th>
+										<th style={{ width: 'auto'}}>{detailNameLabel}</th>
+										<th>{detailDescriptionLabel}</th>
 										<th style={{ width: '60px'}}>SEQ</th>
 										<th style={{ width: '80px'}}>ETC3</th>
 										<th style={{ width: '80px'}}>사용여부</th>
@@ -546,7 +573,7 @@ export const CodePage: React.FC = () => {
 									{selectedCodeId && details.length === 0 && (
 										<tr>
 											<td colSpan={7} style={{ textAlign: 'center' }}>
-												데이터가 없습니다.
+												{detailEmptyMessage}
 											</td>
 										</tr>
 									)}
@@ -565,7 +592,7 @@ export const CodePage: React.FC = () => {
 
 			<LayerPopup
 				open={masterFormPopupOpen}
-				title={masterFormPopupMode === 'new' ? '마스터 코드 등록' : '마스터 코드 상세 (수정)'}
+				title={masterFormPopupMode === 'new' ? `${masterTitle} 등록` : `${masterTitle} 상세 (수정)`}
 				onClose={closeMasterPopup}
 				footer={
 					<>
@@ -602,7 +629,7 @@ export const CodePage: React.FC = () => {
 										</td>
 									</tr>
 									<tr>
-										<th>코드명</th>
+										<th>{masterNameLabel}</th>
 										<td>
 											<input
 												type="text"
@@ -633,7 +660,7 @@ export const CodePage: React.FC = () => {
 
 			<LayerPopup
 				open={detailFormPopupOpen}
-				title={detailFormPopupMode === 'new' ? '상세 코드 등록' : '상세 코드 상세 (수정)'}
+				title={detailFormPopupMode === 'new' ? `${detailTitle} 등록` : `${detailTitle} 상세 (수정)`}
 				onClose={closeDetailPopup}
 				wide
 				footer={
@@ -677,7 +704,7 @@ export const CodePage: React.FC = () => {
 										</td>
 									</tr>
 									<tr>
-										<th>코드명</th>
+										<th>{detailNameLabel}</th>
 										<td>
 											<input
 												type="text"
@@ -687,13 +714,13 @@ export const CodePage: React.FC = () => {
 										</td>
 									</tr>
 									<tr>
-										<th>{selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '메뉴 URL' : '설명'}</th>
+										<th>{detailDescriptionLabel}</th>
 										<td>
 											<input
 												type="text"
 												value={detailForm.cdDtlCn}
 												onChange={(e) => setDetailForm({ ...detailForm, cdDtlCn: e.target.value })}
-												placeholder={selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '예: /dashboard, /admins' : undefined}
+												placeholder={isMenuMode || selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '예: /dashboard, /admins' : undefined}
 											/>
 										</td>
 									</tr>
@@ -778,4 +805,3 @@ export const CodePage: React.FC = () => {
 		</AdminLayout>
 	)
 }
-

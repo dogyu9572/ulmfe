@@ -5716,6 +5716,26 @@ input.bbs-post-regdt-input {
 	flex-shrink: 0;
 }
 
+.bbs-post-thumb-wrap .bbs-post-attach-actions button {
+	width: fit-content;
+}
+
+.bbs-post-qna-content {
+	min-height: 120px;
+	padding: 12px;
+	border: 1px solid #e5e7eb;
+	border-radius: 6px;
+	background: #f9fafb;
+	color: #1f2937;
+	line-height: 1.6;
+	word-break: break-word;
+}
+
+.bbs-post-qna-content:empty::before {
+	content: '문의내용이 없습니다.';
+	color: #9ca3af;
+}
+
 .bbs-post-attach-list {
 	list-style: none;
 	margin: 0;
@@ -5917,4 +5937,3 @@ input.bbs-post-regdt-input {
 .exam-excut-schedule-summary th {
 	text-align: center;
 }
-

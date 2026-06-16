@@ -27,6 +27,12 @@
 		<result column="ETC3" property="etc3"/>
 		<result column="ETC4" property="etc4"/>
 		<result column="ETC5" property="etc5"/>
+		<result column="ANS_STTS_CD" property="ansSttsCd"/>
+		<result column="ANS_CN" property="ansCn"/>
+		<result column="ANSWR_NM" property="answrNm"/>
+		<result column="ANSWR_ID" property="answrId"/>
+		<result column="ANS_YMD" property="ansYmd"/>
+		<result column="ANS_DT" property="ansDt"/>
 		<result column="REG_DT" property="regDt"/>
 		<result column="RGTR" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
@@ -38,6 +44,7 @@
 			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
+			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
 			REG_DT, RGTR, MDFCN_DT, MDTR
 		FROM BBS_ARTICLE
 		WHERE BBS_ID = #{bbsId}
@@ -85,6 +92,7 @@
 			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
+			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
 			REG_DT, RGTR, MDFCN_DT, MDTR
 		FROM BBS_ARTICLE
 		<include refid="searchWhere"/>
@@ -105,6 +113,7 @@
 			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
+			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
 			REG_DT, RGTR, MDFCN_DT, MDTR
 		FROM BBS_ARTICLE
 		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
@@ -116,12 +125,15 @@
 			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
+			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
 			REG_DT, RGTR, MDFCN_DT, MDTR
 		) VALUES (
 			#{bbsId}, #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, #{sortSeq},
 			#{ctgrCd}, #{ntcYn}, #{upendFixYn}, #{lckYn}, #{lnkgUrlAddr}, #{pstgYmd},
 			#{atchFileMngNo}, #{thmbFileId}, #{vodFileId}, #{useYn}, #{inqCnt},
 			#{etc1}, #{etc2}, #{etc3}, #{etc4}, #{etc5},
+			#{ansSttsCd}, #{ansCn}, #{answrNm}, #{answrId}, #{ansYmd},
+			CASE WHEN #{ansSttsCd} = 'DONE' THEN NOW() ELSE NULL END,
 			NOW(), #{rgtr}, NOW(), #{mdtr}
 		)
 	</insert>
@@ -135,7 +147,23 @@
 			USE_YN = #{useYn},
 			ETC1 = #{etc1}, ETC2 = #{etc2}, ETC3 = #{etc3},
 			ETC4 = #{etc4}, ETC5 = #{etc5},
+			ANS_STTS_CD = #{ansSttsCd}, ANS_CN = #{ansCn}, ANSWR_NM = #{answrNm}, ANSWR_ID = #{answrId},
+			ANS_YMD = #{ansYmd},
+			ANS_DT = CASE WHEN #{ansSttsCd} = 'DONE' THEN IFNULL(ANS_DT, NOW()) ELSE NULL END,
 			MDFCN_DT = NOW(), MDTR = #{mdtr}
+		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
+	</update>
+
+	<update id="updateBbsPostAnswer">
+		UPDATE BBS_ARTICLE SET
+			ANS_STTS_CD = #{ansSttsCd},
+			ANS_CN = #{ansCn},
+			ANSWR_NM = #{answrNm},
+			ANSWR_ID = #{answrId},
+			ANS_YMD = #{ansYmd},
+			ANS_DT = CASE WHEN #{ansSttsCd} = 'DONE' THEN NOW() ELSE NULL END,
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
 		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
 	</update>
 

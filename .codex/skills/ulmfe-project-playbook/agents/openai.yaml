@@ -1,0 +1,4 @@
+interface:
+  display_name: "ULMFE Project Playbook"
+  short_description: "ULMFE 기획서와 산출물 기준 메뉴 단위 개발 기준"
+  default_prompt: "Use $ulmfe-project-playbook to plan the next ULMFE menu or screen implementation."

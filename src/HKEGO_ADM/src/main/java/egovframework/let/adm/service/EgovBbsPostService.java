@@ -17,6 +17,7 @@ public interface EgovBbsPostService {
 	BbsPostVO getBbsPostById(String bbsId, String postId);
 	BbsPostVO createBbsPost(BbsPostVO bbsPost);
 	BbsPostVO updateBbsPost(BbsPostVO bbsPost);
+	BbsPostVO updateBbsPostAnswer(BbsPostVO bbsPost);
 	void deleteBbsPost(String bbsId, String postId);
 	void incrementViewCount(String bbsId, String postId);
 }

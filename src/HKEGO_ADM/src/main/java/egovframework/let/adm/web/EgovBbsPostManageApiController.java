@@ -104,6 +104,25 @@ public class EgovBbsPostManageApiController {
 	}
 
 	/**
+	 * 1:1 문의 답변 저장
+	 */
+	@PutMapping("/{bbsId}/{postId}/answer")
+	public ApiResponse<BbsPostVO> updateBbsPostAnswer(
+			@PathVariable String bbsId,
+			@PathVariable String postId,
+			@RequestBody BbsPostVO bbsPost) {
+		try {
+			bbsPost.setBbsId(bbsId);
+			bbsPost.setPostId(postId);
+			BbsPostVO updated = bbsPostService.updateBbsPostAnswer(bbsPost);
+			return ApiResponse.success("답변 저장 성공", updated);
+		} catch (Exception e) {
+			log.error("게시글 답변 저장 오류: bbsId={}, postId={}", bbsId, postId, e);
+			return ApiResponse.error("답변 저장 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	/**
 	 * 게시글 삭제
 	 */
 	@DeleteMapping("/{bbsId}/{postId}")

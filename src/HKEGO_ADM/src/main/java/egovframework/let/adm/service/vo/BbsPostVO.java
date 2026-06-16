@@ -37,6 +37,12 @@ public class BbsPostVO {
 	private String etc3;
 	private String etc4;
 	private String etc5;
+	private String ansSttsCd;
+	private String ansCn;
+	private String answrNm;
+	private String answrId;
+	private String ansYmd;
+	private LocalDateTime ansDt;
 	private LocalDateTime regDt;
 	private String rgtr;
 	private LocalDateTime mdfcnDt;
@@ -82,6 +88,16 @@ public class BbsPostVO {
 	public void setNttEtc4(String nttEtc4) { this.etc4 = nttEtc4; }
 	public String getNttEtc5() { return etc5; }
 	public void setNttEtc5(String nttEtc5) { this.etc5 = nttEtc5; }
+	public String getAnswerStatus() { return ansSttsCd; }
+	public void setAnswerStatus(String answerStatus) { this.ansSttsCd = answerStatus; }
+	public String getAnswerContent() { return ansCn; }
+	public void setAnswerContent(String answerContent) { this.ansCn = answerContent; }
+	public String getAnswererName() { return answrNm; }
+	public void setAnswererName(String answererName) { this.answrNm = answererName; }
+	public String getAnswererId() { return answrId; }
+	public void setAnswererId(String answererId) { this.answrId = answererId; }
+	public String getAnswerDate() { return ansYmd; }
+	public void setAnswerDate(String answerDate) { this.ansYmd = answerDate; }
 	public LocalDateTime getRegdt() { return regDt; }
 	public void setRegdt(LocalDateTime regdt) { this.regDt = regdt; }
 	public String getRegId() { return rgtr; }

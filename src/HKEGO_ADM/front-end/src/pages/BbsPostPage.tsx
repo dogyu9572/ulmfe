@@ -36,6 +36,7 @@ type BbsPostDto = {
 	lnkgUrlAddr: string
 	pstgYmd: string
 	thumFileId?: string
+	thmbFileId?: string
 	atchFileMngNo?: string
 	useYn: string
 	inqCnt: number
@@ -45,6 +46,12 @@ type BbsPostDto = {
 	etc3?: string
 	etc4?: string
 	etc5?: string
+	ansSttsCd?: string
+	ansCn?: string
+	answrNm?: string
+	answrId?: string
+	ansYmd?: string
+	ansDt?: string
 }
 
 type CodeDetailRow = {
@@ -68,6 +75,43 @@ function bbsMasterIsY(m: Record<string, string | undefined> | null, key: string)
 	if (!m) return false
 	const v = m[key]
 	return (v || '').toUpperCase() === 'Y'
+}
+
+function getExplicitThumbnailId(row: Partial<BbsPostDto>): string {
+	return ((row.thumFileId || row.thmbFileId || '') as string).trim()
+}
+
+function getListThumbnailId(row: Partial<BbsPostDto>): string {
+	return getExplicitThumbnailId(row) || ((row.atchFileMngNo || '') as string).trim()
+}
+
+function normalizeBbsMasterForPost(raw: Record<string, string | undefined>): Record<string, string | undefined> {
+	return {
+		...raw,
+		thumYn: raw.thumYn ?? raw.thmbYn,
+		topYn: raw.topYn ?? raw.upendFixYn,
+		cateYn: raw.cateYn ?? raw.ctgrYn,
+		cateCd: raw.cateCd ?? raw.ctgrCdId,
+		linkYn: raw.linkYn ?? raw.lnkgYn,
+		lockYn: raw.lockYn ?? raw.lckYn,
+		fileCnt: raw.fileCnt ?? raw.atchFileCnt,
+		fileSize: raw.fileSize ?? raw.atchFileSz,
+		etc1Yn: raw.etc1Yn ?? raw.etc1UseYn,
+		etc1Tp: raw.etc1Tp ?? raw.etc1TypeCd,
+		etc1Cd: raw.etc1Cd ?? raw.etc1CdId,
+		etc2Yn: raw.etc2Yn ?? raw.etc2UseYn,
+		etc2Tp: raw.etc2Tp ?? raw.etc2TypeCd,
+		etc2Cd: raw.etc2Cd ?? raw.etc2CdId,
+		etc3Yn: raw.etc3Yn ?? raw.etc3UseYn,
+		etc3Tp: raw.etc3Tp ?? raw.etc3TypeCd,
+		etc3Cd: raw.etc3Cd ?? raw.etc3CdId,
+		etc4Yn: raw.etc4Yn ?? raw.etc4UseYn,
+		etc4Tp: raw.etc4Tp ?? raw.etc4TypeCd,
+		etc4Cd: raw.etc4Cd ?? raw.etc4CdId,
+		etc5Yn: raw.etc5Yn ?? raw.etc5UseYn,
+		etc5Tp: raw.etc5Tp ?? raw.etc5TypeCd,
+		etc5Cd: raw.etc5Cd ?? raw.etc5CdId
+	}
 }
 
 function parseEtcCsv(s: string): string[] {
@@ -131,7 +175,12 @@ const defaultForm: Partial<BbsPostDto> = {
 	etc2: '',
 	etc3: '',
 	etc4: '',
-	etc5: ''
+	etc5: '',
+	ansSttsCd: 'WAIT',
+	ansCn: '',
+	answrNm: '',
+	answrId: '',
+	ansYmd: ''
 }
 
 /** 게시판 마스터 상세와 동일한 Y/N 토글 (라벨만 필드에 맞게) */
@@ -188,6 +237,23 @@ export const BbsPostPage: React.FC = () => {
 	const [listThumbMap, setListThumbMap] = useState<Record<string, string>>({})
 	const sessionAuthorRef = useRef<{ adminId: string; adminName: string }>({ adminId: '', adminName: '' })
 	const skinTemplateKey = (bbsMaster?.bbsSkinCd || '').trim().toUpperCase()
+	const currentBbsId = (bbsId || '').trim().toUpperCase()
+	const isFaqBoard = currentBbsId === 'FAQ01'
+	const isGalleryBoard = currentBbsId === 'GALRY'
+	const isQnaBoard = currentBbsId === 'QNA01'
+	const categoryFieldLabel = isFaqBoard ? 'FAQ 분류' : isGalleryBoard ? '구분' : '카테고리'
+	const titleFieldLabel = isFaqBoard ? '질문' : isQnaBoard ? '문의제목' : '제목'
+	const contentFieldLabel = isFaqBoard ? '답변' : isQnaBoard ? '문의내용' : '내용'
+	const linkFieldLabel = isGalleryBoard ? '영상 임베드 링크' : '링크'
+	const attachFieldLabel = isGalleryBoard ? '첨부파일(이미지)' : '첨부파일'
+
+	useEffect(() => {
+		if (!message) return
+		const timer = window.setTimeout(() => {
+			setMessage(null)
+		}, 3000)
+		return () => window.clearTimeout(timer)
+	}, [message])
 
 	useEffect(() => {
 		let cancelled = false
@@ -222,7 +288,7 @@ export const BbsPostPage: React.FC = () => {
 				for (const [k, v] of Object.entries(result.data)) {
 					mapped[k] = v == null ? undefined : String(v)
 				}
-				setBbsMaster(mapped)
+				setBbsMaster(normalizeBbsMasterForPost(mapped))
 				setBbsName(mapped.bbsNm || id)
 			} else {
 				setBbsMaster(null)
@@ -333,11 +399,12 @@ export const BbsPostPage: React.FC = () => {
 	}
 
 	useEffect(() => {
-		if (!popupOpen || !bbsMasterIsY(bbsMaster, 'thumYn') || !form.thumFileId || thumFile) {
+		const thumbnailId = getExplicitThumbnailId(form)
+		if (!popupOpen || !bbsMasterIsY(bbsMaster, 'thumYn') || !thumbnailId || thumFile) {
 			return
 		}
 		let cancelled = false
-		void fetch(`${BACKEND}/api/admin/upload/info/${encodeURIComponent(form.thumFileId)}`, { credentials: 'include' })
+		void fetch(`${BACKEND}/api/admin/upload/info/${encodeURIComponent(thumbnailId)}`, { credentials: 'include' })
 			.then((r) => r.json())
 			.then((j: ApiResponse<UploadInfo>) => {
 				if (cancelled || !j.success || !j.data?.fileUrl) return
@@ -350,7 +417,7 @@ export const BbsPostPage: React.FC = () => {
 		return () => {
 			cancelled = true
 		}
-	}, [popupOpen, bbsMaster, form.thumFileId, thumFile])
+	}, [popupOpen, bbsMaster, form.thumFileId, form.thmbFileId, thumFile])
 
 	const loadAttachFileInfos = useCallback(async (fiId: string) => {
 		const id = (fiId || '').trim()
@@ -392,7 +459,7 @@ export const BbsPostPage: React.FC = () => {
 			setListThumbMap({})
 			return
 		}
-		const ids = [...new Set(list.map((row) => (row.thumFileId || '').trim()).filter(Boolean))]
+		const ids = [...new Set(list.map((row) => getListThumbnailId(row)).filter(Boolean))]
 		if (ids.length === 0) {
 			setListThumbMap({})
 			return
@@ -437,7 +504,12 @@ export const BbsPostPage: React.FC = () => {
 				etc2: '',
 				etc3: '',
 				etc4: '',
-				etc5: ''
+				etc5: '',
+				ansSttsCd: 'WAIT',
+				ansCn: '',
+				answrNm: '',
+				answrId: '',
+				ansYmd: ''
 			})
 			revokeThumObjectUrl()
 			setThumFile(null)
@@ -479,7 +551,12 @@ export const BbsPostPage: React.FC = () => {
 			etc2: row.etc2 ?? '',
 			etc3: row.etc3 ?? '',
 			etc4: row.etc4 ?? '',
-			etc5: row.etc5 ?? ''
+			etc5: row.etc5 ?? '',
+			ansSttsCd: row.ansSttsCd ?? 'WAIT',
+			ansCn: row.ansCn ?? '',
+			answrNm: row.answrNm ?? '',
+			answrId: row.answrId ?? '',
+			ansYmd: row.ansYmd || new Date().toISOString().slice(0, 10)
 		})
 		setThumFile(null)
 		setThumPreviewUrl('')
@@ -508,7 +585,7 @@ export const BbsPostPage: React.FC = () => {
 		setThumFile(null)
 		setThumPreviewUrl('')
 		setThumDisplayName('')
-		setForm((prev) => ({ ...prev, thumFileId: '' }))
+		setForm((prev) => ({ ...prev, thumFileId: '', thmbFileId: '' }))
 		if (thumInputRef.current) thumInputRef.current.value = ''
 	}
 
@@ -721,18 +798,39 @@ export const BbsPostPage: React.FC = () => {
 			return
 		}
 		let pstCn = form.pstCn ?? ''
-		try {
-			const w = typeof window !== 'undefined' ? (window as unknown as { $?: (s: string) => { summernote: (c: string) => string } }) : null
-			if (w?.$) {
-				const code = w.$('#' + SUMMERNOTE_ID).summernote('code')
-				if (typeof code === 'string') pstCn = code
+		if (!isQnaBoard) {
+			try {
+				const w = typeof window !== 'undefined' ? (window as unknown as { $?: (s: string) => { summernote: (c: string) => string } }) : null
+				if (w?.$) {
+					const code = w.$('#' + SUMMERNOTE_ID).summernote('code')
+					if (typeof code === 'string') pstCn = code
+				}
+			} catch {
+				// keep form.pstCn
 			}
-		} catch {
-			// keep form.pstCn
 		}
 		// img src에서 도메인 제거 → /uploads/... 만 저장 (사용자페이지 공통 노출용)
 		pstCn = (pstCn || '').replace(/src="(https?:\/\/[^"]*)(\/uploads\/[^"]+)"/gi, 'src="$2"')
 		const payload: Partial<BbsPostDto> & { bbsId: string; pstCn: string } = { ...form, pstCn, bbsId }
+		if (isQnaBoard) {
+			const answerStatus = (payload.ansSttsCd || 'WAIT').toUpperCase()
+			payload.ansSttsCd = answerStatus === 'DONE' ? 'DONE' : 'WAIT'
+			if (payload.ansSttsCd === 'DONE') {
+				if (!String(payload.ansCn || '').trim()) {
+					setError('답변내용을 입력하세요.')
+					return
+				}
+				const { adminId, adminName } = sessionAuthorRef.current
+				payload.answrId = payload.answrId || adminId
+				payload.answrNm = payload.answrNm || adminName
+				payload.ansYmd = payload.ansYmd || new Date().toISOString().slice(0, 10)
+			} else {
+				payload.answrId = ''
+				payload.answrNm = ''
+				payload.ansYmd = ''
+				payload.ansCn = ''
+			}
+		}
 		if (bbsMaster) {
 			if (!bbsMasterIsY(bbsMaster, 'topYn')) {
 				payload.ntcYn = 'N'
@@ -754,6 +852,36 @@ export const BbsPostPage: React.FC = () => {
 		setError(null)
 		setMessage(null)
 		try {
+			if (isQnaBoard && popupMode !== 'new') {
+				const { adminId } = sessionAuthorRef.current
+				const answerPayload = {
+					ansSttsCd: payload.ansSttsCd,
+					ansCn: payload.ansCn,
+					answrNm: payload.answrNm,
+					answrId: payload.answrId,
+					ansYmd: payload.ansYmd,
+					mdtr: adminId || payload.answrId || ''
+				}
+				const res = await fetch(
+					`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}/${encodeURIComponent(form.pstSn!)}/answer`,
+					{
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(answerPayload),
+						credentials: 'include'
+					}
+				)
+				const result: ApiResponse<BbsPostDto> = await res.json()
+				if (!result.success) {
+					setError(result.message || '답변 저장에 실패했습니다.')
+					return
+				}
+				setMessage('답변이 저장되었습니다.')
+				closePopup()
+				await fetchList()
+				return
+			}
+
 			if (bbsMasterIsY(bbsMaster, 'thumYn')) {
 				if (thumFile) {
 					const fd = new FormData()
@@ -771,19 +899,29 @@ export const BbsPostPage: React.FC = () => {
 						return
 					}
 					payload.thumFileId = uploadResult.data.fiId
+					payload.thmbFileId = uploadResult.data.fiId
 				} else {
-					payload.thumFileId = (form.thumFileId ?? '').trim()
+					const thumbnailId = getExplicitThumbnailId(form)
+					payload.thumFileId = thumbnailId
+					payload.thmbFileId = thumbnailId
 				}
 			} else {
 				payload.thumFileId = ''
+				payload.thmbFileId = ''
 			}
 
 			if (bbsMasterIsY(bbsMaster, 'atchFileYn')) {
 				let atchFiId = (form.atchFileMngNo ?? '').trim()
+				let firstNewAttachIsImage = false
 				for (let i = 0; i < attachFiles.length; i++) {
+					if (i === 0) firstNewAttachIsImage = attachFiles[i].type.startsWith('image/')
 					atchFiId = await uploadAttachFileToFiId(attachFiles[i], atchFiId)
 				}
 				payload.atchFileMngNo = atchFiId
+				if (bbsMasterIsY(bbsMaster, 'thumYn') && !payload.thumFileId && firstNewAttachIsImage) {
+					payload.thumFileId = atchFiId
+					payload.thmbFileId = atchFiId
+				}
 			} else {
 				payload.atchFileMngNo = ''
 			}
@@ -995,6 +1133,9 @@ export const BbsPostPage: React.FC = () => {
 					pageSize={pageSize}
 					loading={loading}
 					thumbnailUrlMap={listThumbMap}
+					showCate={showCateInList}
+					categoryLabel={categoryFieldLabel}
+					getCategoryLabel={getCategoryLabel}
 					showTop={showTopInList}
 					{...listSelectionProps}
 					onEdit={(row) => openEditPopup(row as BbsPostDto)}
@@ -1012,9 +1153,12 @@ export const BbsPostPage: React.FC = () => {
 				loading={loading}
 				showThum={showThumInList}
 				thumbnailUrlMap={listThumbMap}
-				showCate={showCateInList}
-				showTop={showTopInList}
-				getCategoryLabel={getCategoryLabel}
+					showCate={showCateInList}
+					categoryLabel={categoryFieldLabel}
+					titleLabel={titleFieldLabel}
+					qnaMode={isQnaBoard}
+					showTop={showTopInList}
+					getCategoryLabel={getCategoryLabel}
 				{...listSelectionProps}
 				allSelected={allSelected}
 				someSelected={someSelected}
@@ -1051,17 +1195,19 @@ export const BbsPostPage: React.FC = () => {
 							))}
 						</select>
 					</div>
-					<div className="list-toolbar-actions">
-						<button
-							type="button"
-							className="admin-footer-btn-delete"
+						<div className="list-toolbar-actions">
+							<button
+								type="button"
+								className="admin-footer-btn-delete"
 							disabled={selectedPostIds.size === 0 || loading}
 							onClick={handleBulkDelete}
-						>
-							선택삭제{selectedPostIds.size > 0 ? ` (${selectedPostIds.size})` : ''}
-						</button>
-						<button type="button" className="admin-list-btn-sky" onClick={openNewPopup}>신규</button>
-					</div>
+							>
+								선택삭제{selectedPostIds.size > 0 ? ` (${selectedPostIds.size})` : ''}
+							</button>
+							{!isQnaBoard ? (
+								<button type="button" className="admin-list-btn-sky" onClick={openNewPopup}>신규</button>
+							) : null}
+						</div>
 				</div>
 				<div className="bbs-post-filters search-section">
 					<div className="bbs-post-filter-row">
@@ -1070,9 +1216,9 @@ export const BbsPostPage: React.FC = () => {
 							onChange={(e) => setSearchType(e.target.value)}
 							className="bbs-post-filter-select"
 						>
-							<option value="title">제목</option>
+							<option value="title">{titleFieldLabel}</option>
 							<option value="content">내용</option>
-							<option value="all">제목+내용</option>
+							<option value="all">{titleFieldLabel}+내용</option>
 						</select>
 						<input
 							type="text"
@@ -1085,7 +1231,7 @@ export const BbsPostPage: React.FC = () => {
 					</div>
 					{showCateInList ? (
 						<div className="bbs-post-filter-row">
-							<label className="bbs-post-filter-label">분류</label>
+							<label className="bbs-post-filter-label">{categoryFieldLabel}</label>
 							{(() => {
 								const cdId = (bbsMaster?.cateCd || '').trim()
 								const opts = cdId ? etcCodeOptions[cdId] ?? [] : []
@@ -1202,7 +1348,7 @@ export const BbsPostPage: React.FC = () => {
 
 			<LayerPopup
 				open={popupOpen}
-				title={popupMode === 'new' ? '게시글 등록' : '게시글 상세 (수정)'}
+				title={isQnaBoard ? '1:1 문의 상세' : popupMode === 'new' ? '게시글 등록' : '게시글 상세 (수정)'}
 				onClose={closePopup}
 				wideDouble
 				footer={
@@ -1219,7 +1365,7 @@ export const BbsPostPage: React.FC = () => {
 							</button>
 						)}
 						<button type="button" className="admin-list-btn-edit" onClick={handleSave} disabled={loading}>
-							{popupMode === 'new' ? '등록' : '수정'}
+							{isQnaBoard ? '저장' : popupMode === 'new' ? '등록' : '수정'}
 						</button>
 						<button type="button" className="admin-footer-btn-close" onClick={closePopup}>닫기</button>
 					</>
@@ -1241,12 +1387,13 @@ export const BbsPostPage: React.FC = () => {
 							</tr>
 						)}
 						<tr>
-							<th>제목</th>
+							<th>{titleFieldLabel}</th>
 							<td colSpan={3}>
 								<input
 									type="text"
 									value={form.pstTtl ?? ''}
 									onChange={(e) => setForm({ ...form, pstTtl: e.target.value })}
+									readOnly={isQnaBoard}
 									style={{ width: '100%', maxWidth: '100%' }}
 								/>
 							</td>
@@ -1276,7 +1423,7 @@ export const BbsPostPage: React.FC = () => {
 							<tr>
 								{bbsMasterIsY(bbsMaster, 'cateYn') ? (
 									<>
-										<th>카테고리</th>
+											<th>{categoryFieldLabel}</th>
 										<td colSpan={bbsMasterIsY(bbsMaster, 'topYn') ? 1 : 3}>
 											{(() => {
 												const cd = (bbsMaster?.cateCd || '').trim()
@@ -1303,7 +1450,7 @@ export const BbsPostPage: React.FC = () => {
 														className="bbs-post-category-input"
 														value={form.category ?? ''}
 														onChange={(e) => setForm({ ...form, category: e.target.value })}
-														placeholder={cd ? `공통코드 ${cd} 항목이 없으면 직접 입력` : '카테고리'}
+														placeholder={cd ? `공통코드 ${cd} 항목이 없으면 직접 입력` : categoryFieldLabel}
 													/>
 												)
 											})()}
@@ -1342,7 +1489,7 @@ export const BbsPostPage: React.FC = () => {
 						) : null}
 						{bbsMasterIsY(bbsMaster, 'linkYn') ? (
 							<tr>
-								<th>링크</th>
+									<th>{linkFieldLabel}</th>
 								<td colSpan={3}>
 									<input
 										type="text"
@@ -1353,155 +1500,151 @@ export const BbsPostPage: React.FC = () => {
 								</td>
 							</tr>
 						) : null}
-						{(bbsMasterIsY(bbsMaster, 'thumYn') || bbsMasterIsY(bbsMaster, 'atchFileYn')) ? (
+						{bbsMasterIsY(bbsMaster, 'thumYn') ? (
 							<tr>
-								{bbsMasterIsY(bbsMaster, 'atchFileYn') ? (
-									<>
-										<th>첨부파일</th>
-										<td colSpan={bbsMasterIsY(bbsMaster, 'thumYn') ? 1 : 3}>
-											<input
-												ref={attachInputRef}
-												type="file"
-												multiple
-												className="bbs-post-attach-input-hidden"
-												onChange={(e) => {
-													const files = e.target.files ? Array.from(e.target.files) : []
-													handleAttachFilesSelected(files)
-													e.target.value = ''
-												}}
-											/>
-											<div className="bbs-post-attach-wrap">
-												<div className="bbs-post-attach-actions">
-													<button
-														type="button"
-														className="admin-list-btn-sky"
-														onClick={() => attachInputRef.current?.click()}
-														disabled={loading}
-													>
-														파일 선택
-													</button>
-													{(attachFiles.length > 0 ||
-														attachFileInfos.length > 0 ||
-														(form.atchFileMngNo || '').trim()) && (
-														<button
-															type="button"
-															className="admin-footer-btn-delete"
-															onClick={resetAllAttachments}
-															disabled={loading}
-														>
-															전체 삭제
-														</button>
-													)}
-												</div>
-												<ul className="bbs-post-attach-list">
-													{attachFileInfos.map((it) => (
-														<li key={`saved-${it.fiId}-${it.fiSn ?? ''}`}>
-															<span>{it.fileOriginName || `${it.fiId}#${it.fiSn ?? ''}`}</span>
-															{it.fiId && it.fiSn != null ? (
-																<a
-																	href={adminFileDownloadUrl(it.fiId, it.fiSn)}
-																	target="_blank"
-																	rel="noreferrer"
-																>
-																	다운로드
-																</a>
-															) : null}
-															<button
-																type="button"
-																className="admin-footer-btn-delete bbs-post-attach-del"
-																onClick={() => void handleDeleteSavedAttach(it)}
-																disabled={loading}
-															>
-																삭제
-															</button>
-														</li>
-													))}
-													{attachFiles.map((file, idx) => (
-														<li key={`pending-${idx}-${file.name}`}>
-															<span>{file.name}</span>
-															<span className="bbs-post-attach-pending">(저장 시 업로드)</span>
-															<button
-																type="button"
-																className="admin-footer-btn-delete bbs-post-attach-del"
-																onClick={() => handleRemovePendingAttach(idx)}
-																disabled={loading}
-															>
-																삭제
-															</button>
-														</li>
-													))}
-													{attachFileInfos.length === 0 && attachFiles.length === 0 ? (
-														<li className="bbs-post-attach-empty">선택된 파일 없음</li>
-													) : null}
-												</ul>
-											</div>
-											{(maxAttachCount > 0 || maxAttachMbLabel) && (
-												<p className="bbs-post-attach-limit-hint">
-													{maxAttachCount > 0 ? (
-														<span className="bbs-post-attach-limit">(최대 {maxAttachCount}개)</span>
-													) : null}
-													{maxAttachMbLabel ? (
-														<span className="bbs-post-attach-limit">({maxAttachMbLabel} 이하)</span>
-													) : null}
-												</p>
+								<th>썸네일 이미지</th>
+								<td colSpan={3}>
+									<input
+										ref={thumInputRef}
+										type="file"
+										accept="image/*"
+										className="bbs-post-attach-input-hidden"
+										onChange={(e) => {
+											const file = e.target.files?.[0] ?? null
+											e.target.value = ''
+											handleThumFileSelected(file)
+										}}
+									/>
+									<div className="bbs-post-thumb-wrap">
+										<div className="bbs-post-attach-actions">
+											<button
+												type="button"
+												className="admin-list-btn-sky"
+												onClick={() => thumInputRef.current?.click()}
+												disabled={loading}
+											>
+												파일 선택
+											</button>
+											{(thumFile || getExplicitThumbnailId(form)) && (
+												<button
+													type="button"
+													className="admin-footer-btn-delete"
+													onClick={clearThumImage}
+													disabled={loading}
+												>
+													제거
+												</button>
 											)}
-										</td>
-									</>
-								) : null}
-								{bbsMasterIsY(bbsMaster, 'thumYn') ? (
-									<>
-										<th>썸네일</th>
-										<td colSpan={bbsMasterIsY(bbsMaster, 'atchFileYn') ? 1 : 3}>
-											<input
-												ref={thumInputRef}
-												type="file"
-												accept="image/*"
-												className="bbs-post-attach-input-hidden"
-												onChange={(e) => {
-													const file = e.target.files?.[0] ?? null
-													e.target.value = ''
-													handleThumFileSelected(file)
-												}}
-											/>
-											<div className="bbs-post-thumb-wrap">
-												<div className="bbs-post-attach-actions">
+										</div>
+										{thumPreviewUrl ? (
+											<div className="bbs-post-thumb-preview-box">
+												<img
+													src={thumPreviewUrl}
+													alt="썸네일 미리보기"
+													className="bbs-post-thumb-preview-img"
+												/>
+												<div className="bbs-post-thumb-preview-name">
+													{thumFile
+														? thumFile.name
+														: thumDisplayName || getExplicitThumbnailId(form)}
+											</div>
+											</div>
+										) : null}
+									</div>
+								</td>
+							</tr>
+						) : null}
+						{bbsMasterIsY(bbsMaster, 'atchFileYn') ? (
+							<tr>
+									<th>{attachFieldLabel}</th>
+								<td colSpan={3}>
+									<input
+										ref={attachInputRef}
+										type="file"
+										multiple
+										className="bbs-post-attach-input-hidden"
+										onChange={(e) => {
+											const files = e.target.files ? Array.from(e.target.files) : []
+											handleAttachFilesSelected(files)
+											e.target.value = ''
+										}}
+									/>
+									<div className="bbs-post-attach-wrap">
+										<div className="bbs-post-attach-actions">
+											<button
+												type="button"
+												className="admin-list-btn-sky"
+												onClick={() => attachInputRef.current?.click()}
+												disabled={loading}
+											>
+												파일 선택
+											</button>
+											{(attachFiles.length > 0 ||
+												attachFileInfos.length > 0 ||
+												(form.atchFileMngNo || '').trim()) && (
+												<button
+													type="button"
+													className="admin-footer-btn-delete"
+													onClick={resetAllAttachments}
+													disabled={loading}
+												>
+													전체 삭제
+												</button>
+											)}
+										</div>
+										<ul className="bbs-post-attach-list">
+											{attachFileInfos.map((it) => (
+												<li key={`saved-${it.fiId}-${it.fiSn ?? ''}`}>
+													<span>{it.fileOriginName || `${it.fiId}#${it.fiSn ?? ''}`}</span>
+													{it.fiId && it.fiSn != null ? (
+														<a
+															href={adminFileDownloadUrl(it.fiId, it.fiSn)}
+															target="_blank"
+															rel="noreferrer"
+														>
+															다운로드
+														</a>
+													) : null}
 													<button
 														type="button"
-														className="admin-list-btn-sky"
-														onClick={() => thumInputRef.current?.click()}
+														className="admin-footer-btn-delete bbs-post-attach-del"
+														onClick={() => void handleDeleteSavedAttach(it)}
 														disabled={loading}
 													>
-														파일 선택
+														삭제
 													</button>
-													{(thumFile || (form.thumFileId || '').trim()) && (
-														<button
-															type="button"
-															className="admin-footer-btn-delete"
-															onClick={clearThumImage}
-															disabled={loading}
-														>
-															제거
-														</button>
-													)}
-												</div>
-												{thumPreviewUrl ? (
-													<div className="bbs-post-thumb-preview-box">
-														<img
-															src={thumPreviewUrl}
-															alt="썸네일 미리보기"
-															className="bbs-post-thumb-preview-img"
-														/>
-														<div className="bbs-post-thumb-preview-name">
-															{thumFile
-																? thumFile.name
-																: thumDisplayName || form.thumFileId || ''}
-														</div>
-													</div>
-												) : null}
-											</div>
-										</td>
-									</>
-								) : null}
+												</li>
+											))}
+											{attachFiles.map((file, idx) => (
+												<li key={`pending-${idx}-${file.name}`}>
+													<span>{file.name}</span>
+													<span className="bbs-post-attach-pending">(저장 시 업로드)</span>
+													<button
+														type="button"
+														className="admin-footer-btn-delete bbs-post-attach-del"
+														onClick={() => handleRemovePendingAttach(idx)}
+														disabled={loading}
+													>
+														삭제
+													</button>
+												</li>
+											))}
+											{attachFileInfos.length === 0 && attachFiles.length === 0 ? (
+												<li className="bbs-post-attach-empty">선택된 파일 없음</li>
+											) : null}
+										</ul>
+									</div>
+									{(maxAttachCount > 0 || maxAttachMbLabel) && (
+										<p className="bbs-post-attach-limit-hint">
+											{maxAttachCount > 0 ? (
+												<span className="bbs-post-attach-limit">(최대 {maxAttachCount}개)</span>
+											) : null}
+											{maxAttachMbLabel ? (
+												<span className="bbs-post-attach-limit">({maxAttachMbLabel} 이하)</span>
+											) : null}
+										</p>
+									)}
+								</td>
 							</tr>
 						) : null}
 						{([1, 2, 3, 4, 5] as const).flatMap((idx) => {
@@ -1611,19 +1754,79 @@ export const BbsPostPage: React.FC = () => {
 								</tr>
 							]
 						})}
-						<tr>
-							<th>내용</th>
-							<td colSpan={3}>
-								<div className="bbs-post-summernote-wrap">
-									<textarea
-										id={SUMMERNOTE_ID}
-										defaultValue={form.pstCn ?? ''}
-										className="board-form-textarea summernote-editor"
-										rows={10}
-									/>
-								</div>
-							</td>
-						</tr>
+							{isQnaBoard ? (
+								<>
+									<tr>
+										<th>{contentFieldLabel}</th>
+										<td colSpan={3}>
+											<div
+												className="bbs-post-qna-content"
+												dangerouslySetInnerHTML={{ __html: form.pstCn || '' }}
+											/>
+										</td>
+									</tr>
+									<tr>
+										<th>답변상태</th>
+										<td>
+											<select
+												value={(form.ansSttsCd || 'WAIT').toUpperCase()}
+												onChange={(e) => setForm({ ...form, ansSttsCd: e.target.value })}
+												className="bbs-post-category-input"
+											>
+												<option value="WAIT">답변대기</option>
+												<option value="DONE">답변완료</option>
+											</select>
+										</td>
+										<th>답변일</th>
+										<td>
+											<input
+												type="date"
+												className="bbs-post-regDt-input"
+												value={form.ansYmd ?? ''}
+												disabled={(form.ansSttsCd || 'WAIT').toUpperCase() !== 'DONE'}
+												onChange={(e) => setForm({ ...form, ansYmd: e.target.value })}
+											/>
+										</td>
+									</tr>
+									<tr>
+										<th>답변자</th>
+										<td colSpan={3}>
+											<input
+												type="text"
+												className="bbs-post-author-input"
+												value={form.answrNm || sessionAuthorRef.current.adminName || ''}
+												readOnly
+											/>
+										</td>
+									</tr>
+									<tr>
+										<th>답변내용</th>
+										<td colSpan={3}>
+											<textarea
+												value={form.ansCn ?? ''}
+												disabled={(form.ansSttsCd || 'WAIT').toUpperCase() !== 'DONE'}
+												onChange={(e) => setForm({ ...form, ansCn: e.target.value })}
+												rows={8}
+												style={{ width: '100%', maxWidth: '100%', padding: 8, resize: 'vertical' }}
+											/>
+										</td>
+									</tr>
+								</>
+							) : (
+								<tr>
+									<th>{contentFieldLabel}</th>
+									<td colSpan={3}>
+										<div className="bbs-post-summernote-wrap">
+											<textarea
+												id={SUMMERNOTE_ID}
+												defaultValue={form.pstCn ?? ''}
+												className="board-form-textarea summernote-editor"
+												rows={10}
+											/>
+										</div>
+									</td>
+								</tr>
+							)}
 						<tr>
 							<th>작성자명</th>
 							<td>

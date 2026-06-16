@@ -89,10 +89,38 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 		if (bbsPostDAO.selectBbsPostById(bbsPost.getBbsId(), bbsPost.getPstSn()) == null) {
 			throw new RuntimeException("수정할 게시글을 찾을 수 없습니다.");
 		}
+		setDefaultValues(bbsPost);
 		bbsPost.setMdfcnDt(LocalDateTime.now());
 		int rows = bbsPostDAO.updateBbsPost(bbsPost);
 		if (rows <= 0) {
 			throw new RuntimeException("게시글 수정에 실패했습니다.");
+		}
+		return bbsPost;
+	}
+
+	@Transactional
+	public BbsPostVO updateBbsPostAnswer(BbsPostVO bbsPost) {
+		if (bbsPostDAO.selectBbsPostById(bbsPost.getBbsId(), bbsPost.getPstSn()) == null) {
+			throw new RuntimeException("답변할 게시글을 찾을 수 없습니다.");
+		}
+		String answerStatus = bbsPost.getAnsSttsCd();
+		if (answerStatus == null || answerStatus.isBlank()) {
+			answerStatus = "WAIT";
+		}
+		answerStatus = "DONE".equalsIgnoreCase(answerStatus) ? "DONE" : "WAIT";
+		bbsPost.setAnsSttsCd(answerStatus);
+		if ("WAIT".equals(answerStatus)) {
+			bbsPost.setAnsCn(null);
+			bbsPost.setAnswrNm(null);
+			bbsPost.setAnswrId(null);
+			bbsPost.setAnsYmd(null);
+		} else if (bbsPost.getAnsCn() == null || bbsPost.getAnsCn().isBlank()) {
+			throw new RuntimeException("답변내용을 입력하세요.");
+		}
+		bbsPost.setMdfcnDt(LocalDateTime.now());
+		int rows = bbsPostDAO.updateBbsPostAnswer(bbsPost);
+		if (rows <= 0) {
+			throw new RuntimeException("답변 저장에 실패했습니다.");
 		}
 		return bbsPost;
 	}
@@ -133,5 +161,6 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 		if (bbsPost.getUseYn() == null) bbsPost.setUseYn("Y");
 		if (bbsPost.getInqCnt() == null) bbsPost.setInqCnt(0);
 		if (bbsPost.getSortSeq() == null) bbsPost.setSortSeq(0);
+		if (bbsPost.getAnsSttsCd() == null) bbsPost.setAnsSttsCd("WAIT");
 	}
 }
