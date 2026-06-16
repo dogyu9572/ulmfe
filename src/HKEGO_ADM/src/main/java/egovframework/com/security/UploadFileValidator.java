@@ -18,7 +18,7 @@ public final class UploadFileValidator {
 	private static final Set<String> GENERAL_ATTACHMENT_EXTENSIONS = Set.of(
 		".jpg", ".jpeg", ".png", ".gif", ".webp",
 		".pdf", ".xls", ".xlsx", ".doc", ".docx", ".hwp", ".hwpx",
-		".ppt", ".pptx", ".zip", ".txt", ".csv"
+		".ppt", ".pptx", ".zip", ".txt", ".csv", ".ico"
 	);
 
 	private UploadFileValidator() {
@@ -61,6 +61,10 @@ public final class UploadFileValidator {
 		}
 		if (".pdf".equals(ext)) {
 			validatePdfMagicBytes(file);
+			return;
+		}
+		if (".ico".equals(ext)) {
+			validateIcoMagicBytes(file);
 		}
 	}
 
@@ -120,6 +124,13 @@ public final class UploadFileValidator {
 		byte[] header = readHeader(file, 5);
 		if (!startsWithAscii(header, "%PDF-")) {
 			throw new RuntimeException("PDF 파일 형식이 올바르지 않습니다.");
+		}
+	}
+
+	private static void validateIcoMagicBytes(MultipartFile file) {
+		byte[] header = readHeader(file, 4);
+		if (header.length < 4 || header[0] != 0 || header[1] != 0 || header[2] != 1 || header[3] != 0) {
+			throw new RuntimeException("ICO 파일 형식이 올바르지 않습니다.");
 		}
 	}
 

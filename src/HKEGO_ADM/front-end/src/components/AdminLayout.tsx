@@ -77,8 +77,8 @@ type MenuIconName =
 	| 'folder'
 
 const NO_MENU_PATH = '#'
-const SESSION_CACHE_KEY = 'hkego-admin-session-cache'
-const MENU_CACHE_KEY = 'hkego-admin-menu-cache'
+const SESSION_CACHE_KEY = 'hkego-admin-session-cache-v2'
+const MENU_CACHE_KEY = 'hkego-admin-menu-cache-v2'
 
 function readCache<T>(key: string, fallback: T): T {
 	if (typeof window === 'undefined') {
@@ -721,4 +721,3 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 		</div>
 	)
 }
-

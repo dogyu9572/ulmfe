@@ -269,6 +269,8 @@ public class EgovFileInfoServiceImpl extends EgovAbstractServiceImpl implements 
 			case "edu-course" -> "edu-course/";
 			case "exam-qbank" -> "exam-qbank/";
 			case "schedule" -> "schedule/";
+			case "history" -> "history/";
+			case "org-chart" -> "org-chart/";
 			case "bbs", "bbs_attach" -> "bbs/";
 			case "hybrid-app-icon" -> "hybrid-app/icon/";
 			case "hybrid-app-splash" -> "hybrid-app/splash/";

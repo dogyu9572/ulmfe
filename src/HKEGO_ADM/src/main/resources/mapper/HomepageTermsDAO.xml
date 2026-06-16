@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.HomepageTermsDAO">
+	<resultMap id="HomepageTermsMap" type="egovframework.let.adm.service.vo.HomepageTermsVO">
+		<id column="TRMS_SN" property="trmsSn"/>
+		<result column="TRMS_TYPE_CD" property="trmsTypeCd"/>
+		<result column="TRMS_TYPE_NM" property="trmsTypeNm"/>
+		<result column="TRMS_TTL" property="trmsTtl"/>
+		<result column="TRMS_CN" property="trmsCn"/>
+		<result column="CURRENT_YN" property="currentYn"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtrNm"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+		<result column="DEL_DT" property="delDt"/>
+		<result column="DELTR" property="deltr"/>
+	</resultMap>
+
+	<sql id="termsWhere">
+		WHERE DEL_YN = 'N'
+		<if test="termsTypeCd != null and termsTypeCd != ''">
+			AND TRMS_TYPE_CD = #{termsTypeCd}
+		</if>
+		<if test="currentYn != null and currentYn != ''">
+			AND CURRENT_YN = #{currentYn}
+		</if>
+		<if test="startRegDate != null and startRegDate != ''">
+			AND DATE(REG_DT) &gt;= #{startRegDate}
+		</if>
+		<if test="endRegDate != null and endRegDate != ''">
+			AND DATE(REG_DT) &lt;= #{endRegDate}
+		</if>
+		<if test="searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType == 'content'">
+					AND TRMS_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'all'">
+					AND (TRMS_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR TRMS_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</when>
+				<otherwise>
+					AND TRMS_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectTermsList" resultMap="HomepageTermsMap">
+		SELECT TRMS_SN, TRMS_TYPE_CD, TRMS_TYPE_NM, TRMS_TTL, TRMS_CN, CURRENT_YN, DEL_YN,
+			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_TERMS
+		<include refid="termsWhere"/>
+		ORDER BY REG_DT DESC, TRMS_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="selectTermsCount" resultType="int">
+		SELECT COUNT(*)
+		FROM HMPG_TERMS
+		<include refid="termsWhere"/>
+	</select>
+
+	<select id="selectTerms" parameterType="int" resultMap="HomepageTermsMap">
+		SELECT TRMS_SN, TRMS_TYPE_CD, TRMS_TYPE_NM, TRMS_TTL, TRMS_CN, CURRENT_YN, DEL_YN,
+			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_TERMS
+		WHERE TRMS_SN = #{value}
+			AND DEL_YN = 'N'
+	</select>
+
+	<insert id="insertTerms" parameterType="egovframework.let.adm.service.vo.HomepageTermsVO"
+		useGeneratedKeys="true" keyProperty="trmsSn">
+		INSERT INTO HMPG_TERMS (
+			TRMS_TYPE_CD, TRMS_TYPE_NM, TRMS_TTL, TRMS_CN, CURRENT_YN, DEL_YN,
+			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR
+		) VALUES (
+			#{trmsTypeCd}, #{trmsTypeNm}, #{trmsTtl}, #{trmsCn}, #{currentYn}, 'N',
+			NOW(), #{rgtr}, #{rgtrNm}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateTerms" parameterType="egovframework.let.adm.service.vo.HomepageTermsVO">
+		UPDATE HMPG_TERMS
+		SET
+			TRMS_TYPE_CD = #{trmsTypeCd},
+			TRMS_TYPE_NM = #{trmsTypeNm},
+			TRMS_TTL = #{trmsTtl},
+			TRMS_CN = #{trmsCn},
+			CURRENT_YN = #{currentYn},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE TRMS_SN = #{trmsSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="clearCurrentTerms" parameterType="map">
+		UPDATE HMPG_TERMS
+		SET CURRENT_YN = 'N',
+			MDFCN_DT = NOW()
+		WHERE DEL_YN = 'N'
+			AND TRMS_TYPE_CD = #{trmsTypeCd}
+			<if test="exceptTrmsSn != null">
+				AND TRMS_SN != #{exceptTrmsSn}
+			</if>
+	</update>
+
+	<update id="deleteTerms" parameterType="map">
+		UPDATE HMPG_TERMS
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE TRMS_SN = #{trmsSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteTermsList" parameterType="map">
+		UPDATE HMPG_TERMS
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE DEL_YN = 'N'
+			AND TRMS_SN IN
+			<foreach collection="trmsSns" item="trmsSn" open="(" separator="," close=")">
+				#{trmsSn}
+			</foreach>
+	</update>
+</mapper>

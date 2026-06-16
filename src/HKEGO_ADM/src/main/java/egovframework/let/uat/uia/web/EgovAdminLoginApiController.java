@@ -7,6 +7,7 @@ import egovframework.let.adm.service.vo.SessionInfo;
 import egovframework.let.adm.service.vo.AdminAccessLogVO;
 import egovframework.let.adm.service.vo.AdminInfoVO;
 import egovframework.let.adm.service.EgovAuthGroupService;
+import egovframework.let.adm.service.EgovAccessEnvironmentService;
 import egovframework.let.adm.service.EgovAdminService;
 import egovframework.let.adm.service.EgovAdminRolePolicyService;
 import egovframework.com.security.LoginAttemptService;
@@ -30,6 +31,7 @@ public class EgovAdminLoginApiController {
 	private final EgovAdminService adminService;
 	private final EgovAdminRolePolicyService adminRolePolicyService;
 	private final EgovAuthGroupService authGroupService;
+	private final EgovAccessEnvironmentService accessEnvironmentService;
 	private final LoginAttemptService loginAttemptService;
 
 	@PostMapping("/login")
@@ -66,6 +68,7 @@ public class EgovAdminLoginApiController {
 
 		HttpSession session = request.getSession(true);
 		request.changeSessionId();
+		session.setMaxInactiveInterval(accessEnvironmentService.getSessionTimeoutMinutes() * 60);
 		session.setAttribute("adminId", admin.getId());
 		session.setAttribute("adminName", admin.getUserNm());
 		session.setAttribute("adminRole", admin.getAuthrtCd());
@@ -108,6 +111,7 @@ public class EgovAdminLoginApiController {
 		String adminId = (String) session.getAttribute("adminId");
 		String adminName = (String) session.getAttribute("adminName");
 		String adminRole = (String) session.getAttribute("adminRole");
+		session.setMaxInactiveInterval(accessEnvironmentService.getSessionTimeoutMinutes() * 60);
 		int maxInactiveSeconds = session.getMaxInactiveInterval();
 		long lastAccessedMs = session.getLastAccessedTime();
 		long remainingMs = maxInactiveSeconds * 1000L - (System.currentTimeMillis() - lastAccessedMs);

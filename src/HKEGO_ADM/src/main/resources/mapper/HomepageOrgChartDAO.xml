@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.HomepageOrgChartDAO">
+	<resultMap id="HomepageOrgChartMap" type="egovframework.let.adm.service.vo.HomepageOrgChartVO">
+		<id column="ORG_MBR_SN" property="orgMbrSn"/>
+		<result column="FRST_CLSF_CD" property="frstClsfCd"/>
+		<result column="FRST_CLSF_NM" property="frstClsfNm"/>
+		<result column="SCND_CLSF_CD" property="scndClsfCd"/>
+		<result column="SCND_CLSF_NM" property="scndClsfNm"/>
+		<result column="TASK_CN" property="taskCn"/>
+		<result column="TELNO" property="telno"/>
+		<result column="SORT_SEQ" property="sortSeq"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+		<result column="DEL_DT" property="delDt"/>
+		<result column="DELTR" property="deltr"/>
+	</resultMap>
+
+	<select id="selectMemberList" resultMap="HomepageOrgChartMap">
+		SELECT ORG_MBR_SN, FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
+			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_ORG_MEMBER
+		WHERE DEL_YN = 'N'
+			AND FRST_CLSF_CD = #{frstClsfCd}
+			AND SCND_CLSF_CD = #{scndClsfCd}
+		ORDER BY SORT_SEQ DESC, ORG_MBR_SN ASC
+	</select>
+
+	<select id="selectMember" parameterType="int" resultMap="HomepageOrgChartMap">
+		SELECT ORG_MBR_SN, FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
+			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_ORG_MEMBER
+		WHERE ORG_MBR_SN = #{value}
+			AND DEL_YN = 'N'
+	</select>
+
+	<insert id="insertMember" parameterType="egovframework.let.adm.service.vo.HomepageOrgChartVO"
+		useGeneratedKeys="true" keyProperty="orgMbrSn">
+		INSERT INTO HMPG_ORG_MEMBER (
+			FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
+			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			#{frstClsfCd}, #{frstClsfNm}, #{scndClsfCd}, #{scndClsfNm},
+			#{taskCn}, #{telno}, #{sortSeq}, #{useYn}, 'N', NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateMember" parameterType="egovframework.let.adm.service.vo.HomepageOrgChartVO">
+		UPDATE HMPG_ORG_MEMBER
+		SET
+			FRST_CLSF_CD = #{frstClsfCd},
+			FRST_CLSF_NM = #{frstClsfNm},
+			SCND_CLSF_CD = #{scndClsfCd},
+			SCND_CLSF_NM = #{scndClsfNm},
+			TASK_CN = #{taskCn},
+			TELNO = #{telno},
+			SORT_SEQ = #{sortSeq},
+			USE_YN = #{useYn},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE ORG_MBR_SN = #{orgMbrSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteMember" parameterType="map">
+		UPDATE HMPG_ORG_MEMBER
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE ORG_MBR_SN = #{orgMbrSn}
+			AND DEL_YN = 'N'
+	</update>
+</mapper>

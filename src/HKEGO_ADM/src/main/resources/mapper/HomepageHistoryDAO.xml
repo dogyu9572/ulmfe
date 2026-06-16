@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.HomepageHistoryDAO">
+	<resultMap id="HomepageHistoryMap" type="egovframework.let.adm.service.vo.HomepageHistoryVO">
+		<id column="HSTRY_SN" property="hstrySn"/>
+		<result column="HSTRY_YR" property="hstryYr"/>
+		<result column="HSTRY_MM" property="hstryMm"/>
+		<result column="HSTRY_CN" property="hstryCn"/>
+		<result column="IMG_FILE_ID" property="imgFileId"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+		<result column="DEL_DT" property="delDt"/>
+		<result column="DELTR" property="deltr"/>
+	</resultMap>
+
+	<sql id="historyWhere">
+		WHERE DEL_YN = 'N'
+		<if test="searchKeyword != null and searchKeyword != ''">
+			AND HSTRY_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		<if test="useYn != null and useYn != ''">
+			AND USE_YN = #{useYn}
+		</if>
+	</sql>
+
+	<select id="selectHistoryList" resultMap="HomepageHistoryMap">
+		SELECT HSTRY_SN, HSTRY_YR, HSTRY_MM, HSTRY_CN, IMG_FILE_ID, USE_YN, DEL_YN,
+			REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_HSTRY
+		<include refid="historyWhere"/>
+		ORDER BY HSTRY_YR DESC, HSTRY_MM DESC, HSTRY_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="selectHistoryCount" resultType="int">
+		SELECT COUNT(*)
+		FROM HMPG_HSTRY
+		<include refid="historyWhere"/>
+	</select>
+
+	<select id="selectHistory" parameterType="int" resultMap="HomepageHistoryMap">
+		SELECT HSTRY_SN, HSTRY_YR, HSTRY_MM, HSTRY_CN, IMG_FILE_ID, USE_YN, DEL_YN,
+			REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_HSTRY
+		WHERE HSTRY_SN = #{value}
+			AND DEL_YN = 'N'
+	</select>
+
+	<insert id="insertHistory" parameterType="egovframework.let.adm.service.vo.HomepageHistoryVO"
+		useGeneratedKeys="true" keyProperty="hstrySn">
+		INSERT INTO HMPG_HSTRY (
+			HSTRY_YR, HSTRY_MM, HSTRY_CN, IMG_FILE_ID, USE_YN, DEL_YN,
+			REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			#{hstryYr}, #{hstryMm}, #{hstryCn}, #{imgFileId}, #{useYn}, 'N',
+			NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateHistory" parameterType="egovframework.let.adm.service.vo.HomepageHistoryVO">
+		UPDATE HMPG_HSTRY
+		SET
+			HSTRY_YR = #{hstryYr},
+			HSTRY_MM = #{hstryMm},
+			HSTRY_CN = #{hstryCn},
+			IMG_FILE_ID = #{imgFileId},
+			USE_YN = #{useYn},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE HSTRY_SN = #{hstrySn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteHistory" parameterType="map">
+		UPDATE HMPG_HSTRY
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE HSTRY_SN = #{hstrySn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteHistories" parameterType="map">
+		UPDATE HMPG_HSTRY
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE DEL_YN = 'N'
+			AND HSTRY_SN IN
+			<foreach collection="hstrySns" item="hstrySn" open="(" separator="," close=")">
+				#{hstrySn}
+			</foreach>
+	</update>
+</mapper>

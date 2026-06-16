@@ -32,13 +32,7 @@ type CodeDt = {
 	atchFileMngNo: string
 }
 
-type CodePageMode = 'code' | 'menu'
-
-type CodePageProps = {
-	mode?: CodePageMode
-}
-
-const MENU_CODE_IDS = new Set(['COM001', 'COM002'])
+type CodePageProps = Record<string, never>
 
 const useYnBadge = (useYn: string) => {
 	const isOn = useYn === 'Y'
@@ -89,7 +83,7 @@ const renderEtc3Cell = (value?: string) => {
 	)
 }
 
-export const CodePage: React.FC<CodePageProps> = ({ mode = 'code' }) => {
+export const CodePage: React.FC<CodePageProps> = () => {
 	const [masters, setMasters] = useState<CodeMa[]>([])
 	const [details, setDetails] = useState<CodeDt[]>([])
 
@@ -127,20 +121,16 @@ export const CodePage: React.FC<CodePageProps> = ({ mode = 'code' }) => {
 	const [error, setError] = useState<string | null>(null)
 
 	const backendBaseUrl = API_BASE_URL
-	const isMenuMode = mode === 'menu'
-	const pageTitle = isMenuMode ? '메뉴 관리' : '코드 관리'
-	const masterTitle = isMenuMode ? '메뉴 구분' : '마스터 코드'
-	const detailTitle = isMenuMode ? '메뉴 목록' : '상세 코드'
-	const masterNewLabel = isMenuMode ? '메뉴 구분 신규' : '마스터 신규'
-	const detailNewLabel = isMenuMode ? '메뉴 신규' : '상세 신규'
-	const masterEmptyMessage = isMenuMode ? '메뉴 구분 데이터가 없습니다.' : '데이터가 없습니다.'
-	const detailEmptyMessage = isMenuMode ? '메뉴 데이터가 없습니다.' : '데이터가 없습니다.'
-	const masterNameLabel = isMenuMode ? '메뉴 구분명' : '코드명'
-	const detailNameLabel = isMenuMode ? '메뉴명' : '코드명'
-	const detailDescriptionLabel = isMenuMode || selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '메뉴 URL' : '설명'
-
-	const filterMastersByMode = (rows: CodeMa[]) =>
-		rows.filter((row) => (isMenuMode ? MENU_CODE_IDS.has(row.cdId) : !MENU_CODE_IDS.has(row.cdId)))
+	const pageTitle = '코드 관리'
+	const masterTitle = '마스터 코드'
+	const detailTitle = '상세 코드'
+	const masterNewLabel = '마스터 신규'
+	const detailNewLabel = '상세 신규'
+	const masterEmptyMessage = '데이터가 없습니다.'
+	const detailEmptyMessage = '데이터가 없습니다.'
+	const masterNameLabel = '코드명'
+	const detailNameLabel = '코드명'
+	const detailDescriptionLabel = selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '메뉴 URL' : '설명'
 
 	const fetchMasters = async () => {
 		setError(null)
@@ -154,7 +144,7 @@ export const CodePage: React.FC<CodePageProps> = ({ mode = 'code' }) => {
 				setError(result.message || '공통코드 마스터 목록 조회에 실패했습니다.')
 				return
 			}
-			const filteredMasters = filterMastersByMode(result.data || [])
+			const filteredMasters = result.data || []
 			setMasters(filteredMasters)
 			if (selectedCodeId && !filteredMasters.some((item) => item.cdId === selectedCodeId)) {
 				setSelectedCodeId('')
@@ -193,7 +183,7 @@ export const CodePage: React.FC<CodePageProps> = ({ mode = 'code' }) => {
 
 	useEffect(() => {
 		fetchMasters()
-	}, [masterUseYnFilter, mode])
+	}, [masterUseYnFilter])
 
 	useEffect(() => {
 		if (selectedCodeId) {
@@ -720,7 +710,7 @@ export const CodePage: React.FC<CodePageProps> = ({ mode = 'code' }) => {
 												type="text"
 												value={detailForm.cdDtlCn}
 												onChange={(e) => setDetailForm({ ...detailForm, cdDtlCn: e.target.value })}
-												placeholder={isMenuMode || selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '예: /dashboard, /admins' : undefined}
+												placeholder={selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '예: /dashboard, /admins' : undefined}
 											/>
 										</td>
 									</tr>

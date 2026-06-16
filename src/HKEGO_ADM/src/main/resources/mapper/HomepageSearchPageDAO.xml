@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.HomepageSearchPageDAO">
+	<resultMap id="HomepageSearchPageMap" type="egovframework.let.adm.service.vo.HomepageSearchPageVO">
+		<id column="SRCH_PAGE_SN" property="srchPageSn"/>
+		<result column="MENU_1DEPTH_NM" property="menu1DepthNm"/>
+		<result column="MENU_2DEPTH_NM" property="menu2DepthNm"/>
+		<result column="MENU_3DEPTH_NM" property="menu3DepthNm"/>
+		<result column="PAGE_TTL" property="pageTtl"/>
+		<result column="PAGE_CN" property="pageCn"/>
+		<result column="PAGE_URL" property="pageUrl"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtrNm"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+		<result column="DEL_DT" property="delDt"/>
+		<result column="DELTR" property="deltr"/>
+	</resultMap>
+
+	<sql id="searchPageWhere">
+		WHERE DEL_YN = 'N'
+		<if test="menu1DepthNm != null and menu1DepthNm != ''">
+			AND MENU_1DEPTH_NM = #{menu1DepthNm}
+		</if>
+		<if test="menu2DepthNm != null and menu2DepthNm != ''">
+			AND MENU_2DEPTH_NM = #{menu2DepthNm}
+		</if>
+		<if test="menu3DepthNm != null and menu3DepthNm != ''">
+			AND MENU_3DEPTH_NM = #{menu3DepthNm}
+		</if>
+		<if test="startRegDate != null and startRegDate != ''">
+			AND DATE(REG_DT) &gt;= #{startRegDate}
+		</if>
+		<if test="endRegDate != null and endRegDate != ''">
+			AND DATE(REG_DT) &lt;= #{endRegDate}
+		</if>
+		<if test="searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType == 'content'">
+					AND PAGE_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'all'">
+					AND (PAGE_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR PAGE_CN LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</when>
+				<otherwise>
+					AND PAGE_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectSearchPageList" resultMap="HomepageSearchPageMap">
+		SELECT SRCH_PAGE_SN, MENU_1DEPTH_NM, MENU_2DEPTH_NM, MENU_3DEPTH_NM,
+			PAGE_TTL, PAGE_CN, PAGE_URL, DEL_YN, REG_DT, RGTR, RGTR_NM,
+			MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_SEARCH_PAGE
+		<include refid="searchPageWhere"/>
+		ORDER BY REG_DT DESC, SRCH_PAGE_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="selectSearchPageCount" resultType="int">
+		SELECT COUNT(*)
+		FROM HMPG_SEARCH_PAGE
+		<include refid="searchPageWhere"/>
+	</select>
+
+	<select id="selectSearchPage" parameterType="int" resultMap="HomepageSearchPageMap">
+		SELECT SRCH_PAGE_SN, MENU_1DEPTH_NM, MENU_2DEPTH_NM, MENU_3DEPTH_NM,
+			PAGE_TTL, PAGE_CN, PAGE_URL, DEL_YN, REG_DT, RGTR, RGTR_NM,
+			MDFCN_DT, MDTR, DEL_DT, DELTR
+		FROM HMPG_SEARCH_PAGE
+		WHERE SRCH_PAGE_SN = #{value}
+			AND DEL_YN = 'N'
+	</select>
+
+	<insert id="insertSearchPage" parameterType="egovframework.let.adm.service.vo.HomepageSearchPageVO"
+		useGeneratedKeys="true" keyProperty="srchPageSn">
+		INSERT INTO HMPG_SEARCH_PAGE (
+			MENU_1DEPTH_NM, MENU_2DEPTH_NM, MENU_3DEPTH_NM, PAGE_TTL, PAGE_CN, PAGE_URL,
+			DEL_YN, REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR
+		) VALUES (
+			#{menu1DepthNm}, #{menu2DepthNm}, #{menu3DepthNm}, #{pageTtl}, #{pageCn}, #{pageUrl},
+			'N', NOW(), #{rgtr}, #{rgtrNm}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateSearchPage" parameterType="egovframework.let.adm.service.vo.HomepageSearchPageVO">
+		UPDATE HMPG_SEARCH_PAGE
+		SET
+			MENU_1DEPTH_NM = #{menu1DepthNm},
+			MENU_2DEPTH_NM = #{menu2DepthNm},
+			MENU_3DEPTH_NM = #{menu3DepthNm},
+			PAGE_TTL = #{pageTtl},
+			PAGE_CN = #{pageCn},
+			PAGE_URL = #{pageUrl},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE SRCH_PAGE_SN = #{srchPageSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteSearchPage" parameterType="map">
+		UPDATE HMPG_SEARCH_PAGE
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE SRCH_PAGE_SN = #{srchPageSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteSearchPageList" parameterType="map">
+		UPDATE HMPG_SEARCH_PAGE
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DELTR = #{deltr}
+		WHERE DEL_YN = 'N'
+			AND SRCH_PAGE_SN IN
+			<foreach collection="srchPageSns" item="srchPageSn" open="(" separator="," close=")">
+				#{srchPageSn}
+			</foreach>
+	</update>
+</mapper>

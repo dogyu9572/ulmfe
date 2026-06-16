@@ -76,7 +76,14 @@ public class AdminMenuAuthorizationService {
 		if (uri.startsWith("/api/admin/admins")) return "/admin/admins";
 		if (uri.startsWith("/api/admin/auth/groups")) return "/admin/admin-groups";
 		if (uri.startsWith("/api/admin/codes")) return "/admin/codes";
+		if (uri.startsWith("/api/admin/homepage-menus")) return "/admin/menus";
 		if (uri.startsWith("/api/admin/bbs-master")) return "/admin/bbs-master";
+		if (uri.startsWith("/api/admin/site-basic-setting")) return "/admin/basic-setting";
+		if (uri.startsWith("/api/admin/access-env")) return "/admin/access-env";
+		if (uri.startsWith("/api/admin/history")) return "/admin/history";
+		if (uri.startsWith("/api/admin/org-chart")) return "/admin/org-chart";
+		if (uri.startsWith("/api/admin/terms")) return "/admin/terms";
+		if (uri.startsWith("/api/admin/search-pages")) return "/admin/search-pages";
 		if (uri.startsWith("/api/admin/banner")) return "/admin/banners";
 		if (uri.startsWith("/api/admin/popup")) return "/admin/popups";
 		if (uri.startsWith("/api/admin/access-log")) return "/admin/access-log";

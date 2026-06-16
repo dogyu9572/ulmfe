@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.AccessEnvironmentDAO">
+	<resultMap id="AccessEnvironmentSettingMap" type="egovframework.let.adm.service.vo.AccessEnvironmentSettingVO">
+		<result column="STNG_ID" property="stngId"/>
+		<result column="SESSION_TIMEOUT_MIN" property="sessionTimeoutMin"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+	</resultMap>
+
+	<resultMap id="AdminAllowedIpMap" type="egovframework.let.adm.service.vo.AdminAllowedIpVO">
+		<id column="PRM_IP_SN" property="prmIpSn"/>
+		<result column="PRM_IP_ADDR" property="prmIpAddr"/>
+		<result column="IP_EXPLN" property="ipExpln"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+	</resultMap>
+
+	<select id="selectSetting" resultMap="AccessEnvironmentSettingMap">
+		SELECT STNG_ID, SESSION_TIMEOUT_MIN, REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM ADMIN_ACCESS_ENV_STNG
+		WHERE STNG_ID = 'DEFAULT'
+	</select>
+
+	<insert id="upsertSetting" parameterType="egovframework.let.adm.service.vo.AccessEnvironmentSettingVO">
+		INSERT INTO ADMIN_ACCESS_ENV_STNG (
+			STNG_ID, SESSION_TIMEOUT_MIN, REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			#{stngId}, #{sessionTimeoutMin}, NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+		ON DUPLICATE KEY UPDATE
+			SESSION_TIMEOUT_MIN = VALUES(SESSION_TIMEOUT_MIN),
+			MDFCN_DT = NOW(),
+			MDTR = VALUES(MDTR)
+	</insert>
+
+	<select id="selectAllowedIpList" resultMap="AdminAllowedIpMap">
+		SELECT PRM_IP_SN, PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM ADMIN_PRM_IP
+		WHERE 1=1
+		<if test="prmIpAddr != null and prmIpAddr != ''">
+			AND PRM_IP_ADDR LIKE CONCAT('%', #{prmIpAddr}, '%')
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND DATE(REG_DT) <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND DATE(REG_DT) <![CDATA[<=]]> #{endDate}
+		</if>
+		ORDER BY PRM_IP_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="selectAllowedIpCount" resultType="int">
+		SELECT COUNT(*)
+		FROM ADMIN_PRM_IP
+		WHERE 1=1
+		<if test="prmIpAddr != null and prmIpAddr != ''">
+			AND PRM_IP_ADDR LIKE CONCAT('%', #{prmIpAddr}, '%')
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND DATE(REG_DT) <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND DATE(REG_DT) <![CDATA[<=]]> #{endDate}
+		</if>
+	</select>
+
+	<select id="selectAllowedIp" parameterType="int" resultMap="AdminAllowedIpMap">
+		SELECT PRM_IP_SN, PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM ADMIN_PRM_IP
+		WHERE PRM_IP_SN = #{value}
+	</select>
+
+	<insert id="insertAllowedIp" parameterType="egovframework.let.adm.service.vo.AdminAllowedIpVO"
+		useGeneratedKeys="true" keyProperty="prmIpSn">
+		INSERT INTO ADMIN_PRM_IP (
+			PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			#{prmIpAddr}, #{ipExpln}, NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateAllowedIp" parameterType="egovframework.let.adm.service.vo.AdminAllowedIpVO">
+		UPDATE ADMIN_PRM_IP
+		SET
+			PRM_IP_ADDR = #{prmIpAddr},
+			IP_EXPLN = #{ipExpln},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE PRM_IP_SN = #{prmIpSn}
+	</update>
+
+	<delete id="deleteAllowedIp" parameterType="int">
+		DELETE FROM ADMIN_PRM_IP
+		WHERE PRM_IP_SN = #{value}
+	</delete>
+
+	<delete id="deleteAllowedIps" parameterType="list">
+		DELETE FROM ADMIN_PRM_IP
+		WHERE PRM_IP_SN IN
+		<foreach collection="list" item="prmIpSn" open="(" separator="," close=")">
+			#{prmIpSn}
+		</foreach>
+	</delete>
+</mapper>

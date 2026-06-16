@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.HomepageMenuDAO">
+	<resultMap id="HomepageMenuMap" type="egovframework.let.adm.service.vo.HomepageMenuVO">
+		<id column="MENU_CD" property="menuCd"/>
+		<result column="PARENT_MENU_CD" property="parentMenuCd"/>
+		<result column="MENU_DEPTH" property="menuDepth"/>
+		<result column="MENU_NM" property="menuNm"/>
+		<result column="ORIGINAL_MENU_NM" property="originalMenuNm"/>
+		<result column="SORT_SEQ" property="sortSeq"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+	</resultMap>
+
+	<select id="selectMenuList" resultMap="HomepageMenuMap">
+		SELECT MENU_CD, PARENT_MENU_CD, MENU_DEPTH, MENU_NM, ORIGINAL_MENU_NM,
+			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM HMPG_MENU
+		WHERE DEL_YN = 'N'
+		ORDER BY MENU_DEPTH, PARENT_MENU_CD, SORT_SEQ, MENU_CD
+	</select>
+
+	<select id="selectMenu" parameterType="string" resultMap="HomepageMenuMap">
+		SELECT MENU_CD, PARENT_MENU_CD, MENU_DEPTH, MENU_NM, ORIGINAL_MENU_NM,
+			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM HMPG_MENU
+		WHERE MENU_CD = #{value}
+			AND DEL_YN = 'N'
+	</select>
+
+	<select id="selectSiblingMenus" parameterType="map" resultMap="HomepageMenuMap">
+		SELECT MENU_CD, PARENT_MENU_CD, MENU_DEPTH, MENU_NM, ORIGINAL_MENU_NM,
+			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+		FROM HMPG_MENU
+		WHERE DEL_YN = 'N'
+			AND MENU_DEPTH = #{menuDepth}
+			<choose>
+				<when test="parentMenuCd != null and parentMenuCd != ''">
+					AND PARENT_MENU_CD = #{parentMenuCd}
+				</when>
+				<otherwise>
+					AND (PARENT_MENU_CD IS NULL OR PARENT_MENU_CD = '')
+				</otherwise>
+			</choose>
+		ORDER BY SORT_SEQ, MENU_CD
+	</select>
+
+	<update id="updateMenu" parameterType="egovframework.let.adm.service.vo.HomepageMenuVO">
+		UPDATE HMPG_MENU
+		SET MENU_NM = #{menuNm},
+			USE_YN = #{useYn},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE MENU_CD = #{menuCd}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="updateMenuSort" parameterType="map">
+		UPDATE HMPG_MENU
+		SET SORT_SEQ = #{sortSeq},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE MENU_CD = #{menuCd}
+			AND DEL_YN = 'N'
+	</update>
+</mapper>

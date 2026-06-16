@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.SiteBasicSettingDAO">
+
+	<resultMap id="SiteBasicSettingResult" type="egovframework.let.adm.service.vo.SiteBasicSettingVO">
+		<result column="STNG_ID" property="stngId"/>
+		<result column="SITE_TTL" property="siteTtl"/>
+		<result column="HMPG_ADDR" property="hmpgAddr"/>
+		<result column="MNGR_EML_ADDR" property="mngrEmlAddr"/>
+		<result column="EDNST_NM" property="ednstNm"/>
+		<result column="EDNST_ADDR" property="ednstAddr"/>
+		<result column="EDNST_TELNO" property="ednstTelno"/>
+		<result column="LOGO_FILE_ID" property="logoFileId"/>
+		<result column="FAVICON_FILE_ID" property="faviconFileId"/>
+		<result column="FTR_CN" property="ftrCn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDTR" property="mdtr"/>
+	</resultMap>
+
+	<sql id="siteBasicSettingColumns">
+		STNG_ID, SITE_TTL, HMPG_ADDR, MNGR_EML_ADDR, EDNST_NM, EDNST_ADDR, EDNST_TELNO,
+		LOGO_FILE_ID, FAVICON_FILE_ID, FTR_CN, REG_DT, RGTR, MDFCN_DT, MDTR
+	</sql>
+
+	<select id="selectDefaultSetting" resultMap="SiteBasicSettingResult">
+		SELECT
+		<include refid="siteBasicSettingColumns"/>
+		FROM SITE_BASIC_STNG
+		WHERE STNG_ID = 'DEFAULT'
+	</select>
+
+	<insert id="upsertDefaultSetting" parameterType="egovframework.let.adm.service.vo.SiteBasicSettingVO">
+		INSERT INTO SITE_BASIC_STNG (
+			STNG_ID, SITE_TTL, HMPG_ADDR, MNGR_EML_ADDR, EDNST_NM, EDNST_ADDR, EDNST_TELNO,
+			LOGO_FILE_ID, FAVICON_FILE_ID, FTR_CN, REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			#{stngId}, #{siteTtl}, #{hmpgAddr}, #{mngrEmlAddr}, #{ednstNm}, #{ednstAddr}, #{ednstTelno},
+			#{logoFileId}, #{faviconFileId}, #{ftrCn}, NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+		ON DUPLICATE KEY UPDATE
+			SITE_TTL = VALUES(SITE_TTL),
+			HMPG_ADDR = VALUES(HMPG_ADDR),
+			MNGR_EML_ADDR = VALUES(MNGR_EML_ADDR),
+			EDNST_NM = VALUES(EDNST_NM),
+			EDNST_ADDR = VALUES(EDNST_ADDR),
+			EDNST_TELNO = VALUES(EDNST_TELNO),
+			LOGO_FILE_ID = VALUES(LOGO_FILE_ID),
+			FAVICON_FILE_ID = VALUES(FAVICON_FILE_ID),
+			FTR_CN = VALUES(FTR_CN),
+			MDFCN_DT = NOW(),
+			MDTR = VALUES(MDTR)
+	</insert>
+</mapper>

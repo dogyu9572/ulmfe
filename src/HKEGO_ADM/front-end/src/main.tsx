@@ -11,6 +11,13 @@ import { BbsMasterPage } from './pages/BbsMasterPage'
 import { BbsPostPage } from './pages/BbsPostPage'
 import { BannerPage } from './pages/BannerPage'
 import { PopupPage } from './pages/PopupPage'
+import { SiteBasicSettingPage } from './pages/SiteBasicSettingPage'
+import { AccessEnvironmentPage } from './pages/AccessEnvironmentPage'
+import { HomepageMenuPage } from './pages/HomepageMenuPage'
+import { HomepageHistoryPage } from './pages/HomepageHistoryPage'
+import { OrgChartPage } from './pages/OrgChartPage'
+import { TermsPage } from './pages/TermsPage'
+import { SearchPageManagementPage } from './pages/SearchPageManagementPage'
 import { UserInfoPage } from './pages/UserInfoPage'
 import { AccessLogPage } from './pages/AccessLogPage'
 import { UserAccessLogPage } from './pages/UserAccessLogPage'
@@ -98,12 +105,18 @@ const App: React.FC = () => {
 						</AdminManageRoute>
 					}
 				/>
-				<Route path="/admin/codes" element={<CodePage mode="code" />} />
-				<Route path="/admin/menus" element={<CodePage mode="menu" />} />
+				<Route path="/admin/codes" element={<CodePage />} />
+				<Route path="/admin/menus" element={<HomepageMenuPage />} />
+				<Route path="/admin/basic-setting" element={<SiteBasicSettingPage />} />
+				<Route path="/admin/access-env" element={<AccessEnvironmentPage />} />
 				<Route path="/admin/bbs-master" element={<BbsMasterPage />} />
 				<Route path="/admin/bbs-post/:bbsId" element={<BbsPostPage />} />
 				<Route path="/admin/banners" element={<BannerPage />} />
 				<Route path="/admin/popups" element={<PopupPage />} />
+				<Route path="/admin/history" element={<HomepageHistoryPage />} />
+				<Route path="/admin/org-chart" element={<OrgChartPage />} />
+				<Route path="/admin/terms" element={<TermsPage />} />
+				<Route path="/admin/search-pages" element={<SearchPageManagementPage />} />
 				<Route
 					path="/admin/users"
 					element={
