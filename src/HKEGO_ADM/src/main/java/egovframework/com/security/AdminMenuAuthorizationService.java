@@ -89,6 +89,7 @@ public class AdminMenuAuthorizationService {
 		if (uri.startsWith("/api/admin/access-log")) return "/admin/access-log";
 		if (uri.startsWith("/api/admin/user-access-log")) return "/admin/user-access-log";
 		if (uri.startsWith("/api/admin/user-visitor-stats")) return "/admin/user-visitor-stats";
+		if (uri.startsWith("/api/admin/library-books")) return "/admin/library-books";
 		if (uri.startsWith("/api/admin/users")) return "/admin/users";
 		return null;
 	}

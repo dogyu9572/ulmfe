@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.LibraryBookDAO">
+	<sql id="libraryBookSelectColumns">
+		B.BOOK_SN,
+		B.BOOK_MNG_NO,
+		B.BOOK_NM,
+		B.BOOK_IMG_ATCH_FILE_ID,
+		B.AUT_NM,
+		B.PBLCO_NM,
+		B.PBLCN_YR,
+		B.CLNO,
+		B.BOOK_PSTN_NM,
+		B.BOOK_CN,
+		B.RCMDTN_YN,
+		B.RCMDTN_CLSF_CD,
+		C.CD_DTL_NM AS RCMDTN_CLSF_NM,
+		B.RCMDTN_SORT_SEQ,
+		B.NEW_BOOK_YR,
+		B.NEW_BOOK_MM,
+		B.EXPSR_YN,
+		B.REG_YMD,
+		B.WRTR_NM,
+		B.INQ_CNT,
+		B.REG_DT,
+		B.RGTR,
+		B.MDFCN_DT,
+		B.MDTR,
+		B.DEL_DT,
+		B.DELTR
+	</sql>
+
+	<sql id="libraryBookFrom">
+		FROM LIB_BOOK B
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = 'COM046'
+			AND C.CD_DTL_ID = B.RCMDTN_CLSF_CD
+	</sql>
+
+	<sql id="libraryBookWhere">
+		<where>
+			B.DEL_DT IS NULL
+			<if test="expsrYn != null and expsrYn != ''">
+				AND B.EXPSR_YN = #{expsrYn}
+			</if>
+			<if test="rcmdtnYn != null and rcmdtnYn != ''">
+				AND B.RCMDTN_YN = #{rcmdtnYn}
+			</if>
+			<if test="rcmdtnClsfCd != null and rcmdtnClsfCd != ''">
+				AND B.RCMDTN_CLSF_CD = #{rcmdtnClsfCd}
+			</if>
+			<if test="newBookYr != null and newBookYr != ''">
+				AND B.NEW_BOOK_YR = #{newBookYr}
+			</if>
+			<if test="newBookMm != null and newBookMm != ''">
+				AND B.NEW_BOOK_MM = #{newBookMm}
+			</if>
+			<if test="startRegYmd != null and startRegYmd != ''">
+				AND B.REG_YMD &gt;= #{startRegYmd}
+			</if>
+			<if test="endRegYmd != null and endRegYmd != ''">
+				AND B.REG_YMD &lt;= #{endRegYmd}
+			</if>
+			<if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'bookMngNo'">
+						AND B.BOOK_MNG_NO LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'bookNm'">
+						AND B.BOOK_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'autNm'">
+						AND B.AUT_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'pblcoNm'">
+						AND B.PBLCO_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'clno'">
+						AND B.CLNO LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+							B.BOOK_MNG_NO LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR B.BOOK_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR B.AUT_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR B.PBLCO_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR B.CLNO LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<select id="countLibraryBookList" resultType="int">
+		SELECT COUNT(*)
+		<include refid="libraryBookFrom"/>
+		<include refid="libraryBookWhere"/>
+	</select>
+
+	<select id="selectLibraryBookList" resultType="egovframework.let.adm.service.vo.LibraryBookVO">
+		SELECT
+		<include refid="libraryBookSelectColumns"/>
+		<include refid="libraryBookFrom"/>
+		<include refid="libraryBookWhere"/>
+		ORDER BY B.REG_YMD DESC, B.BOOK_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.LibraryBookVO">
+		SELECT
+		<include refid="libraryBookSelectColumns"/>
+		<include refid="libraryBookFrom"/>
+		WHERE B.BOOK_SN = #{bookSn}
+		AND B.DEL_DT IS NULL
+	</select>
+
+	<select id="findByBookMngNo" resultType="egovframework.let.adm.service.vo.LibraryBookVO">
+		SELECT
+		<include refid="libraryBookSelectColumns"/>
+		<include refid="libraryBookFrom"/>
+		WHERE B.BOOK_MNG_NO = #{bookMngNo}
+		AND B.DEL_DT IS NULL
+		LIMIT 1
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.LibraryBookVO" useGeneratedKeys="true" keyProperty="bookSn">
+		INSERT INTO LIB_BOOK (
+			BOOK_MNG_NO,
+			BOOK_NM,
+			BOOK_IMG_ATCH_FILE_ID,
+			AUT_NM,
+			PBLCO_NM,
+			PBLCN_YR,
+			CLNO,
+			BOOK_PSTN_NM,
+			BOOK_CN,
+			RCMDTN_YN,
+			RCMDTN_CLSF_CD,
+			RCMDTN_SORT_SEQ,
+			NEW_BOOK_YR,
+			NEW_BOOK_MM,
+			EXPSR_YN,
+			REG_YMD,
+			WRTR_NM,
+			INQ_CNT,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{bookMngNo},
+			#{bookNm},
+			#{bookImgAtchFileId},
+			#{autNm},
+			#{pblcoNm},
+			#{pblcnYr},
+			#{clno},
+			#{bookPstnNm},
+			#{bookCn},
+			#{rcmdtnYn},
+			#{rcmdtnClsfCd},
+			#{rcmdtnSortSeq},
+			#{newBookYr},
+			#{newBookMm},
+			#{expsrYn},
+			#{regYmd},
+			#{wrtrNm},
+			#{inqCnt},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.LibraryBookVO">
+		UPDATE LIB_BOOK SET
+			BOOK_MNG_NO = #{bookMngNo},
+			BOOK_NM = #{bookNm},
+			BOOK_IMG_ATCH_FILE_ID = #{bookImgAtchFileId},
+			AUT_NM = #{autNm},
+			PBLCO_NM = #{pblcoNm},
+			PBLCN_YR = #{pblcnYr},
+			CLNO = #{clno},
+			BOOK_PSTN_NM = #{bookPstnNm},
+			BOOK_CN = #{bookCn},
+			RCMDTN_YN = #{rcmdtnYn},
+			RCMDTN_CLSF_CD = #{rcmdtnClsfCd},
+			RCMDTN_SORT_SEQ = #{rcmdtnSortSeq},
+			NEW_BOOK_YR = #{newBookYr},
+			NEW_BOOK_MM = #{newBookMm},
+			EXPSR_YN = #{expsrYn},
+			REG_YMD = #{regYmd},
+			WRTR_NM = #{wrtrNm},
+			INQ_CNT = #{inqCnt},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE BOOK_SN = #{bookSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="delete">
+		UPDATE LIB_BOOK SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE BOOK_SN = #{bookSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<select id="selectRelatedBooks" resultType="egovframework.let.adm.service.vo.LibraryBookVO">
+		SELECT
+		<include refid="libraryBookSelectColumns"/>
+		FROM LIB_BOOK_REL R
+		INNER JOIN LIB_BOOK B ON B.BOOK_SN = R.REL_BOOK_SN
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = 'COM046'
+			AND C.CD_DTL_ID = B.RCMDTN_CLSF_CD
+		WHERE R.BOOK_SN = #{bookSn}
+		AND B.DEL_DT IS NULL
+		ORDER BY R.SORT_SEQ ASC, B.REG_YMD DESC
+	</select>
+
+	<delete id="deleteRelatedBooks">
+		DELETE FROM LIB_BOOK_REL
+		WHERE BOOK_SN = #{bookSn}
+	</delete>
+
+	<insert id="insertRelatedBook">
+		INSERT INTO LIB_BOOK_REL (
+			BOOK_SN,
+			REL_BOOK_SN,
+			SORT_SEQ,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{bookSn},
+			#{relBookSn},
+			#{sortSeq},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+
+	<select id="selectRelatedBookCandidates" resultType="egovframework.let.adm.service.vo.LibraryBookVO">
+		SELECT
+		<include refid="libraryBookSelectColumns"/>
+		<include refid="libraryBookFrom"/>
+		WHERE B.DEL_DT IS NULL
+		<if test="excludeBookSn != null">
+			AND B.BOOK_SN != #{excludeBookSn}
+		</if>
+		<if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType == 'bookMngNo'">
+					AND B.BOOK_MNG_NO LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'bookNm'">
+					AND B.BOOK_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'autNm'">
+					AND B.AUT_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'pblcoNm'">
+					AND B.PBLCO_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchType == 'clno'">
+					AND B.CLNO LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+						B.BOOK_MNG_NO LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR B.BOOK_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR B.AUT_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR B.PBLCO_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR B.CLNO LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY B.REG_YMD DESC, B.BOOK_SN DESC
+		LIMIT #{limit}
+	</select>
+</mapper>

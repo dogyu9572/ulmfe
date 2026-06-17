@@ -22,6 +22,7 @@ import { UserInfoPage } from './pages/UserInfoPage'
 import { AccessLogPage } from './pages/AccessLogPage'
 import { UserAccessLogPage } from './pages/UserAccessLogPage'
 import { UserVisitorStatsPage } from './pages/UserVisitorStatsPage'
+import { LibraryBookPage } from './pages/LibraryBookPage'
 import { AdminManageRoute } from './components/AdminManageRoute'
 import { ForbiddenPage } from './pages/ForbiddenPage'
 
@@ -128,6 +129,7 @@ const App: React.FC = () => {
 				<Route path="/admin/user-visitor-stats" element={<UserVisitorStatsPage />} />
 				<Route path="/admin/access-log" element={<AccessLogPage />} />
 				<Route path="/admin/user-access-log" element={<UserAccessLogPage />} />
+				<Route path="/admin/library-books" element={<LibraryBookPage />} />
 				<Route path="*" element={<Navigate to="/admin/login" replace />} />
 			</Routes>
 		</BrowserRouter>
