@@ -19,4 +19,11 @@ public class UserAccessLogVO {
 	private Integer rspnsSttsCd;
 	private String cntnTypeCd;
 	private LocalDateTime regDt;
+
+	public String getRequestUri() { return dmndUriAddr; }
+	public void setRequestUri(String requestUri) { this.dmndUriAddr = requestUri; }
+	public String getRequestMethod() { return dmndMthdCd; }
+	public void setRequestMethod(String requestMethod) { this.dmndMthdCd = requestMethod; }
+	public Integer getResponseStatus() { return rspnsSttsCd; }
+	public void setResponseStatus(Integer responseStatus) { this.rspnsSttsCd = responseStatus; }
 }

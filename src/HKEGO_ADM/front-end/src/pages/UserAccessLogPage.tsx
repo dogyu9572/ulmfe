@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
@@ -8,41 +8,55 @@ type ApiResponse<T> = { success: boolean; message: string; data: T }
 type PagedResult<T> = { list: T[]; count: number; page: number; size: number }
 type UserAccessLog = {
 	cntnLogSn: number
-	userId: string
-	userNm: string
 	ipAddr: string
 	requestUri: string
-	requestMethod: string
 	responseStatus: number
 	cntnTypeCd: string
 	regDt: string
 }
 
+function todayIso(): string {
+	return new Date().toISOString().slice(0, 10)
+}
+
+function firstDayOfMonthIso(): string {
+	const d = new Date()
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
+}
+
 export const UserAccessLogPage: React.FC = () => {
 	const [list, setList] = useState<UserAccessLog[]>([])
-	const [userId, setUsrId] = useState('')
-	const [userNm, setUserNm] = useState('')
 	const [ipAddr, setClientIp] = useState('')
 	const [cntnTypeCd, setAccessType] = useState('')
-	const [startDate, setStartDate] = useState('')
-	const [endDate, setEndDate] = useState('')
+	const [startDate, setStartDate] = useState(firstDayOfMonthIso)
+	const [endDate, setEndDate] = useState(todayIso)
 	const [page, setPage] = useState(1)
-	const [size] = useState(20)
+	const [size, setSize] = useState(20)
 	const [count, setCount] = useState(0)
 	const [error, setError] = useState<string | null>(null)
+	const isFirstSizeEffect = useRef(true)
+
+	const buildSearchParams = (targetPage?: number) => {
+		const qs = new URLSearchParams()
+		if (targetPage) {
+			qs.set('page', String(targetPage))
+			qs.set('size', String(size))
+		}
+		if (ipAddr.trim()) qs.set('ipAddr', ipAddr.trim())
+		if (cntnTypeCd) qs.set('cntnTypeCd', cntnTypeCd)
+		if (startDate) qs.set('startDate', startDate)
+		if (endDate) qs.set('endDate', endDate)
+		return qs
+	}
 
 	const fetchList = async (targetPage = page) => {
 		setError(null)
+		if (startDate && endDate && startDate > endDate) {
+			setError('시작일이 종료일보다 늦을 수 없습니다.')
+			return
+		}
 		try {
-			const qs = new URLSearchParams()
-			qs.set('page', String(targetPage))
-			qs.set('size', String(size))
-			if (userId.trim()) qs.set('userId', userId.trim())
-			if (userNm.trim()) qs.set('userNm', userNm.trim())
-			if (ipAddr.trim()) qs.set('ipAddr', ipAddr.trim())
-			if (cntnTypeCd) qs.set('cntnTypeCd', cntnTypeCd)
-			if (startDate) qs.set('startDate', startDate)
-			if (endDate) qs.set('endDate', endDate)
+			const qs = buildSearchParams(targetPage)
 			const res = await fetch(`${API_BASE_URL}/api/admin/user-access-log?${qs.toString()}`, { credentials: 'include' })
 			const result: ApiResponse<PagedResult<UserAccessLog>> = await res.json()
 			if (!result.success) {
@@ -57,9 +71,46 @@ export const UserAccessLogPage: React.FC = () => {
 		}
 	}
 
+	const downloadExcel = async () => {
+		setError(null)
+		if (startDate && endDate && startDate > endDate) {
+			setError('시작일이 종료일보다 늦을 수 없습니다.')
+			return
+		}
+		try {
+			const qs = buildSearchParams()
+			const res = await fetch(`${API_BASE_URL}/api/admin/user-access-log/excel?${qs.toString()}`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				setError('엑셀 파일 다운로드에 실패했습니다.')
+				return
+			}
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = 'user-access-log.xlsx'
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			window.URL.revokeObjectURL(url)
+		} catch {
+			setError('엑셀 파일 다운로드 중 오류가 발생했습니다.')
+		}
+	}
+
 	useEffect(() => {
 		void fetchList(1)
 	}, [])
+
+	useEffect(() => {
+		if (isFirstSizeEffect.current) {
+			isFirstSizeEffect.current = false
+			return
+		}
+		void fetchList(1)
+	}, [size])
 
 	const totalPages = Math.max(1, Math.ceil(count / size))
 
@@ -67,9 +118,9 @@ export const UserAccessLogPage: React.FC = () => {
 		<AdminLayout title="사용자접속로그">
 			<CrudPageCard title="사용자 접속 로그" error={error}>
 				<div className="code-filters search-section" style={{ flexWrap: 'wrap', gap: '8px' }}>
-					<label>아이디<input type="text" value={userId} onChange={(e) => setUsrId(e.target.value)} /></label>
-					<label>이름<input type="text" value={userNm} onChange={(e) => setUserNm(e.target.value)} /></label>
-					<label>IP<input type="text" value={ipAddr} onChange={(e) => setClientIp(e.target.value)} /></label>
+					<label>접속일<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
+					<span className="visitor-stats-range-sep">~</span>
+					<label><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
 					<label>
 						접속유형
 						<select value={cntnTypeCd} onChange={(e) => setAccessType(e.target.value)}>
@@ -81,47 +132,57 @@ export const UserAccessLogPage: React.FC = () => {
 							<option value="API">API</option>
 						</select>
 					</label>
-					<label>시작일<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
-					<label>종료일<input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
+					<label>접속 IP<input type="text" value={ipAddr} onChange={(e) => setClientIp(e.target.value)} /></label>
 					<button type="button" className="admin-list-btn-sky" onClick={() => void fetchList(1)}>조회</button>
 				</div>
 
 				<div className="list-toolbar">
 					<span className="list-toolbar-info">{formatListToolbarInfo(count, page, totalPages)}</span>
+					<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+						<select
+							className="list-page-size-select"
+							value={size}
+							onChange={(e) => {
+								setSize(Number(e.target.value))
+								setPage(1)
+							}}
+						>
+							<option value={20}>20개씩 보기</option>
+							<option value={50}>50개씩 보기</option>
+							<option value={100}>100개씩 보기</option>
+						</select>
+						<button type="button" className="admin-list-btn-sky" onClick={() => void downloadExcel()}>
+							엑셀파일 다운로드
+						</button>
+					</div>
 				</div>
 
 				<table className="table">
 					<thead>
 						<tr>
 							<th style={{ width: '80px' }}>번호</th>
-							<th style={{ width: '140px' }}>아이디</th>
-							<th style={{ width: '120px' }}>이름</th>
-							<th style={{ width: '130px' }}>IP</th>
-							<th style={{ width: '360px' }}>요청 URI</th>
-							<th style={{ width: '90px' }}>메서드</th>
-							<th style={{ width: '90px' }}>상태</th>
-							<th style={{ width: '110px' }}>유형</th>
 							<th style={{ width: '170px' }}>접속일시</th>
+							<th style={{ width: '130px' }}>IP</th>
+							<th>접속 페이지 URL</th>
+							<th style={{ width: '110px' }}>접속유형</th>
+							<th style={{ width: '90px' }}>상태</th>
 						</tr>
 					</thead>
 					<tbody>
 						{list.map((row) => (
 							<tr key={row.cntnLogSn}>
 								<td>{row.cntnLogSn}</td>
-								<td>{row.userId ?? '-'}</td>
-								<td>{row.userNm ?? '-'}</td>
+								<td>{row.regDt ? String(row.regDt).replace('T', ' ').slice(0, 19) : '-'}</td>
 								<td>{row.ipAddr ?? '-'}</td>
 								<td title={row.requestUri ?? '-'}>
 									<span className="request-uri-ellipsis">{row.requestUri ?? '-'}</span>
 								</td>
-								<td>{row.requestMethod ?? '-'}</td>
-								<td>{row.responseStatus ?? '-'}</td>
 								<td>{row.cntnTypeCd ?? '-'}</td>
-								<td>{row.regDt ? String(row.regDt).replace('T', ' ').slice(0, 19) : '-'}</td>
+								<td>{row.responseStatus ?? '-'}</td>
 							</tr>
 						))}
 						{list.length === 0 && (
-							<tr><td colSpan={9} style={{ textAlign: 'center' }}>데이터가 없습니다.</td></tr>
+							<tr><td colSpan={6} style={{ textAlign: 'center' }}>데이터가 없습니다.</td></tr>
 						)}
 					</tbody>
 				</table>

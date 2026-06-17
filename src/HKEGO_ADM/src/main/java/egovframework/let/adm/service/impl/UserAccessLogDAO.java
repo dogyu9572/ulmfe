@@ -29,6 +29,20 @@ public class UserAccessLogDAO extends EgovAbstractMapper {
 		return selectList(NS + "selectList", param);
 	}
 
+	public List<UserAccessLogVO> selectExcelList(
+		String userId, String userNm, String ipAddr, String cntnTypeCd,
+		String startDate, String endDate
+	) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("userId", userId);
+		param.put("userNm", userNm);
+		param.put("ipAddr", ipAddr);
+		param.put("cntnTypeCd", cntnTypeCd);
+		param.put("startDate", startDate);
+		param.put("endDate", endDate);
+		return selectList(NS + "selectExcelList", param);
+	}
+
 	public int selectCount(
 		String userId, String userNm, String ipAddr, String cntnTypeCd,
 		String startDate, String endDate

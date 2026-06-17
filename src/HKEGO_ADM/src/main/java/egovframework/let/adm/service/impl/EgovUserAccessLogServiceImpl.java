@@ -40,4 +40,15 @@ public class EgovUserAccessLogServiceImpl extends EgovAbstractServiceImpl implem
 		result.put("size", safeSize);
 		return result;
 	}
+
+	public List<UserAccessLogVO> getUserAccessLogExcelRows(
+		String usrId,
+		String usrNm,
+		String clientIp,
+		String accessType,
+		String startDate,
+		String endDate
+	) {
+		return userAccessLogDAO.selectExcelList(usrId, usrNm, clientIp, accessType, startDate, endDate);
+	}
 }

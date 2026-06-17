@@ -217,6 +217,37 @@ export const UserVisitorStatsPage: React.FC = () => {
 		}
 	}, [monthStartYear, monthEndYear])
 
+	const downloadStatsExcel = useCallback(async (startYearValue: string, endYearValue: string) => {
+		const s = Number(startYearValue)
+		const e = Number(endYearValue)
+		if (!s || !e) {
+			setError('연도를 입력하세요.')
+			return
+		}
+		setError(null)
+		try {
+			const qs = `startYear=${s}&endYear=${e}`
+			const res = await fetch(`${BACKEND}/api/admin/user-visitor-stats/excel?${qs}`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				setError('엑셀 파일 다운로드에 실패했습니다.')
+				return
+			}
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = 'user-visitor-stats.xlsx'
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			window.URL.revokeObjectURL(url)
+		} catch {
+			setError('엑셀 파일 다운로드 중 오류가 발생했습니다.')
+		}
+	}, [])
+
 	const fetchDaily = useCallback(async () => {
 		if (dailyStart && dailyEnd && dailyStart > dailyEnd) {
 			setError('시작일이 종료일보다 늦을 수 없습니다.')
@@ -386,6 +417,13 @@ export const UserVisitorStatsPage: React.FC = () => {
 								<button type="button" className="admin-list-btn-sky" onClick={() => void fetchYearly()}>
 									조회
 								</button>
+								<button
+									type="button"
+									className="admin-list-btn-sky"
+									onClick={() => void downloadStatsExcel(yearStart, yearEnd)}
+								>
+									엑셀파일 다운로드
+								</button>
 							</>
 						}
 						rows={yearlyRows}
@@ -421,6 +459,13 @@ export const UserVisitorStatsPage: React.FC = () => {
 								</label>
 								<button type="button" className="admin-list-btn-sky" onClick={() => void fetchMonthly()}>
 									조회
+								</button>
+								<button
+									type="button"
+									className="admin-list-btn-sky"
+									onClick={() => void downloadStatsExcel(monthStartYear, monthEndYear)}
+								>
+									엑셀파일 다운로드
 								</button>
 							</>
 						}
