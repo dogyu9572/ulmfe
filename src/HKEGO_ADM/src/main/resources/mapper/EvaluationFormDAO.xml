@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.EvaluationFormDAO">
+	<sql id="evaluationFormSelectColumns">
+		F.QSTNR_SN,
+		F.QSTNR_TYPE_CD,
+		F.EVL_SE_CD,
+		CASE F.EVL_SE_CD
+			WHEN 'STUDENT' THEN '학생'
+			WHEN 'TEACHER' THEN '선생님 운영'
+			ELSE F.EVL_SE_CD
+		END AS EVL_SE_NM,
+		F.QSTNR_NM,
+		F.REG_DT,
+		F.RGTR,
+		F.MDFCN_DT,
+		F.MDTR,
+		F.DEL_DT,
+		F.DELTR
+	</sql>
+
+	<sql id="evaluationFormWhere">
+		<where>
+			F.QSTNR_TYPE_CD = #{qstnrTypeCd}
+			AND F.DEL_DT IS NULL
+			<if test="evlSeCd != null and evlSeCd != ''">
+				AND F.EVL_SE_CD = #{evlSeCd}
+			</if>
+			<if test="startRegYmd != null and startRegYmd != ''">
+				AND DATE(F.REG_DT) &gt;= #{startRegYmd}
+			</if>
+			<if test="endRegYmd != null and endRegYmd != ''">
+				AND DATE(F.REG_DT) &lt;= #{endRegYmd}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				AND F.QSTNR_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+			</if>
+		</where>
+	</sql>
+
+	<select id="countEvaluationFormList" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_QSTNR_MST F
+		<include refid="evaluationFormWhere"/>
+	</select>
+
+	<select id="selectEvaluationFormList" resultType="egovframework.let.adm.service.vo.EvaluationFormVO">
+		SELECT
+		<include refid="evaluationFormSelectColumns"/>
+		FROM EDU_QSTNR_MST F
+		<include refid="evaluationFormWhere"/>
+		ORDER BY F.REG_DT DESC, F.QSTNR_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.EvaluationFormVO">
+		SELECT
+		<include refid="evaluationFormSelectColumns"/>
+		FROM EDU_QSTNR_MST F
+		WHERE F.QSTNR_SN = #{qstnrSn}
+		AND F.QSTNR_TYPE_CD = #{qstnrTypeCd}
+		AND F.DEL_DT IS NULL
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.EvaluationFormVO" useGeneratedKeys="true" keyProperty="qstnrSn">
+		INSERT INTO EDU_QSTNR_MST (
+			QSTNR_TYPE_CD,
+			EVL_SE_CD,
+			QSTNR_NM,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{qstnrTypeCd},
+			#{evlSeCd},
+			#{qstnrNm},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.EvaluationFormVO">
+		UPDATE EDU_QSTNR_MST SET
+			EVL_SE_CD = #{evlSeCd},
+			QSTNR_NM = #{qstnrNm},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE QSTNR_SN = #{qstnrSn}
+		AND QSTNR_TYPE_CD = #{qstnrTypeCd}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="delete">
+		UPDATE EDU_QSTNR_MST SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE QSTNR_SN = #{qstnrSn}
+		AND QSTNR_TYPE_CD = 'EVAL'
+		AND DEL_DT IS NULL
+	</update>
+
+	<select id="selectQuestions" resultType="egovframework.let.adm.service.vo.EvaluationQuestionVO">
+		SELECT
+			Q.QSTN_SN,
+			Q.QSTNR_SN,
+			Q.QSTN_NO,
+			Q.ANS_TYPE_CD,
+			CASE Q.ANS_TYPE_CD
+				WHEN 'LIKERT5' THEN '리커트 5점'
+				WHEN 'LEVEL5' THEN '상중하 5단계'
+				WHEN 'TEXT' THEN '주관식'
+				ELSE Q.ANS_TYPE_CD
+			END AS ANS_TYPE_NM,
+			Q.QSTN_CN,
+			Q.SORT_SEQ,
+			Q.REG_DT,
+			Q.RGTR,
+			Q.MDFCN_DT,
+			Q.MDTR
+		FROM EDU_QSTNR_QSTN Q
+		WHERE Q.QSTNR_SN = #{qstnrSn}
+		ORDER BY Q.SORT_SEQ ASC, Q.QSTN_SN ASC
+	</select>
+
+	<delete id="deleteQuestions">
+		DELETE FROM EDU_QSTNR_QSTN
+		WHERE QSTNR_SN = #{qstnrSn}
+	</delete>
+
+	<insert id="insertQuestion" parameterType="egovframework.let.adm.service.vo.EvaluationQuestionVO" useGeneratedKeys="true" keyProperty="qstnSn">
+		INSERT INTO EDU_QSTNR_QSTN (
+			QSTNR_SN,
+			QSTN_NO,
+			ANS_TYPE_CD,
+			QSTN_CN,
+			SORT_SEQ,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{qstnrSn},
+			#{qstnNo},
+			#{ansTypeCd},
+			#{qstnCn},
+			#{sortSeq},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+</mapper>

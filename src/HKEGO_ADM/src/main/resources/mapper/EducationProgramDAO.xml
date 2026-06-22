@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.EducationProgramDAO">
+	<sql id="educationProgramSelectColumns">
+		P.PRGRM_SN,
+		P.PRGRM_TYPE_CD,
+		CASE P.PRGRM_TYPE_CD
+			WHEN 'EXPLORE' THEN '사건탐구'
+			WHEN 'MISSION' THEN '미션'
+			ELSE P.PRGRM_TYPE_CD
+		END AS PRGRM_TYPE_NM,
+		P.PRGRM_NM,
+		P.TRGT_CN,
+		P.TOTAL_TM_MNT,
+		P.MAX_NOPE,
+		P.SIMPLE_EXPLN,
+		P.START_EXPLN,
+		P.USE_YN,
+		P.TEAM_CNT,
+		P.ROUTE_JSON,
+		P.STEP_JSON,
+		P.EVAL_JSON,
+		P.REG_DT,
+		P.RGTR,
+		P.MDFCN_DT,
+		P.MDTR,
+		P.DEL_DT,
+		P.DELTR
+	</sql>
+
+	<sql id="educationProgramWhere">
+		<where>
+			P.DEL_DT IS NULL
+			AND P.PRGRM_TYPE_CD = #{prgrmTypeCd}
+			<if test="useYn != null and useYn != ''">
+				AND P.USE_YN = #{useYn}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				AND P.PRGRM_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+			</if>
+		</where>
+	</sql>
+
+	<select id="countEducationProgramList" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_PRGRM_MST P
+		<include refid="educationProgramWhere"/>
+	</select>
+
+	<select id="selectEducationProgramList" resultType="egovframework.let.adm.service.vo.EducationProgramVO">
+		SELECT
+		<include refid="educationProgramSelectColumns"/>
+		FROM EDU_PRGRM_MST P
+		<include refid="educationProgramWhere"/>
+		ORDER BY P.REG_DT DESC, P.PRGRM_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.EducationProgramVO">
+		SELECT
+		<include refid="educationProgramSelectColumns"/>
+		FROM EDU_PRGRM_MST P
+		WHERE P.PRGRM_TYPE_CD = #{prgrmTypeCd}
+		AND P.PRGRM_SN = #{prgrmSn}
+		AND P.DEL_DT IS NULL
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.EducationProgramVO" useGeneratedKeys="true" keyProperty="prgrmSn">
+		INSERT INTO EDU_PRGRM_MST (
+			PRGRM_TYPE_CD, PRGRM_NM, TRGT_CN, TOTAL_TM_MNT, MAX_NOPE, SIMPLE_EXPLN,
+			START_EXPLN, USE_YN, TEAM_CNT, ROUTE_JSON, STEP_JSON, EVAL_JSON, RGTR, REG_DT
+		) VALUES (
+			#{prgrmTypeCd}, #{prgrmNm}, #{trgtCn}, #{totalTmMnt}, #{maxNope}, #{simpleExpln},
+			#{startExpln}, #{useYn}, #{teamCnt}, #{routeJson}, #{stepJson}, #{evalJson}, #{rgtr}, NOW()
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.EducationProgramVO">
+		UPDATE EDU_PRGRM_MST SET
+			PRGRM_NM = #{prgrmNm},
+			TRGT_CN = #{trgtCn},
+			TOTAL_TM_MNT = #{totalTmMnt},
+			MAX_NOPE = #{maxNope},
+			SIMPLE_EXPLN = #{simpleExpln},
+			START_EXPLN = #{startExpln},
+			USE_YN = #{useYn},
+			TEAM_CNT = #{teamCnt},
+			ROUTE_JSON = #{routeJson},
+			STEP_JSON = #{stepJson},
+			EVAL_JSON = #{evalJson},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE PRGRM_SN = #{prgrmSn}
+		AND PRGRM_TYPE_CD = #{prgrmTypeCd}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="delete">
+		UPDATE EDU_PRGRM_MST SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE PRGRM_SN = #{prgrmSn}
+		AND PRGRM_TYPE_CD = #{prgrmTypeCd}
+		AND DEL_DT IS NULL
+	</update>
+</mapper>

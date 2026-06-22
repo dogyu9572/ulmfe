@@ -418,6 +418,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 		if (item.etc2 && item.etc2.trim() !== '') {
 			return toAdminPath(item.etc2.trim())
 		}
+		// 코드 관리 화면에서 메뉴 URL을 ETC3에 저장한 기존 데이터도 허용
+		if (item.etc3 && item.etc3.trim() !== '') {
+			return toAdminPath(item.etc3.trim())
+		}
 		// URL 없는 하위 메뉴는 라우팅 대상에서 제외(자동 확장 오작동 방지)
 		return NO_MENU_PATH
 	}

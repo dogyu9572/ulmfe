@@ -23,6 +23,10 @@ import { AccessLogPage } from './pages/AccessLogPage'
 import { UserAccessLogPage } from './pages/UserAccessLogPage'
 import { UserVisitorStatsPage } from './pages/UserVisitorStatsPage'
 import { LibraryBookPage } from './pages/LibraryBookPage'
+import { EvaluationFormPage } from './pages/EvaluationFormPage'
+import { SurveyFormPage } from './pages/SurveyFormPage'
+import { EducationContentPage } from './pages/EducationContentPage'
+import { EducationProgramPage } from './pages/EducationProgramPage'
 import { AdminManageRoute } from './components/AdminManageRoute'
 import { ForbiddenPage } from './pages/ForbiddenPage'
 
@@ -130,6 +134,11 @@ const App: React.FC = () => {
 				<Route path="/admin/access-log" element={<AccessLogPage />} />
 				<Route path="/admin/user-access-log" element={<UserAccessLogPage />} />
 				<Route path="/admin/library-books" element={<LibraryBookPage />} />
+				<Route path="/admin/exploration-programs" element={<EducationProgramPage programType="EXPLORE" />} />
+				<Route path="/admin/mission-programs" element={<EducationProgramPage programType="MISSION" />} />
+				<Route path="/admin/evaluation-forms" element={<EvaluationFormPage />} />
+				<Route path="/admin/survey-forms" element={<SurveyFormPage />} />
+				<Route path="/admin/education-contents" element={<EducationContentPage />} />
 				<Route path="*" element={<Navigate to="/admin/login" replace />} />
 			</Routes>
 		</BrowserRouter>

@@ -4884,6 +4884,228 @@ h6 {
 	max-width: none;
 }
 
+.education-program-form-table {
+	table-layout: fixed;
+}
+.education-program-form-table > tbody > tr > td {
+	min-width: 0;
+}
+.education-program-form-table > tbody > tr > td input,
+.education-program-form-table > tbody > tr > td select,
+.education-program-form-table > tbody > tr > td textarea,
+.education-program-form-table > tbody > tr > td .table input,
+.education-program-form-table > tbody > tr > td .table select {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+.education-program-form-table > tbody > tr > td input[type='radio'],
+.education-program-form-table > tbody > tr > td input[type='checkbox'] {
+	width: auto;
+	max-width: none;
+}
+.education-program-inline-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+}
+.education-program-eval-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+}
+.education-program-nested-table {
+	table-layout: fixed;
+	width: 100%;
+}
+.education-program-section-row > th {
+	padding: 10px 0 7px;
+	background: #fff;
+	color: #111827;
+	font-size: 14px;
+	font-weight: 700;
+	border-bottom: 1px solid #93a4bd;
+}
+.education-program-file-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+.education-program-file-row .admin-list-btn-sky {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	height: 30px;
+	padding: 0 12px;
+	margin: 0;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.education-program-count-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	max-width: 360px;
+}
+.education-program-count-inline input {
+	flex: 1 1 auto;
+}
+.education-program-count-inline span {
+	flex: 0 0 auto;
+	color: #374151;
+	font-size: 13px;
+}
+.education-program-step-card,
+.education-program-quest-card {
+	border: 1px solid #dbe3ef;
+	border-radius: 6px;
+	background: #fff;
+	padding: 12px;
+	margin-bottom: 12px;
+}
+.education-program-step-title,
+.education-program-quest-title {
+	font-size: 13px;
+	font-weight: 700;
+	color: #1f2937;
+	padding-bottom: 8px;
+	margin-bottom: 10px;
+	border-bottom: 1px solid #e5e7eb;
+}
+.education-program-basic-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+	margin-bottom: 10px;
+}
+.education-program-basic-grid.is-four {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.education-program-basic-grid label {
+	display: grid;
+	gap: 5px;
+	color: #374151;
+	font-size: 12px;
+	font-weight: 600;
+}
+.education-program-sub-block {
+	margin-top: 10px;
+}
+.education-program-sub-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 8px 0 6px;
+	color: #374151;
+	font-size: 13px;
+}
+.education-program-sub-header .admin-list-btn-sky {
+	height: 28px;
+	padding: 0 10px;
+}
+.education-program-order-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 4px;
+}
+.education-program-order-buttons button {
+	width: 26px;
+	height: 26px;
+	border: 1px solid #c7d2fe;
+	border-radius: 5px;
+	background: #eef2ff;
+	color: #4338ca;
+	cursor: pointer;
+}
+.education-program-quest-list {
+	display: grid;
+	gap: 10px;
+}
+.education-program-fixed-label {
+	color: #111827;
+	font-size: 13px;
+	font-weight: 600;
+	text-align: center;
+	background: #f9fafb;
+}
+.education-program-picker-filter {
+	margin-bottom: 12px;
+}
+.education-program-picker-table {
+	table-layout: fixed;
+}
+.education-program-picker-table .admin-list-btn-sky {
+	height: 28px;
+	padding: 0 10px;
+	margin: 0;
+}
+.education-program-textarea-block {
+	margin: 10px 0;
+}
+.education-program-textarea-block label {
+	display: grid;
+	gap: 6px;
+	color: #374151;
+	font-size: 12px;
+	font-weight: 600;
+}
+.education-program-textarea-block textarea {
+	width: 100%;
+	min-height: 72px;
+	padding: 8px 10px;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	box-sizing: border-box;
+	resize: vertical;
+	font-family: inherit;
+	font-size: 13px;
+	line-height: 1.45;
+}
+.education-program-eval-block {
+	margin-top: 10px;
+}
+.education-program-eval-rows {
+	display: grid;
+	gap: 8px;
+}
+.education-program-eval-rows label {
+	display: grid;
+	grid-template-columns: 160px minmax(0, 1fr);
+	align-items: center;
+	gap: 10px;
+	color: #374151;
+	font-size: 13px;
+	font-weight: 600;
+}
+.education-program-eval-rows input {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+.education-program-eval-picker-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 8px;
+}
+.education-program-eval-picker-row .admin-list-btn-sky {
+	height: 28px;
+	margin: 0;
+	padding: 0 10px;
+	white-space: nowrap;
+}
+.education-program-list-note {
+	margin: -2px 0 12px;
+	color: #6b7280;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
 /* 관리자 공통 — datepicker(input[type=date]) 너비 120px */
 .main-content input[type='date'],
 .layer-popup input[type='date'],

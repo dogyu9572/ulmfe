@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.EducationContentDAO">
+	<sql id="educationContentSelectColumns">
+		C.CNTN_SN,
+		C.CNTN_TYPE_CD,
+		CASE C.CNTN_TYPE_CD
+			WHEN 'INFO' THEN '정보안내'
+			WHEN 'VIDEO' THEN '애니메이션 영상'
+			WHEN 'SELECT' THEN '선택형 활동'
+			WHEN 'DATA' THEN '데이터 입력'
+			WHEN 'PHOTO' THEN '사진 업로드'
+			WHEN 'SENTENCE' THEN '문장완성형'
+			ELSE C.CNTN_TYPE_CD
+		END AS CNTN_TYPE_NM,
+		C.CARD_CLSF_CD,
+		CASE C.CARD_CLSF_CD
+			WHEN 'MISSION' THEN '미션카드'
+			WHEN 'EXPLORE' THEN '탐구카드'
+			WHEN 'EXPERIENCE' THEN '체험카드'
+			WHEN 'DESIGN' THEN '설계활동'
+			WHEN 'MAKER' THEN '메이커활동'
+			ELSE C.CARD_CLSF_CD
+		END AS CARD_CLSF_NM,
+		C.CNTN_TTL,
+		C.CNTN_CN,
+		C.PRVD_TYPE_CD,
+		CASE C.PRVD_TYPE_CD
+			WHEN 'IMAGE' THEN '이미지'
+			WHEN 'VIDEO' THEN '동영상'
+			ELSE C.PRVD_TYPE_CD
+		END AS PRVD_TYPE_NM,
+		C.IMG_ATCH_FILE_ID,
+		C.VIDEO_URL_ADDR,
+		C.VIDEO_THMB_ATCH_FILE_ID,
+		C.VIDEO_TTL,
+		C.USE_YN,
+		C.REG_DT,
+		C.RGTR,
+		C.MDFCN_DT,
+		C.MDTR,
+		C.DEL_DT,
+		C.DELTR
+	</sql>
+
+	<sql id="educationContentWhere">
+		<where>
+			C.DEL_DT IS NULL
+			<if test="cntnTypeCd != null and cntnTypeCd != ''">
+				AND C.CNTN_TYPE_CD = #{cntnTypeCd}
+			</if>
+			<if test="cardClsfCd != null and cardClsfCd != ''">
+				AND C.CARD_CLSF_CD = #{cardClsfCd}
+			</if>
+			<if test="useYn != null and useYn != ''">
+				AND C.USE_YN = #{useYn}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				AND C.CNTN_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+			</if>
+		</where>
+	</sql>
+
+	<select id="countEducationContentList" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_CNTN_MST C
+		<include refid="educationContentWhere"/>
+	</select>
+
+	<select id="selectEducationContentList" resultType="egovframework.let.adm.service.vo.EducationContentVO">
+		SELECT
+		<include refid="educationContentSelectColumns"/>
+		FROM EDU_CNTN_MST C
+		<include refid="educationContentWhere"/>
+		ORDER BY C.REG_DT DESC, C.CNTN_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.EducationContentVO">
+		SELECT
+		<include refid="educationContentSelectColumns"/>
+		FROM EDU_CNTN_MST C
+		WHERE C.CNTN_SN = #{cntnSn}
+		AND C.DEL_DT IS NULL
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.EducationContentVO" useGeneratedKeys="true" keyProperty="cntnSn">
+		INSERT INTO EDU_CNTN_MST (
+			CNTN_TYPE_CD,
+			CARD_CLSF_CD,
+			CNTN_TTL,
+			CNTN_CN,
+			PRVD_TYPE_CD,
+			IMG_ATCH_FILE_ID,
+			VIDEO_URL_ADDR,
+			VIDEO_THMB_ATCH_FILE_ID,
+			VIDEO_TTL,
+			USE_YN,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{cntnTypeCd},
+			#{cardClsfCd},
+			#{cntnTtl},
+			#{cntnCn},
+			#{prvdTypeCd},
+			#{imgAtchFileId},
+			#{videoUrlAddr},
+			#{videoThmbAtchFileId},
+			#{videoTtl},
+			#{useYn},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.EducationContentVO">
+		UPDATE EDU_CNTN_MST SET
+			CNTN_TYPE_CD = #{cntnTypeCd},
+			CARD_CLSF_CD = #{cardClsfCd},
+			CNTN_TTL = #{cntnTtl},
+			CNTN_CN = #{cntnCn},
+			PRVD_TYPE_CD = #{prvdTypeCd},
+			IMG_ATCH_FILE_ID = #{imgAtchFileId},
+			VIDEO_URL_ADDR = #{videoUrlAddr},
+			VIDEO_THMB_ATCH_FILE_ID = #{videoThmbAtchFileId},
+			VIDEO_TTL = #{videoTtl},
+			USE_YN = #{useYn},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE CNTN_SN = #{cntnSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="delete">
+		UPDATE EDU_CNTN_MST SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE CNTN_SN = #{cntnSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<select id="selectQuestions" resultType="egovframework.let.adm.service.vo.EducationContentQuestionVO">
+		SELECT
+			Q.CNTN_QSTN_SN,
+			Q.CNTN_SN,
+			Q.QSTN_TYPE_CD,
+			CASE Q.QSTN_TYPE_CD
+				WHEN 'SELECT' THEN '선택형 활동'
+				WHEN 'DATA' THEN '데이터 입력'
+				WHEN 'PHOTO' THEN '사진 업로드'
+				WHEN 'SENTENCE' THEN '문장완성형'
+				ELSE Q.QSTN_TYPE_CD
+			END AS QSTN_TYPE_NM,
+			Q.QSTN_NM,
+			Q.QSTN_IMG_ATCH_FILE_ID,
+			Q.OPTN_CN,
+			Q.SORT_SEQ,
+			Q.REG_DT,
+			Q.RGTR,
+			Q.MDFCN_DT,
+			Q.MDTR
+		FROM EDU_CNTN_QSTN Q
+		WHERE Q.CNTN_SN = #{cntnSn}
+		ORDER BY Q.SORT_SEQ ASC, Q.CNTN_QSTN_SN ASC
+	</select>
+
+	<delete id="deleteQuestions">
+		DELETE FROM EDU_CNTN_QSTN
+		WHERE CNTN_SN = #{cntnSn}
+	</delete>
+
+	<insert id="insertQuestion" parameterType="egovframework.let.adm.service.vo.EducationContentQuestionVO" useGeneratedKeys="true" keyProperty="cntnQstnSn">
+		INSERT INTO EDU_CNTN_QSTN (
+			CNTN_SN,
+			QSTN_TYPE_CD,
+			QSTN_NM,
+			QSTN_IMG_ATCH_FILE_ID,
+			OPTN_CN,
+			SORT_SEQ,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{cntnSn},
+			#{qstnTypeCd},
+			#{qstnNm},
+			#{qstnImgAtchFileId},
+			#{optnCn},
+			#{sortSeq},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+</mapper>
