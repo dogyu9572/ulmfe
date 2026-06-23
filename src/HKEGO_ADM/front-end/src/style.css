@@ -4905,6 +4905,209 @@ h6 {
 	width: auto;
 	max-width: none;
 }
+
+.learning-student-table {
+	table-layout: fixed;
+}
+.learning-student-table input,
+.learning-student-table select {
+	width: 100%;
+	height: 32px;
+	box-sizing: border-box;
+	border: 1px solid #cfd8e3;
+	border-radius: 6px;
+	padding: 0 10px;
+	background: #fff;
+	color: #111827;
+	font-size: 13px;
+	outline: none;
+}
+.learning-student-table select {
+	padding-right: 24px;
+}
+.learning-student-table input:focus,
+.learning-student-table select:focus {
+	border-color: #7fb3ff;
+	box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.12);
+}
+.learning-calendar-toolbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 14px;
+}
+.learning-calendar-month-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.learning-calendar-month-control strong {
+	min-width: 86px;
+	text-align: center;
+	font-size: 18px;
+	color: #111827;
+}
+.learning-calendar-summary {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+	margin-bottom: 14px;
+}
+.learning-calendar-summary div {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	padding: 13px 14px;
+	border: 1px solid #dbe3ef;
+	border-radius: 8px;
+	background: #f8fbff;
+}
+.learning-calendar-summary span {
+	margin-right: auto;
+	color: #4b5563;
+	font-size: 13px;
+}
+.learning-calendar-summary strong {
+	color: #1d4ed8;
+	font-size: 22px;
+	line-height: 1;
+}
+.learning-calendar-summary em {
+	color: #6b7280;
+	font-style: normal;
+	font-size: 12px;
+}
+.learning-calendar-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 330px;
+	gap: 14px;
+	align-items: start;
+}
+.learning-calendar-panel,
+.learning-calendar-side,
+.learning-calendar-today {
+	border: 1px solid #dbe3ef;
+	border-radius: 8px;
+	background: #fff;
+}
+.learning-calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.learning-calendar-grid--week div {
+	padding: 9px 6px;
+	border-bottom: 1px solid #dbe3ef;
+	background: #f3f6fb;
+	text-align: center;
+	font-weight: 700;
+	color: #374151;
+}
+.learning-calendar-day {
+	min-height: 105px;
+	padding: 8px;
+	border: 0;
+	border-right: 1px solid #edf1f7;
+	border-bottom: 1px solid #edf1f7;
+	background: #fff;
+	text-align: left;
+	cursor: pointer;
+}
+.learning-calendar-day:nth-child(7n) {
+	border-right: 0;
+}
+.learning-calendar-day span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	margin-bottom: 6px;
+	border-radius: 50%;
+	color: #111827;
+	font-weight: 700;
+}
+.learning-calendar-day em {
+	display: block;
+	overflow: hidden;
+	margin-top: 3px;
+	padding: 3px 6px;
+	border-radius: 5px;
+	background: #eaf2ff;
+	color: #1d4ed8;
+	font-style: normal;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.learning-calendar-day small {
+	display: inline-block;
+	margin-top: 4px;
+	color: #6b7280;
+}
+.learning-calendar-day.is-muted {
+	background: #fafafa;
+}
+.learning-calendar-day.is-muted span {
+	color: #a0a7b3;
+}
+.learning-calendar-day.is-today span {
+	background: #2563eb;
+	color: #fff;
+}
+.learning-calendar-day.is-selected {
+	box-shadow: inset 0 0 0 2px #60a5fa;
+	background: #f8fbff;
+}
+.learning-calendar-side {
+	padding: 14px;
+}
+.learning-calendar-side h4,
+.learning-calendar-today h4 {
+	margin: 0 0 10px;
+	color: #111827;
+	font-size: 15px;
+}
+.learning-calendar-empty {
+	margin: 0;
+	padding: 18px 8px;
+	color: #6b7280;
+	text-align: center;
+}
+.learning-calendar-reservation {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	padding: 12px 0;
+	border-top: 1px solid #edf1f7;
+}
+.learning-calendar-reservation:first-of-type {
+	border-top: 0;
+}
+.learning-calendar-reservation strong {
+	color: #111827;
+}
+.learning-calendar-reservation span {
+	color: #4b5563;
+	font-size: 13px;
+}
+.learning-calendar-actions {
+	display: flex;
+	gap: 6px;
+	margin-top: 6px;
+}
+.learning-calendar-today {
+	margin-top: 14px;
+	padding: 14px;
+}
+.dashboard-learning-card {
+	padding: 16px 18px 18px;
+}
+@media (max-width: 1100px) {
+	.learning-calendar-summary,
+	.learning-calendar-layout {
+		grid-template-columns: 1fr;
+	}
+}
 .education-program-inline-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6586,4 +6789,88 @@ input.bbs-post-regdt-input {
 	border: 1px dashed #cbd5e1;
 	border-radius: 6px;
 	background: #f8fafc;
+}
+
+.admin-help-text {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border: 1px solid #dbe3ef;
+	border-radius: 6px;
+	background: #f8fbff;
+	color: #4b5563;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.admin-inline-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.learning-result-actions {
+	flex-wrap: nowrap;
+	white-space: nowrap;
+}
+
+.learning-result-actions .admin-list-btn-edit {
+	flex: 0 0 auto;
+}
+
+.learning-result-download-actions {
+	justify-content: flex-start;
+}
+
+.field-status-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 58px;
+	height: 24px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.field-status-badge.is-ready {
+	background: #eef2f7;
+	color: #697586;
+}
+
+.field-status-badge.is-ing {
+	background: #e9f2ff;
+	color: #1769d7;
+}
+
+.field-status-badge.is-done {
+	background: #e9f8ee;
+	color: #16803c;
+}
+
+.field-status-step-lines {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	text-align: left;
+	line-height: 1.35;
+}
+
+.field-status-step-lines em {
+	font-style: normal;
+	font-weight: 700;
+}
+
+.field-status-step-lines em.is-ready {
+	color: #4b5563;
+}
+
+.field-status-step-lines em.is-ing {
+	color: #16a34a;
+}
+
+.field-status-step-lines em.is-done {
+	color: #111827;
 }

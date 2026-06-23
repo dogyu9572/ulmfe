@@ -89,10 +89,19 @@ public class AdminMenuAuthorizationService {
 		if (uri.startsWith("/api/admin/access-log")) return "/admin/access-log";
 		if (uri.startsWith("/api/admin/user-access-log")) return "/admin/user-access-log";
 		if (uri.startsWith("/api/admin/user-visitor-stats")) return "/admin/user-visitor-stats";
+		if (uri.startsWith("/api/admin/notification-log")) return "/admin/notification-log";
+		if (uri.startsWith("/api/admin/visitor-stats")) return "/admin/visitor-stats";
+		if (uri.startsWith("/api/admin/education-program-stats")) return "/admin/education-program-stats";
+		if (uri.startsWith("/api/admin/material-download-stats")) return "/admin/material-download-stats";
 		if (uri.startsWith("/api/admin/library-books")) return "/admin/library-books";
 		if (uri.startsWith("/api/admin/evaluation-forms")) return "/admin/evaluation-forms";
 		if (uri.startsWith("/api/admin/survey-forms")) return "/admin/survey-forms";
 		if (uri.startsWith("/api/admin/education-contents")) return "/admin/education-contents";
+		if (uri.startsWith("/api/admin/field-operation-status")) return "/admin/field-operation-status";
+		if (uri.startsWith("/api/admin/learning-calendar")) return "/admin/learning-calendar";
+		if (uri.startsWith("/api/admin/learning-results")) return "/admin/learning-results";
+		if (uri.startsWith("/api/admin/learning-reservations")) return "/admin/learning-reservations";
+		if (uri.startsWith("/api/admin/learning-support-materials")) return "/admin/learning-support-materials";
 		if (uri.startsWith("/api/admin/users")) return "/admin/users";
 		return null;
 	}

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.LearningReservationDAO">
+	<sql id="learningReservationSelectColumns">
+		R.RSVT_SN,
+		R.RSVT_NO,
+		R.SCHL_NM,
+		R.SCYR_NM,
+		R.PIC_NM,
+		R.PIC_TELNO,
+		R.PIC_EML_ADDR,
+		R.RSVT_YMD,
+		R.VST_HM,
+		R.RSVT_NOPE,
+		R.ACTL_NOPE,
+		R.PRGRM_TYPE_CD,
+		CASE R.PRGRM_TYPE_CD
+			WHEN 'MISSION' THEN '미션'
+			WHEN 'EXPLORE' THEN '사건탐구'
+			ELSE R.PRGRM_TYPE_CD
+		END AS PRGRM_TYPE_NM,
+		R.PRGRM_SN,
+		P.PRGRM_NM,
+		R.LRN_STTS_CD,
+		CASE R.LRN_STTS_CD
+			WHEN 'READY' THEN '진행 전'
+			WHEN 'ING' THEN '진행 중'
+			WHEN 'DONE' THEN '완료'
+			ELSE R.LRN_STTS_CD
+		END AS LRN_STTS_NM,
+		R.STDNT_LIST_YN,
+		(
+			SELECT COUNT(*)
+			FROM EDU_RSVT_STDNT S
+			WHERE S.RSVT_SN = R.RSVT_SN
+			AND S.DEL_DT IS NULL
+		) AS STDNT_CNT,
+		R.RGTR,
+		R.REG_DT,
+		R.MDTR,
+		R.MDFCN_DT,
+		R.DELTR,
+		R.DEL_DT
+	</sql>
+
+	<sql id="learningReservationWhere">
+		<where>
+			R.DEL_DT IS NULL
+			<if test="lrnSttsCd != null and lrnSttsCd != ''">
+				AND R.LRN_STTS_CD = #{lrnSttsCd}
+			</if>
+			<if test="prgrmTypeCd != null and prgrmTypeCd != ''">
+				AND R.PRGRM_TYPE_CD = #{prgrmTypeCd}
+			</if>
+			<if test="startRsvtYmd != null and startRsvtYmd != ''">
+				AND R.RSVT_YMD &gt;= #{startRsvtYmd}
+			</if>
+			<if test="endRsvtYmd != null and endRsvtYmd != ''">
+				AND R.RSVT_YMD &lt;= #{endRsvtYmd}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'rsvtNo'">
+						AND R.RSVT_NO LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'schlNm'">
+						AND R.SCHL_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'picNm'">
+						AND R.PIC_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'picTelno'">
+						AND R.PIC_TELNO LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+							R.RSVT_NO LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR R.SCHL_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR R.PIC_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR R.PIC_TELNO LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<select id="countLearningReservationList" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		<include refid="learningReservationWhere"/>
+	</select>
+
+	<select id="selectLearningReservationList" resultType="egovframework.let.adm.service.vo.LearningReservationVO">
+		SELECT
+		<include refid="learningReservationSelectColumns"/>
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		<include refid="learningReservationWhere"/>
+		ORDER BY R.RSVT_YMD DESC, R.VST_HM DESC, R.RSVT_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.LearningReservationVO">
+		SELECT
+		<include refid="learningReservationSelectColumns"/>
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		WHERE R.RSVT_SN = #{rsvtSn}
+		AND R.DEL_DT IS NULL
+	</select>
+
+	<select id="selectNextReservationSeq" resultType="int">
+		SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(RSVT_NO, '-', -1) AS UNSIGNED)), 0) + 1
+		FROM EDU_RSVT_MST
+		WHERE RSVT_NO LIKE CONCAT(#{rsvtNoPrefix}, '-%')
+	</select>
+
+	<select id="selectProgramSnByName" resultType="int">
+		SELECT PRGRM_SN
+		FROM EDU_PRGRM_MST
+		WHERE PRGRM_TYPE_CD = #{prgrmTypeCd}
+		AND PRGRM_NM = #{prgrmNm}
+		AND USE_YN = 'Y'
+		AND DEL_DT IS NULL
+		ORDER BY PRGRM_SN DESC
+		LIMIT 1
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.LearningReservationVO" useGeneratedKeys="true" keyProperty="rsvtSn">
+		INSERT INTO EDU_RSVT_MST (
+			RSVT_NO, SCHL_NM, SCYR_NM, PIC_NM, PIC_TELNO, PIC_EML_ADDR, RSVT_YMD, VST_HM,
+			RSVT_NOPE, ACTL_NOPE, PRGRM_TYPE_CD, PRGRM_SN, LRN_STTS_CD, STDNT_LIST_YN, RGTR, REG_DT
+		) VALUES (
+			#{rsvtNo}, #{schlNm}, #{scyrNm}, #{picNm}, #{picTelno}, #{picEmlAddr}, #{rsvtYmd}, #{vstHm},
+			#{rsvtNope}, #{actlNope}, #{prgrmTypeCd}, #{prgrmSn}, #{lrnSttsCd}, #{stdntListYn}, #{rgtr}, NOW()
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.LearningReservationVO">
+		UPDATE EDU_RSVT_MST SET
+			SCHL_NM = #{schlNm},
+			SCYR_NM = #{scyrNm},
+			PIC_NM = #{picNm},
+			PIC_TELNO = #{picTelno},
+			PIC_EML_ADDR = #{picEmlAddr},
+			RSVT_YMD = #{rsvtYmd},
+			VST_HM = #{vstHm},
+			RSVT_NOPE = #{rsvtNope},
+			ACTL_NOPE = #{actlNope},
+			PRGRM_TYPE_CD = #{prgrmTypeCd},
+			PRGRM_SN = #{prgrmSn},
+			LRN_STTS_CD = #{lrnSttsCd},
+			STDNT_LIST_YN = #{stdntListYn},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="delete">
+		UPDATE EDU_RSVT_MST SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<select id="selectStudents" resultType="egovframework.let.adm.service.vo.LearningReservationStudentVO">
+		SELECT
+			STDNT_SN,
+			RSVT_SN,
+			STDNT_NO,
+			CLAS_NM,
+			CLAS_NO,
+			STDNT_NM,
+			ATND_YN,
+			TEAM_NM,
+			ASGN_NM,
+			ROUTE_CN,
+			LRN_STTS_CD,
+			PRGRS_RT,
+			STDNT_NM_DEL_DT,
+			RGTR,
+			REG_DT,
+			MDTR,
+			MDFCN_DT,
+			DELTR,
+			DEL_DT
+		FROM EDU_RSVT_STDNT
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+		ORDER BY CAST(COALESCE(NULLIF(STDNT_NO, ''), STDNT_SN) AS UNSIGNED), STDNT_SN
+	</select>
+
+	<update id="deleteStudents">
+		UPDATE EDU_RSVT_STDNT SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<insert id="insertStudent" parameterType="egovframework.let.adm.service.vo.LearningReservationStudentVO" useGeneratedKeys="true" keyProperty="stdntSn">
+		INSERT INTO EDU_RSVT_STDNT (
+			RSVT_SN, STDNT_NO, CLAS_NM, CLAS_NO, STDNT_NM, ATND_YN, TEAM_NM, ASGN_NM, ROUTE_CN,
+			LRN_STTS_CD, PRGRS_RT, RGTR, REG_DT
+		) VALUES (
+			#{rsvtSn}, #{stdntNo}, #{clasNm}, #{clasNo}, #{stdntNm}, #{atndYn}, #{teamNm}, #{asgnNm}, #{routeCn},
+			#{lrnSttsCd}, #{prgrsRt}, #{rgtr}, NOW()
+		)
+	</insert>
+
+	<update id="updateActualStudentCount">
+		UPDATE EDU_RSVT_MST SET
+			ACTL_NOPE = (
+				SELECT COUNT(*)
+				FROM EDU_RSVT_STDNT
+				WHERE RSVT_SN = #{rsvtSn}
+				AND DEL_DT IS NULL
+			),
+			STDNT_LIST_YN = CASE
+				WHEN (
+					SELECT COUNT(*)
+					FROM EDU_RSVT_STDNT
+					WHERE RSVT_SN = #{rsvtSn}
+					AND DEL_DT IS NULL
+				) &gt; 0 THEN 'Y'
+				ELSE 'N'
+			END
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+	</update>
+</mapper>

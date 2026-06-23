@@ -94,7 +94,7 @@ function rate(numerator: number, denominator: number): number {
 	return Math.round((numerator / denominator) * 100)
 }
 
-export const DashboardPage: React.FC = () => {
+export const LearningCalendarPage: React.FC = () => {
 	const navigate = useNavigate()
 	const [month, setMonth] = useState(todayYmd().slice(0, 7))
 	const [selectedDate, setSelectedDate] = useState(todayYmd())
@@ -112,12 +112,12 @@ export const DashboardPage: React.FC = () => {
 			const res = await fetch(`${BACKEND}/api/admin/learning-calendar?${qs.toString()}`, { credentials: 'include' })
 			const result: ApiResponse<Reservation[]> = await res.json()
 			if (!result.success) {
-				setError(result.message || '대시보드 조회에 실패했습니다.')
+				setError(result.message || '예약 캘린더 조회에 실패했습니다.')
 				return
 			}
 			setRows(result.data ?? [])
 		} catch {
-			setError('대시보드 조회 중 오류가 발생했습니다.')
+			setError('예약 캘린더 조회 중 오류가 발생했습니다.')
 		} finally {
 			setLoading(false)
 		}
@@ -158,8 +158,8 @@ export const DashboardPage: React.FC = () => {
 	}
 
 	return (
-		<AdminLayout title="대시보드">
-			<CrudPageCard title="대시보드" error={error}>
+		<AdminLayout title="예약 캘린더">
+			<CrudPageCard title="예약 캘린더" error={error}>
 				<div className="learning-calendar-toolbar">
 					<div className="learning-calendar-month-control">
 						<button type="button" className="admin-filter-btn-reset" onClick={() => setMonth(addMonths(month, -1))} disabled={loading}>이전</button>
@@ -257,7 +257,6 @@ export const DashboardPage: React.FC = () => {
 										<span>진행상태: {row.lrnSttsNm || '-'}</span>
 										<div className="learning-calendar-actions">
 											<button type="button" className="admin-filter-btn-reset" onClick={() => openReservationDetail(row.rsvtSn)}>예약 상세</button>
-											<button type="button" className="admin-list-btn-sky" onClick={() => navigate('/admin/learning-calendar')}>현장 현황</button>
 										</div>
 									</div>
 								)
@@ -265,6 +264,7 @@ export const DashboardPage: React.FC = () => {
 						)}
 					</aside>
 				</div>
+
 			</CrudPageCard>
 		</AdminLayout>
 	)

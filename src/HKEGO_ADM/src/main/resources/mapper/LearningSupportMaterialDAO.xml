@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.LearningSupportMaterialDAO">
+	<sql id="bbsIdCondition">
+		B.BBS_ID = 'LRNSUP'
+	</sql>
+
+	<sql id="materialSelectColumns">
+		B.PST_SN,
+		B.PST_TTL,
+		B.PST_CN,
+		B.ETC1 AS LRN_TYPE_CD,
+		CASE B.ETC1
+			WHEN 'PRE' THEN '사전학습'
+			WHEN 'MAIN' THEN '본학습'
+			WHEN 'POST' THEN '사후학습'
+			ELSE B.ETC1
+		END AS LRN_TYPE_NM,
+		B.ETC2 AS DATA_TYPE_CD,
+		CASE B.ETC2
+			WHEN 'LINK' THEN '링크'
+			WHEN 'DOC' THEN '문서'
+			WHEN 'VIDEO' THEN '동영상'
+			ELSE B.ETC2
+		END AS DATA_TYPE_NM,
+		B.ETC3 AS PRGRM_TYPE_CD,
+		CASE B.ETC3
+			WHEN 'MISSION' THEN '미션'
+			WHEN 'EXPLORE' THEN '사건탐구'
+			ELSE B.ETC3
+		END AS PRGRM_TYPE_NM,
+		CAST(NULLIF(B.ETC4, '') AS UNSIGNED) AS PRGRM_SN,
+		P.PRGRM_NM,
+		B.LNKG_URL_ADDR AS LINK_URL,
+		B.ETC5 AS VIDEO_EMBED_URL,
+		B.ATCH_FILE_MNG_NO,
+		B.WRTR_NM,
+		B.WRTR_ID,
+		B.PSTG_YMD,
+		B.USE_YN,
+		B.INQ_CNT,
+		B.REG_DT,
+		B.RGTR,
+		B.MDFCN_DT,
+		B.MDTR
+	</sql>
+
+	<sql id="searchWhere">
+		<where>
+			<include refid="bbsIdCondition"/>
+			<if test="lrnTypeCd != null and lrnTypeCd != ''">
+				AND B.ETC1 = #{lrnTypeCd}
+			</if>
+			<if test="dataTypeCd != null and dataTypeCd != ''">
+				AND B.ETC2 = #{dataTypeCd}
+			</if>
+			<if test="startRegYmd != null and startRegYmd != ''">
+				AND DATE(B.REG_DT) &gt;= #{startRegYmd}
+			</if>
+			<if test="endRegYmd != null and endRegYmd != ''">
+				AND DATE(B.REG_DT) &lt;= #{endRegYmd}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'title'">
+						AND B.PST_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'content'">
+						AND B.PST_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+							B.PST_TTL LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR B.PST_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<select id="countList" resultType="int">
+		SELECT COUNT(*)
+		FROM BBS_ARTICLE B
+		LEFT JOIN EDU_PRGRM_MST P
+			ON P.PRGRM_TYPE_CD = B.ETC3
+			AND P.PRGRM_SN = CAST(NULLIF(B.ETC4, '') AS UNSIGNED)
+			AND P.DEL_DT IS NULL
+		<include refid="searchWhere"/>
+	</select>
+
+	<select id="selectList" resultType="egovframework.let.adm.service.vo.LearningSupportMaterialVO">
+		SELECT
+		<include refid="materialSelectColumns"/>
+		FROM BBS_ARTICLE B
+		LEFT JOIN EDU_PRGRM_MST P
+			ON P.PRGRM_TYPE_CD = B.ETC3
+			AND P.PRGRM_SN = CAST(NULLIF(B.ETC4, '') AS UNSIGNED)
+			AND P.DEL_DT IS NULL
+		<include refid="searchWhere"/>
+		ORDER BY B.REG_DT DESC, B.PST_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.LearningSupportMaterialVO">
+		SELECT
+		<include refid="materialSelectColumns"/>
+		FROM BBS_ARTICLE B
+		LEFT JOIN EDU_PRGRM_MST P
+			ON P.PRGRM_TYPE_CD = B.ETC3
+			AND P.PRGRM_SN = CAST(NULLIF(B.ETC4, '') AS UNSIGNED)
+			AND P.DEL_DT IS NULL
+		WHERE B.BBS_ID = 'LRNSUP'
+		AND B.PST_SN = #{pstSn}
+	</select>
+
+	<insert id="insert" parameterType="egovframework.let.adm.service.vo.LearningSupportMaterialVO">
+		INSERT INTO BBS_ARTICLE (
+			BBS_ID, PST_SN, PST_TTL, PST_CN, WRTR_NM, WRTR_ID, SORT_SEQ,
+			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
+			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
+			ETC1, ETC2, ETC3, ETC4, ETC5,
+			ANS_STTS_CD, REG_DT, RGTR, MDFCN_DT, MDTR
+		) VALUES (
+			'LRNSUP', #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, 0,
+			NULL, 'N', 'N', 'N', #{linkUrl}, #{pstgYmd},
+			#{atchFileMngNo}, NULL, NULL, #{useYn}, #{inqCnt},
+			#{lrnTypeCd}, #{dataTypeCd}, #{prgrmTypeCd}, #{prgrmSn}, #{videoEmbedUrl},
+			'WAIT', NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="update" parameterType="egovframework.let.adm.service.vo.LearningSupportMaterialVO">
+		UPDATE BBS_ARTICLE SET
+			PST_TTL = #{pstTtl},
+			PST_CN = #{pstCn},
+			LNKG_URL_ADDR = #{linkUrl},
+			PSTG_YMD = #{pstgYmd},
+			ATCH_FILE_MNG_NO = #{atchFileMngNo},
+			USE_YN = #{useYn},
+			ETC1 = #{lrnTypeCd},
+			ETC2 = #{dataTypeCd},
+			ETC3 = #{prgrmTypeCd},
+			ETC4 = #{prgrmSn},
+			ETC5 = #{videoEmbedUrl},
+			MDFCN_DT = NOW(),
+			MDTR = #{mdtr}
+		WHERE BBS_ID = 'LRNSUP'
+		AND PST_SN = #{pstSn}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM BBS_ARTICLE
+		WHERE BBS_ID = 'LRNSUP'
+		AND PST_SN = #{pstSn}
+	</delete>
+
+	<select id="exists" resultType="int">
+		SELECT COUNT(*)
+		FROM BBS_ARTICLE
+		WHERE BBS_ID = 'LRNSUP'
+		AND PST_SN = #{pstSn}
+	</select>
+
+	<select id="selectActiveProgramOptions" resultType="egovframework.let.adm.service.vo.EducationProgramVO">
+		SELECT
+			P.PRGRM_SN,
+			P.PRGRM_TYPE_CD,
+			CASE P.PRGRM_TYPE_CD
+				WHEN 'EXPLORE' THEN '사건탐구'
+				WHEN 'MISSION' THEN '미션'
+				ELSE P.PRGRM_TYPE_CD
+			END AS PRGRM_TYPE_NM,
+			P.PRGRM_NM,
+			P.USE_YN
+		FROM EDU_PRGRM_MST P
+		WHERE P.DEL_DT IS NULL
+		AND P.USE_YN = 'Y'
+		ORDER BY P.PRGRM_TYPE_CD, P.PRGRM_NM
+	</select>
+</mapper>

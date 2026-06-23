@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.LearningResultDAO">
+	<sql id="learningResultWhere">
+		<where>
+			R.DEL_DT IS NULL
+			<if test="prgrmTypeCd != null and prgrmTypeCd != ''">
+				AND R.PRGRM_TYPE_CD = #{prgrmTypeCd}
+			</if>
+			<if test="startLrnYmd != null and startLrnYmd != ''">
+				AND R.RSVT_YMD &gt;= #{startLrnYmd}
+			</if>
+			<if test="endLrnYmd != null and endLrnYmd != ''">
+				AND R.RSVT_YMD &lt;= #{endLrnYmd}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'schlNm'">
+						AND R.SCHL_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'prgrmNm'">
+						AND P.PRGRM_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+							R.SCHL_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR P.PRGRM_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<sql id="learningResultSelectColumns">
+		R.RSVT_SN,
+		R.RSVT_NO,
+		R.SCHL_NM,
+		R.SCYR_NM,
+		R.PRGRM_TYPE_CD,
+		CASE R.PRGRM_TYPE_CD
+			WHEN 'MISSION' THEN '미션'
+			WHEN 'EXPLORE' THEN '사건탐구'
+			ELSE R.PRGRM_TYPE_CD
+		END AS PRGRM_TYPE_NM,
+		R.PRGRM_SN,
+		P.PRGRM_NM,
+		R.RSVT_YMD AS LRN_YMD,
+		R.PIC_NM,
+		R.RSVT_NOPE,
+		R.ACTL_NOPE,
+		(
+			SELECT COUNT(*)
+			FROM EDU_RSVT_STDNT S
+			WHERE S.RSVT_SN = R.RSVT_SN
+			AND S.DEL_DT IS NULL
+		) AS STUDENT_CNT,
+		(
+			SELECT COUNT(*)
+			FROM EDU_RSVT_STDNT S
+			WHERE S.RSVT_SN = R.RSVT_SN
+			AND S.DEL_DT IS NULL
+			AND S.ATND_YN = 'Y'
+		) AS ATND_CNT,
+		ROUND(
+			(
+				SELECT COUNT(*)
+				FROM EDU_RSVT_STDNT S
+				WHERE S.RSVT_SN = R.RSVT_SN
+				AND S.DEL_DT IS NULL
+				AND S.ATND_YN = 'Y'
+			) / GREATEST(
+				COALESCE(R.RSVT_NOPE, 0),
+				(
+					SELECT COUNT(*)
+					FROM EDU_RSVT_STDNT S
+					WHERE S.RSVT_SN = R.RSVT_SN
+					AND S.DEL_DT IS NULL
+				),
+				1
+			) * 100
+		) AS ATTENDANCE_RATE,
+		R.REG_DT
+	</sql>
+
+	<select id="countLearningResultList" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		<include refid="learningResultWhere"/>
+	</select>
+
+	<select id="selectLearningResultList" resultType="egovframework.let.adm.service.vo.LearningResultVO">
+		SELECT
+		<include refid="learningResultSelectColumns"/>
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		<include refid="learningResultWhere"/>
+		ORDER BY R.RSVT_YMD DESC, R.RSVT_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findResultDetail" resultType="egovframework.let.adm.service.vo.LearningResultVO">
+		SELECT
+		<include refid="learningResultSelectColumns"/>
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		WHERE R.RSVT_SN = #{rsvtSn}
+		AND R.DEL_DT IS NULL
+	</select>
+
+	<select id="selectResultStudents" resultType="egovframework.let.adm.service.vo.LearningResultStudentVO">
+		SELECT
+			S.STDNT_SN,
+			S.RSVT_SN,
+			S.STDNT_NO,
+			S.CLAS_NM,
+			S.CLAS_NO,
+			CASE
+				WHEN S.STDNT_NM_DEL_DT IS NOT NULL THEN NULL
+				ELSE S.STDNT_NM
+			END AS STDNT_NM,
+			S.ATND_YN,
+			S.TEAM_NM,
+			S.ASGN_NM,
+			S.ROUTE_CN,
+			S.LRN_STTS_CD,
+			CASE S.LRN_STTS_CD
+				WHEN 'READY' THEN '진행 전'
+				WHEN 'ING' THEN '진행 중'
+				WHEN 'DONE' THEN '완료'
+				ELSE S.LRN_STTS_CD
+			END AS LRN_STTS_NM,
+			S.PRGRS_RT,
+			CASE
+				WHEN (
+					SELECT COUNT(*)
+					FROM EDU_LRN_PRGRS_LOG L
+					WHERE L.RSVT_SN = S.RSVT_SN
+					AND L.STDNT_SN = S.STDNT_SN
+				) &gt; 0 THEN (
+					SELECT COUNT(DISTINCT L.STEP_CD)
+					FROM EDU_LRN_PRGRS_LOG L
+					WHERE L.RSVT_SN = S.RSVT_SN
+					AND L.STDNT_SN = S.STDNT_SN
+					AND L.STEP_STTS_CD = 'DONE'
+				)
+				WHEN S.LRN_STTS_CD = 'DONE' THEN 4
+				WHEN S.LRN_STTS_CD = 'ING' THEN 2
+				ELSE 0
+			END AS DONE_STEP_CNT,
+			4 AS TOTAL_STEP_CNT,
+			S.STDNT_NM_DEL_DT
+		FROM EDU_RSVT_STDNT S
+		WHERE S.RSVT_SN = #{rsvtSn}
+		AND S.DEL_DT IS NULL
+		ORDER BY CAST(COALESCE(NULLIF(S.STDNT_NO, ''), S.STDNT_SN) AS UNSIGNED), S.STDNT_SN
+	</select>
+
+	<select id="selectStudentAnswers" resultType="egovframework.let.adm.service.vo.LearningResultAnswerVO">
+		SELECT
+			A.LRN_ANS_SN,
+			A.RSVT_SN,
+			A.STDNT_SN,
+			A.ANS_TYPE_CD,
+			CASE A.ANS_TYPE_CD
+				WHEN 'WORKSHEET' THEN '활동지'
+				WHEN 'EVALUATION' THEN '학생 평가지'
+				WHEN 'SURVEY' THEN '학생 설문지'
+				WHEN 'TEACHER_EVALUATION' THEN '선생님 운영 평가지'
+				ELSE A.ANS_TYPE_CD
+			END AS ANS_TYPE_NM,
+			A.STEP_CD,
+			CASE A.STEP_CD
+				WHEN 'STEP1' THEN 'STEP1'
+				WHEN 'STEP2' THEN 'STEP2'
+				WHEN 'STEP3' THEN 'STEP3'
+				WHEN 'STEP4' THEN 'STEP4'
+				ELSE A.STEP_CD
+			END AS STEP_NM,
+			A.CARD_CLSF_CD,
+			CASE A.CARD_CLSF_CD
+				WHEN 'MISSION' THEN '미션카드'
+				WHEN 'SEARCH' THEN '탐구카드'
+				WHEN 'EXPERIENCE' THEN '체험카드'
+				WHEN 'DESIGN' THEN '설계활동'
+				WHEN 'MEDIA' THEN '메이커활동'
+				ELSE A.CARD_CLSF_CD
+			END AS CARD_CLSF_NM,
+			A.CNTN_SN,
+			A.QSTNR_SN,
+			A.QSTN_SN,
+			A.QSTN_CN,
+			A.ANS_CN
+		FROM EDU_LRN_ANS A
+		WHERE A.RSVT_SN = #{rsvtSn}
+		AND A.DEL_DT IS NULL
+		<if test="stdntSn != null">
+			AND A.STDNT_SN = #{stdntSn}
+		</if>
+		<if test="ansTypeCd != null and ansTypeCd != ''">
+			AND A.ANS_TYPE_CD = #{ansTypeCd}
+		</if>
+		ORDER BY
+			FIELD(A.ANS_TYPE_CD, 'WORKSHEET', 'EVALUATION', 'SURVEY', 'TEACHER_EVALUATION'),
+			FIELD(A.STEP_CD, 'STEP1', 'STEP2', 'STEP3', 'STEP4'),
+			A.LRN_ANS_SN
+	</select>
+</mapper>

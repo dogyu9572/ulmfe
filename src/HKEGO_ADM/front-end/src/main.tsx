@@ -27,6 +27,17 @@ import { EvaluationFormPage } from './pages/EvaluationFormPage'
 import { SurveyFormPage } from './pages/SurveyFormPage'
 import { EducationContentPage } from './pages/EducationContentPage'
 import { EducationProgramPage } from './pages/EducationProgramPage'
+import { LearningCalendarPage } from './pages/LearningCalendarPage'
+import { LearningFieldStatusPage } from './pages/LearningFieldStatusPage'
+import { LearningResultPage } from './pages/LearningResultPage'
+import { LearningReservationPage } from './pages/LearningReservationPage'
+import { LearningSupportMaterialPage } from './pages/LearningSupportMaterialPage'
+import {
+	EducationProgramStatsPage,
+	MaterialDownloadStatsPage,
+	NotificationSendLogPage,
+	VisitCountStatsPage,
+} from './pages/StatisticsPlaceholderPages'
 import { AdminManageRoute } from './components/AdminManageRoute'
 import { ForbiddenPage } from './pages/ForbiddenPage'
 
@@ -133,12 +144,21 @@ const App: React.FC = () => {
 				<Route path="/admin/user-visitor-stats" element={<UserVisitorStatsPage />} />
 				<Route path="/admin/access-log" element={<AccessLogPage />} />
 				<Route path="/admin/user-access-log" element={<UserAccessLogPage />} />
+				<Route path="/admin/notification-log" element={<NotificationSendLogPage />} />
+				<Route path="/admin/visitor-stats" element={<VisitCountStatsPage />} />
+				<Route path="/admin/education-program-stats" element={<EducationProgramStatsPage />} />
+				<Route path="/admin/material-download-stats" element={<MaterialDownloadStatsPage />} />
 				<Route path="/admin/library-books" element={<LibraryBookPage />} />
 				<Route path="/admin/exploration-programs" element={<EducationProgramPage programType="EXPLORE" />} />
 				<Route path="/admin/mission-programs" element={<EducationProgramPage programType="MISSION" />} />
 				<Route path="/admin/evaluation-forms" element={<EvaluationFormPage />} />
 				<Route path="/admin/survey-forms" element={<SurveyFormPage />} />
 				<Route path="/admin/education-contents" element={<EducationContentPage />} />
+				<Route path="/admin/learning-reservations" element={<LearningReservationPage />} />
+				<Route path="/admin/learning-calendar" element={<LearningCalendarPage />} />
+				<Route path="/admin/field-operation-status" element={<LearningFieldStatusPage />} />
+				<Route path="/admin/learning-results" element={<LearningResultPage />} />
+				<Route path="/admin/learning-support-materials" element={<LearningSupportMaterialPage />} />
 				<Route path="*" element={<Navigate to="/admin/login" replace />} />
 			</Routes>
 		</BrowserRouter>
