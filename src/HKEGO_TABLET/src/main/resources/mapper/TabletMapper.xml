@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.tablet.service.mapper.TabletMapper">
+	<select id="findAdminById" resultType="TabletAdminVO">
+		SELECT
+			ID,
+			USER_NM,
+			ENPSWD,
+			ACNT_STTS_CD,
+			AUTHRT_CD
+		FROM ADMIN_MST
+		WHERE ID = #{id}
+	</select>
+
+	<update id="updateAdminLastLogin">
+		UPDATE ADMIN_MST
+		SET LAST_CNTN_DT = NOW()
+		WHERE ID = #{id}
+	</update>
+
+	<select id="findReservationByDate" resultType="TabletReservationVO">
+		SELECT
+			R.RSVT_SN,
+			R.RSVT_NO,
+			R.SCHL_NM,
+			R.SCYR_NM,
+			R.RSVT_YMD,
+			R.VST_HM,
+			R.RSVT_NOPE,
+			R.ACTL_NOPE,
+			R.PRGRM_TYPE_CD,
+			CASE R.PRGRM_TYPE_CD
+				WHEN 'MISSION' THEN '미션'
+				WHEN 'EXPLORE' THEN '사건탐구'
+				ELSE R.PRGRM_TYPE_CD
+			END AS PRGRM_TYPE_NM,
+			R.PRGRM_SN,
+			P.PRGRM_NM,
+			R.LRN_STTS_CD,
+			CASE R.LRN_STTS_CD
+				WHEN 'READY' THEN '진행 전'
+				WHEN 'ING' THEN '진행 중'
+				WHEN 'DONE' THEN '완료'
+				ELSE R.LRN_STTS_CD
+			END AS LRN_STTS_NM,
+			(
+				SELECT COUNT(*)
+				FROM EDU_RSVT_STDNT S
+				WHERE S.RSVT_SN = R.RSVT_SN
+				AND S.DEL_DT IS NULL
+			) AS STDNT_CNT
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		WHERE R.RSVT_YMD = #{rsvtYmd}
+		AND R.DEL_DT IS NULL
+		ORDER BY R.VST_HM DESC, R.RSVT_SN DESC
+		LIMIT 1
+	</select>
+
+	<select id="selectStudents" resultType="TabletStudentVO">
+		SELECT
+			STDNT_SN,
+			RSVT_SN,
+			STDNT_NO,
+			CLAS_NM,
+			CLAS_NO,
+			STDNT_NM,
+			ATND_YN,
+			TEAM_NM,
+			ASGN_NM,
+			ROUTE_CN,
+			LRN_STTS_CD,
+			PRGRS_RT
+		FROM EDU_RSVT_STDNT
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+		ORDER BY CAST(COALESCE(NULLIF(STDNT_NO, ''), STDNT_SN) AS UNSIGNED), STDNT_SN
+	</select>
+
+	<update id="markAttendance">
+		UPDATE EDU_RSVT_STDNT
+		SET ATND_YN = 'Y',
+			MDFCN_DT = NOW(),
+			MDTR = 'tablet'
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+		AND STDNT_SN IN
+		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+			#{studentSn}
+		</foreach>
+	</update>
+</mapper>

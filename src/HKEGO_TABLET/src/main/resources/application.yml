@@ -1,0 +1,43 @@
+server:
+  port: 9033
+  address: 127.0.0.1
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        name: ${APP_SESSION_COOKIE_NAME:HKEGO_TABLET_SESSIONID}
+        http-only: true
+        same-site: ${APP_SESSION_COOKIE_SAME_SITE:lax}
+        secure: ${APP_SESSION_COOKIE_SECURE:false}
+
+app:
+  security:
+    csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
+    csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:false}
+  cors:
+    allowed-origins:
+      - http://localhost:9133
+      - http://127.0.0.1:9133
+      - https://ulmfe-tablet.hk-test.co.kr
+      - http://ulmfe-tablet.hk-test.co.kr
+
+spring:
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: ${SPRING_DATASOURCE_URL:jdbc:p6spy:mariadb://127.0.0.1:3306/ulmfe}
+    username: ${SPRING_DATASOURCE_USERNAME:ulmfe}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    egovframework: DEBUG
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: egovframework.tablet.service.vo
+  configuration:
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 30

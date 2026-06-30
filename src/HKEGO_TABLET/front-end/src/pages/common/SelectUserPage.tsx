@@ -33,8 +33,8 @@ export const SelectUserPage = () => {
 						</li>
 					</ul>
 					<div className="flex_center"><p className="excl">모드를 선택하면 해당 화면으로 이동합니다.</p></div>
-				</div>
-				<div className="management_number">태블릿 관리번호 : 005</div>
+				</div>				
+				{/* <div className="management_number">태블릿 관리번호 : 005</div> */}
 			</section>
 		</main>
 	)

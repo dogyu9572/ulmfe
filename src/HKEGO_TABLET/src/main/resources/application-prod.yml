@@ -1,0 +1,30 @@
+server:
+  address: 0.0.0.0
+  servlet:
+    session:
+      cookie:
+        same-site: ${APP_SESSION_COOKIE_SAME_SITE:lax}
+        secure: ${APP_SESSION_COOKIE_SECURE:true}
+
+app:
+  security:
+    csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
+    csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:true}
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://127.0.0.1:3306/ulmfe?allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:ulmfe}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+
+logging:
+  level:
+    root: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    egovframework: INFO
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl

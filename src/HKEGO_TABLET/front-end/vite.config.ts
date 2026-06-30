@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
-const backendTarget = process.env.TABLET_BACKEND_URL ?? 'http://127.0.0.1:9032'
+const backendTarget = process.env.TABLET_BACKEND_URL ?? 'http://127.0.0.1:9033'
 const devHost = process.env.TABLET_FRONTEND_HOST ?? '127.0.0.1'
 const devPort = Number(process.env.TABLET_FRONTEND_PORT ?? '9133')
 const hmrHost = process.env.TABLET_HMR_HOST
 
+/** 개발·preview 공통: API·업로드 파일은 로컬 백엔드로 프록시 */
 const backendDevProxy = {
 	'/api': { target: backendTarget, changeOrigin: true },
 	'/uploads': { target: backendTarget, changeOrigin: true }
