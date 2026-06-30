@@ -15,6 +15,9 @@
 /.vscode-server/
 /.bash_history
 /.wget-hsts
+/.gradle
+/src/HKEGO_TABLET/front-end/node_modules/
+/src/HKEGO_TABLET/front-end/dist/
 
 # Runtime/deploy outputs
 /app/

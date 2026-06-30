@@ -1,18 +1,288 @@
-/* ------------------------------ PC Guide ------------------------------ */
-@media screen and (max-width:1300px){
+/* ------------------------------ 세로 ------------------------------ */
+@media screen and (max-width:1279px){
+/* 전체 공통 */
+	.container {font-size:16px;}
+/* header */
+	.header {width:240px; padding:32px 12px;}
+	.header .tit {font-size:15px; margin:24px 0 6px;}
+	.header .head_info .tt {font-size:15px;}
+	.header .gnb .list a {font-size:15px;}
+	.header .gnb .list a span {font-size:14px;}
+	.header .btn_exit {font-size:16px; margin-top:24px;}
+	.header.off {left:-240px;}
+/* 출석부 */
+	.header .user_info li span {font-size:15px;}
+	.header .user_info li strong {font-size:18px;}
+	.header .user_info li.program {height:180px;}
+/* 학생용 */
+	.student_header {padding:20px;}
+	.student_header .student_info .flex {gap:8px;}
+	.student_header .student_info .txt {width:calc(100% - 56px);}
+	.student_header .student_info .school_class {font-size:14px;}
+	.student_header .student_info .people {font-size:13px;}
+	.student_header .student_info .btn {font-size:13px;}
+	.student_header .tit h3 {font-size:16px;}
+	.student_header .tit .people {font-size:14px;}
+	.student_header .people_list li {font-size:14px;}
+	.student_header .line_area .bar .pct {max-width:192px;}
+	.student_header .step_list:before {left:6px;}
+	.student_header .step_list ul {padding:0 6px 4px 20px;}
+	.student_header .step_list li {padding:12px 12px 12px 48px;}
+	.student_header .step_list li i {left:12px; width:24px; height:24px;}
+	.student_header .step_list li strong {font-size:14px;}
+	.student_header .step_list li p {gap:8px; font-size:12px;}
+	.student_header .step_list li p span + span:before {left:-5px;}
+	.stamp_area,
+	.stamp_area .flex {gap:10px;}
+	.stamp_area li {width:calc((100% - 30px)/4);}
 
-}
+/* 공통-영역 */
+	.basic_board {padding:24px 20px 24px 296px;}
+	.off .basic_board {padding-left:20px;}
+/* 공통-타이틀 */
+	.ctit {font-size:32px;}
+	.excl {font-size:15px;}
 
-/* ------------------------------ Hover ------------------------------ */
-@media screen and (min-width:1024px){
-}
+	.subtitle {gap:8px; margin-bottom:30px;}
+	.subtitle strong {font-size:30px;}
+	.subtitle .info {gap:24px;}
+	.subtitle .info li + li:before {left:-14px;}
+	.subtitle .btn_right {font-size:15px;}
+	.subtitle.flex_center {font-size:28px;}
+	.subtitle + .tb {margin-bottom:28px;}
+	.stit {font-size:22px;}
+	.stit.slim {font-size:18px;}
+	.btit {font-size:24px;}
+	.ptit {margin:32px 0 12px;}
+/* 공통-버튼들 */
+	.btns_btm {gap:10px; margin-top:32px;}
+	.btns_btm .btn {line-height:58px; height:60px;}
+/* 공통-테이블 */
+	.board_top {font-size:14px; margin-bottom:12px; flex-wrap: wrap; gap:4px;}
+	.board_top .left,
+	.board_top .right {gap:4px; width:100%;}
+	.board_top .search_area {flex:1 1 280px;}
+	.board_top .select_tab .btn {font-size:15px;}
+/* 공통-넘치는 테이블 */
+	.over_scroll {position:relative;}
+	.over_scroll:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:url('/pub/images/icon_hand.svg') no-repeat rgba(0,0,0,.5) 50% 50%/ auto 81px; z-index:3; pointer-events:none; transition:.5s linear;}
+	.over_scroll.on:before {opacity:0;}
+	.over_scroll .scroll {overflow:auto hidden;}
+	.over_scroll .scroll > * {width:1024px;}
+/* 공통-게시판 하단 */
+	.board_bottom .paging {margin-top:50px;}
+/* 점선목록 */
+	.dots_list li {font-size:14px; padding-left:10px;}
+	.dots_list li:before {top:7px;}
+/* 팝업 */
+	.popup .btn_close {width:72px; height:60px;}
+	.popup .tit {font-size:22px; line-height:60px;}
+	.popup .con {padding:24px;}
+	.popup .scroll {padding:20px; max-height:calc(100vh - 148px);}
 
-/* ------------------------------ Tablet PC ------------------------------ */
-@media screen and (max-width:1023px){
+/** 선생용 **/
+/* 출석부 */
+	.attendance_list li {width:calc(50% - 6px);}
+	.off .attendance_list li {width:calc((100% - 24px)/3);}
+/* 모니터링 */
+	.monitoring_top ul {gap:8px;}
+	.monitoring_top li {width:calc((100% - 24px)/4); padding:16px 12px; gap:8px;}
+	.monitoring_top li:after {bottom:16px; right:12px; width:28px;}
+	.monitoring_top h3 {font-size:13px; height: 38px;}
+	.monitoring_top p strong {font-size:20px;}
+	.participation_teams {gap:8px;}
+	.participation_teams > li {width:calc(50% - 4px); padding:16px 12px;}
+	.participation_teams .tit_area {flex-wrap: wrap; gap:0 8px; margin-bottom:12px; line-height:28px;}
+	.participation_teams .tit_area p {font-size:13px; gap:11px;}
+	.participation_teams .tit_area p span + span:before {left:-7px;}
+	.participation_teams .tit_area .pct {position: relative; text-align: right; width:100%;}
+/* 실시간 위치 */
+	.current_location_map .box {width:100%;}
+	.flex_half {gap:20px; flex-direction: column;}
+	.flex_half .box {width:100%;}
+	.off .flex_half {flex-direction: row;}
+	.off .flex_half .box {width:calc(50% - 10px);}
+	.location_info .dots_list {padding:12px 16px;}
+/* 메시지 발송 */
+	.message_sending_wrap {gap:24px; flex-direction: column;}
+	.off .message_sending_wrap {flex-direction: row;}
+	.message_sending_wrap .wbox {padding:20px;}
+	.message_sending_wrap .left {flex-basis:60%;}
+	.message_sending_wrap .select_area .select_check span {font-size:14px; padding:0 12px;}
+	.message_sending_wrap .right {flex-basis:calc(40% - 24px);}
+/* 호출 내역 */
+/* 자료실 */
+	.resource_wrap {gap:16px;}
+	.resource_wrap li {width:calc(50% - 8px); padding:16px;}
+	.off .resource_wrap li {width:calc((100% - 32px)/3);}
+	.resource_wrap .tit {font-size:18px;}
+	.resource_wrap p {font-size:15px;}
+	.resource_wrap .btn {font-size:15px;}
 
-}
+/** 학생용 **/
+/* 번호 선택 */
+	.student_select_number_wrap {padding-top:60px; padding-bottom:60px;}
+	.num_select_list {padding:24px;}
+	.num_select_list .list {height:calc(100vh - 388px);}
+/* 참석 환영 */
+	.welcome_wrap {padding-top:60px;}
+	.welcome_top .box {padding:130px 24px 24px;}
+	.off .welcome_top .box {padding:24px 24px 24px 130px;}
+	.welcome_top .box span {font-size:15px;}
+	.welcome_top .box strong {font-size:18px;}
+	.welcome_top .program:before,
+	.welcome_top .team .icon {top:24px; left:24px; transform:none;}
+	.activity_order_step_area {flex-wrap: wrap; overflow: hidden;}
+	.activity_order_step_area li {width:calc((100% - 64px)/3);}
+	.off .activity_order_step_area li {width:100px;}
+	.activity_order_step_area li strong,
+	.activity_order_step_area li p {font-size:14px;}
+/* 사건탐구 Home */
+	.full_box_wrap {padding:24px;}
+	.case_investigation_top {padding:20px 30px;}
+	.case_investigation_top .team_info {gap:12px; padding:8px 20px;}
+	.case_investigation_top .team_info ul {gap:6px;}
+	.case_investigation_top .team_info li {font-size:14px;}
+	.case_investigation_btm {height:calc(100% - 95px); padding:50px 40px; flex-direction:column; gap:24px;}
+	.case_investigation_btm .left {width:100%;}
+	.case_investigation_btm .left .tit {font-size:36px; margin-bottom:12px;}
+	.case_investigation_btm .left .tit strong:before {width:100px; height:30px;}
+	.case_investigation_btm .left p {font-size:20px;}
+	.case_investigation_btm .right {width:100%;}
+	.case_investigation_btm .blue_box {padding:20px;}
+	.case_investigation_btm .blue_box p + p {margin-top:10px;}
+	.case_investigation_btm .btn_link {margin-top:24px; padding:20px 24px;}
+	.case_investigation_btm .btn_link strong {font-size:20px;}
+	.case_investigation_btm .btn_link p {line-height:24px;}
+	.case_investigation_btm .btn_link img {right:20px;}
 
-/* ------------------------------ Mobile ------------------------------ */
-@media screen and (max-width:767px){
+/* 사건제시 */
+	.student_title .step {font-size:15px;}
+	.student_title .location {position: relative; font-size:16px;}
+	.start_video_area {gap:12px;}
+	.start_video_area li {width:calc((100% - 24px)/3);}
+	.start_video_area li .type {left:20px; font-size:12px; line-height:24px; height:24px;}
+	.start_video_area li .img {height:auto; aspect-ratio:9/5; border-radius:12px 12px 0 0;}
+	.start_video_area li .txt {padding:16px; border-radius:0 0 12px 12px;}
+	.start_video_area li .time {font-size:11px;}
+	.start_video_area li .tit {font-size:18px; margin:8px 0 20px;}
+	.start_video_area li .img:after {background-size:40px;}
+	.start_video_area li.video_end .img:after {background-size:auto 80%;}
+	.start_video_area .line_area .bar .pct {max-width:115px;}
+	.off .start_video_area .line_area .bar .pct {max-width:209px;}
+	.think_list {flex-direction: column;}
+	.think_list li {width:100%; padding:16px; font-size:15px;}
+/* 영상 페이지 */
+	.video_page video {object-fit:contain;}
+/* 사건탐색 - 퀘스트1 */
+	.q_card_box {padding:50px 24px 24px;}
+	.q_card_box p {margin-bottom:24px;}
+	.country_rankings_wrap {gap:12px; flex-wrap: wrap;}
+	.country_rankings_wrap > li {width:100%;}
+	.off .country_rankings_wrap > li {width:calc((100% - 24px)/3);}
+	.country_rankings_wrap > li .txt {padding:16px; gap:16px;}
+	.a_card_box .tit {padding:50px 24px 16px; font-size:20px; flex-wrap:wrap; gap:8px;}
+	.a_card_box .tit .GangwonEdu {font-size:26px; padding:0 16px;}
+	.a_card_box .con {padding:24px;}
+	/* .checkradio_select.set6 .box {width:calc((100% - 50px)/6);} */
+	.checkradio_select.set5 {gap:4px;}
+	.checkradio_select.set5 .box {width:calc((100% - 16px)/5);}
+	.checkradio_select.set4 .box {width:calc(50% - 5px);}
+	.off .checkradio_select.set4 .box {width:calc((100% - 20px)/3);}
+	.checkradio_select .box span {gap:4px; padding:0 12px; font-size:14px;}
+	.off .checkradio_select .box span {gap:8px; padding:0 16px;}
 
+/* STEP2 */
+	.video_thum .video {width:200px;}
+	.video_thum .txt {width:auto; flex:1 1 calc(100% - 200px); padding:0 20px; flex-wrap: wrap; gap:10px;}
+	.video_thum .btn_link {font-size:15px;}
+/* 수행완료 */
+	.page_end .next_page_qr .btn_qr,
+	.page_end .next_page_qr .btn_after {position: relative; right:0; transform:none; margin-top:10px;}
+/* 사건탐색 - 퀘스트2 */
+	.country_info .list {padding:16px; gap:16px; flex-wrap: wrap;}
+	.country_info .list li {width:calc(50% - 8px);}
+	.off .country_info .list li {width:calc((100% - 48px)/4);}
+	.country_info .list h4,
+	.country_info .list p {font-size:14px;}
+	.num_list li {font-size:14px; line-height:22px; padding-left:30px;}
+	.num_list li span {width:22px; height:22px; line-height:22px;}
+	.photo_inputs {gap:16px; flex-wrap: wrap;}
+	.photo_inputs li {width:calc(50% - 8px);}
+	.off .photo_inputs li {width:calc((100% - 48px)/4);}
+	.photo_inputs .thema {font-size:13px;}
+/* 사건탐색 - 퀘스트3 */
+	.a_card_box textarea {height:220px; font-size:15px;}
+	.a_card_box textarea.short {height:120px;}
+/* 사건탐색 - 퀘스트4 */
+	.a_card_box .input_flex li {font-size:15px;}
+	.a_card_box .input_flex li input {width:200px; padding: 0 12px; font-size:15px;}
+	.diary_area .tit_box {padding:8px 20px;}
+	.diary_area .today {gap:16px;}
+	.diary_area .today li,
+	.diary_area .weather {gap:6px;}
+	.diary_area .weather img {width: 32px;}
+	.off .diary_area .weather img {width:40px;}
+/* STEP3 */
+	.make_check_area {flex-wrap: wrap;}
+	.make_check_area > li {width:100%;}
+	.off .make_check_area > li {width:calc(50% - 8px);}
+	.make_check_area .tit {font-size:18px; padding:16px 20px;}
+	.make_check_area .con {padding:16px 20px;}
+	.script_tabs_wrap .cont_area .flex {padding:24px; flex-wrap: wrap;}
+	.script_tabs_wrap .cont_area .photo_inputs,
+	.script_tabs_wrap .cont_area .text_input {width:100%;}
+	.script_tabs_wrap .tabs_area button {font-size:16px;}
+	.off .script_tabs_wrap .cont_area .photo_inputs {width:50%;}
+	.off .script_tabs_wrap .cont_area .text_input {width:calc(50% - 24px);}
+	.script_tabs_wrap .cont_area .text_input textarea {height:300px; padding:13px 20px; font-size:20px;}
+/* STEP4 */
+	.script_tabs_wrap .cont_area .inbox {padding:24px;}
+	.script_tabs_wrap .cont_area .titbox {font-size:18px;}
+	.script_tabs_wrap .cont_area .btn {padding:12px; height:auto;}
+	.off .script_tabs_wrap .cont_area .btn {padding:18px 0;}
+/* 선생님 호출 */
+
+/** 학생용(개인) **/
+/* 학생용-미션수행 */
+	.mission_header .step_list ul {max-height:calc(100vh - 682px);}
+	.mission_header .team_area {gap:4px; padding:16px;}
+	.mission_header .team_area .team {font-size:11px; line-height:20px; padding:0 8px;}
+	.mission_header .team_area span {font-size:14px;}
+	.page_end .stamp_box .stamp_area .flex {gap:12px;}
+/* STEP1 */
+/* STEP2 */
+	.page_mission .wbox {padding:24px;}
+	.page_mission .wbox .stit {margin:0 0 12px;}
+	.mission_step .mission_area li {padding:124px 24px 24px;}
+	.mission_step .mission_area li:before {top:24px; left:24px; transform:none;}
+	.course_area {gap:24px; margin-bottom:20px;}
+	.course_area li {width:calc((100% - 78px)/4); padding:16px;}
+	.course_area li + li:before {left:-24px; width:24px;}
+/* STEP3 */
+	.a_card_box .input_list {gap:24px;}
+	.a_card_box .input_list .tt {margin-bottom:10px;}
+	.a_card_box .input_list.half_list li {width:calc(50% - 12px);}
+	.a_card_box .tit .item_list {flex-wrap:wrap; padding:24px; margin-top:20px;}
+	.a_card_box .tit .item_list li {width:calc((100% - 40px)/3);}
+	.off .a_card_box .tit .item_list li {width:calc((100% - 100px)/6);}
+	.a_card_box .tit .item_list li strong,
+	.a_card_box .tit .item_list li p {font-size:14px;}
+	.a_card_box .flex_txt,
+	.a_card_box .flex_txt li {gap:6px;}
+	.a_card_box .flex_txt .text {width:140px;}
+	.a_card_box .flex_select {margin-top:20px; gap:6px; flex-wrap: wrap;}
+	.a_card_box .flex_select strong {width:100%;}
+	.off .a_card_box .flex_select strong {width:auto;}
+	.a_card_box .flex_select .checkradio_select {gap:6px;}
+	.a_card_box .flex_select .checkradio_select .box span {padding-right:20px;}
+/* 실천력 부여 */
+	.hero_name {margin-bottom:30px;}
+	.hero_name .txt {padding:24px 32px;}
+	.off .hero_name .txt {padding:32px 40px;}
+	.hero_name strong {font-size:19px; margin-bottom:20px; transition:.2s linear;}
+	.off .hero_name strong {font-size:22px;}
+	.hero_name .inputs {gap:10px;}
+	.hero_name .inputs .text {font-size:15px;}
+	.hero_name .inputs .btn {font-size:16px;}
 }

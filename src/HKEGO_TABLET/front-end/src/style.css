@@ -40,3 +40,38 @@ body,
 .user_select_wrap .selects button:focus-visible p {
 	color: #0075ba;
 }
+
+.publishing_loading,
+.publishing_error {
+	min-height: 100vh;
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.conversion_pending {
+	min-height: 100vh;
+	padding: 32px;
+	background: #f6f8fb;
+}
+
+.conversion_pending_box {
+	width: min(720px, 100%);
+	padding: 40px;
+	background: #fff;
+	border: 1px solid #dfe5ee;
+	border-radius: 8px;
+	text-align: center;
+}
+
+.conversion_pending_box h1 {
+	margin: 0 0 16px;
+	font-size: 28px;
+	font-weight: 800;
+	color: #1f2a44;
+}
+
+.conversion_pending_box p {
+	margin: 8px 0 0;
+	font-size: 18px;
+	color: #4a5568;
+}

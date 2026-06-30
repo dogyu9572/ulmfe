@@ -1,0 +1,95 @@
+<header class="header student_header">
+	<h2 class="sound_only">메인메뉴 영역</h2>
+	<div class="inbox_scroll">
+		<div class="student_info">
+			<div class="flex">
+				<div class="img" aria-hidden="true"></div>
+				<div class="txt">
+					<div class="school_class">울산초등학교 5학년 2반</div>
+					<div class="people">총 22명</div>
+				</div>
+			</div>
+			<div class="btns">
+				<a href="/student/resource_center.html" class="btn btn_kgg">자료실</a>
+				<button type="button" class="btn btn_kgg btn_open" data-target="pop_teacher_call">선생님 호출</button>
+			</div>
+		</div>
+		<div class="area">
+			<div class="tit"><h3>A팀 정보</h3><div class="people">6명</div></div>
+			<ul class="people_list">
+				<li>김민준</li>
+				<li><strong>나서윤(나)</strong></li>
+				<li>박하윤</li>
+				<li>이서준</li>
+				<li>최하준</li>
+				<li>한서연</li>
+			</ul>
+		</div>
+		<div class="area">
+			<div class="tit"><h3>전체 진척률</h3></div>
+			<div class="line_area">
+				<div class="pct"><strong>50</strong>%</div>
+				<div class="bar"></div>
+			</div>
+		</div>
+		<div class="area">
+			<div class="tit"><h3>활동 순서</h3></div>
+			<div class="step_list">
+				<ul>
+					<li class="step0"><i aria-hidden="true"><img src="/pub/images/icon_activity_order01.webp" alt=""></i><strong>사건제시</strong><p><span>영상 3개 시청</span><span>10분</span></p></li>
+					<li class="step1"><i aria-hidden="true"><img src="/pub/images/icon_activity_order02.webp" alt=""></i><strong>퀘스트1</strong><p><span>살기 좋은 곳</span><span>25분</span></p></li>
+					<li class="step2"><i aria-hidden="true"><img src="/pub/images/icon_activity_order03.webp" alt=""></i><strong>퀘스트2</strong><p><span>재미있는 울산</span><span>25분</span></p></li>
+					<li class="step3"><i aria-hidden="true"><img src="/pub/images/icon_activity_order04.webp" alt=""></i><strong>퀘스트3</strong><p><span>행복한 울산</span><span>25분</span></p></li>
+					<li class="step4"><i aria-hidden="true"><img src="/pub/images/icon_activity_order05.webp" alt=""></i><strong>퀘스트4</strong><p><span>미래 울산</span><span>25분</span></p></li>
+					<li class="step5"><i aria-hidden="true"><img src="/pub/images/icon_activity_order_make.webp" alt=""></i><strong>메이커 활동</strong><p><span>연필꽂이 제작</span><span>60분</span></p></li>
+					<li class="step6"><i aria-hidden="true"><img src="/pub/images/icon_activity_order06.webp" alt=""></i><strong>정리 및 일반화</strong><p><span>마무리</span><span>20분</span></p></li>
+				</ul>
+			</div>
+		</div>
+		<div class="area">
+			<div class="tit"><h3>획득한 도장</h3></div>
+			<ul class="stamp_area type_stamp">
+				<li class="i1">퀘스트1 도장</li>
+				<li class="i2">퀘스트2 도장</li>
+				<li class="i3">퀘스트3 도장</li>
+				<li class="i4">퀘스트4 도장</li>
+			</ul>
+		</div>
+		<!-- <button type="button" class="btn_exit" onclick="location.href='/'">종료</button> -->
+	</div>
+	<button type="button" class="btn_menu">메뉴 닫기</button>
+</header>
+
+<div class="popup pop_teacher_call" id="pop_teacher_call">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">닫기</button>
+		<div class="tit">선생님 호출</div>
+		<div class="con scroll_wrap">
+			<div class="scroll">
+				<div class="tt">선생님을 호출하시겠습니까?</div>
+				<p>호출하면 선생님께 알림이 전송됩니다.</p>
+				<div class="btns_btm">
+					<button type="button" class="btn btn_kwg btn_clo">이전</button>
+					<button type="button" class="btn btn_wbb">호출</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_teacher_maseage" id="pop_teacher_maseage">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">닫기</button>
+		<div class="tit">선생님 메시지</div>
+		<div class="con scroll_wrap">
+			<div class="scroll">
+				<div class="textarea"><textarea name="" id="" cols="30" rows="10" class="text w100p" placeholder="다음 존으로 이동해주세요. 5분 남았습니다!"></textarea></div>
+				<div class="btns_btm">
+					<button type="button" class="btn btn_wbb">확인했어요</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

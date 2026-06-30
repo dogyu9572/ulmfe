@@ -34,8 +34,7 @@ audio:not([controls]) {display:none; height:0;}
 svg:not(:root) {overflow:hidden;}
 
 /* font */
-.poppins {font-family:'Poppins';}
-.noto_serif {font-family:"Noto Serif KR", serif;}
+.GangwonEdu {font-family:'GangwonEducationSaeum';}
 
 /* Layout */
 .blind {display:block; overflow:hidden; position:absolute; top:-1000em; left:0;}
@@ -132,13 +131,13 @@ input[type="text"],
 input[type="password"],
 input[type="date"],
 select,
-textarea {border:#ddd 1px solid; max-width:100%; border-radius:4px;}
+textarea {border:#E5E8EB 1px solid; max-width:100%; border-radius:8px;}
 input[type="text"],
 input[type="password"],
 input[type="date"],
 select {height:64px; padding:0 10px;}
-select {color:#222; -webkit-appearance:none; -moz-appearance:none; appearance:none; background:#fff url('/pub/images/arrow_select.svg') no-repeat right 10px center / 10px;}
-::placeholder {color: #6B7684;}
+select {color:#222; -webkit-appearance:none; -moz-appearance:none; appearance:none; background:#fff url('/pub/images/arrow_select.svg') no-repeat right 20px center / 20px;}
+::placeholder {color:#6B7684;}
 textarea {padding:10px;}
 
 .inner {width:100%; max-width:1480px; margin:0 auto; padding:0 20px;}
