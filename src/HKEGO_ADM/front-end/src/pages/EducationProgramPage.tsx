@@ -41,6 +41,7 @@ type ProgramRouteRow = {
 }
 
 type ProgramContentRow = {
+	cntnSn?: number | null
 	cardCategory?: string
 	contentType: string
 	contentName: string
@@ -547,6 +548,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 	}
 
 	const contentToProgramRow = (content: EducationContentSummary): ProgramContentRow => ({
+		cntnSn: content.cntnSn,
 		cardCategory: content.cardClsfNm || content.cardClsfCd || '',
 		contentType: content.cntnTypeNm || content.cntnTypeCd || '',
 		contentName: content.cntnTtl || '',

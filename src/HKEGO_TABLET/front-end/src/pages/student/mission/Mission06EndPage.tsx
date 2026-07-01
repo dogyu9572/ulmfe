@@ -1,15 +1,23 @@
 import { useNavigate } from 'react-router-dom'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
+import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
+import { studentFlowMissionQuestByRouteIndex } from '../../../state/tabletStudentFlowSession'
 
 export const Mission06EndPage = () => {
 	const navigate = useNavigate()
+	const flowSession = useRequiredTabletStudentFlowSession()
+	if (!flowSession) return null
+	const quest = studentFlowMissionQuestByRouteIndex(flowSession, 3)
+	const zoneName = quest?.name || '도서관'
+	const title = `${zoneName} 미션 수행 완료!`
+
 	return (
 		<main className="container flex_center" id="mainContent">
-			<h1 className="sound_only">사회존 미션 수행 완료!</h1>
+			<h1 className="sound_only">{title}</h1>
 			<StudentMissionHeader />
 			<section className="basic_board">
 				<div className="page_end quest_end04">
-					<div className="tit_area flex_center colm"><h2 className="end_tit">도서관 미션 수행 완료!</h2><p>SDGs12 약속과 실천 방법을 직접 찾아 기록했어요.<br /><strong>4개 구역 미션을 모두 완료했어요!</strong></p></div>
+					<div className="tit_area flex_center colm"><h2 className="end_tit">{title}</h2><p>SDGs12 약속과 실천 방법을 직접 찾아 기록했어요.<br /><strong>4개 구역 미션을 모두 완료했어요!</strong></p></div>
 					<div className="stamp_box">
 						<h3 className="tit">획득한 스티커</h3>
 						<div className="large flex" aria-hidden="true"><img src="/pub/images/icon_sticker_a01_large.svg" alt="" /><img src="/pub/images/icon_sticker_a02_large.svg" alt="" /><img src="/pub/images/icon_sticker_a03_large.svg" alt="" /></div>

@@ -62,3 +62,7 @@
 **/.factorypath
 .idea/
 .vscode/
+
+src/HKEGO_TABLET/front-end/public/publishing-original
+.android/
+.java/

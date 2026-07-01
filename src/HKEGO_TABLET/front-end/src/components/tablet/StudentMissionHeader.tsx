@@ -1,6 +1,15 @@
 import { StudentPopups } from './TabletPopup'
+import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
+import { studentFlowClassName, studentFlowTeamName } from '../../state/tabletStudentFlowSession'
 
-export const StudentMissionHeader = () => (
+export const StudentMissionHeader = () => {
+	const flowSession = useTabletStudentFlowSession()
+	if (!flowSession) return null
+
+	const teamName = studentFlowTeamName(flowSession)
+	const selectedCount = flowSession.selectedStudents.length
+
+	return (
 	<>
 		<header className="header student_header mission_header">
 			<h2 className="sound_only">메인메뉴 영역</h2>
@@ -9,17 +18,17 @@ export const StudentMissionHeader = () => (
 					<div className="flex">
 						<div className="img" aria-hidden="true"></div>
 						<div className="txt">
-							<div className="school_class">울산초등학교 5학년 2반</div>
-							<div className="people">총 22명</div>
+							<div className="school_class">{studentFlowClassName(flowSession)}</div>
+							<div className="people">총 {selectedCount}명</div>
 						</div>
 					</div>
 					<div className="btns">
-						<a href="/student/mission_resource_center.html" className="btn btn_kgg">자료실</a>
+						<a href="/student/mission_resource_center" className="btn btn_kgg">자료실</a>
 						<button type="button" className="btn btn_kgg btn_open" data-target="pop_teacher_call">선생님 호출</button>
 					</div>
 				</div>
 				<div className="area">
-					<div className="team_area"><div className="team">A팀</div><span>소비습관 구출작전</span></div>
+					<div className="team_area"><div className="team">{teamName}</div><span>{flowSession.prgrmNm}</span></div>
 				</div>
 				<div className="area">
 					<div className="tit"><h3>전체 진척률</h3></div>
@@ -64,4 +73,5 @@ export const StudentMissionHeader = () => (
 		</header>
 		<StudentPopups />
 	</>
-)
+	)
+}

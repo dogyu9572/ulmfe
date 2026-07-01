@@ -1,6 +1,16 @@
 import { StudentPopups } from './TabletPopup'
+import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
+import { studentFlowClassName, studentFlowTeamName } from '../../state/tabletStudentFlowSession'
 
-export const StudentCaseHeader = () => (
+export const StudentCaseHeader = () => {
+	const flowSession = useTabletStudentFlowSession()
+	if (!flowSession) return null
+
+	const teamName = studentFlowTeamName(flowSession)
+	const selectedStudents = flowSession.selectedStudents
+	const teamCount = selectedStudents.length
+
+	return (
 	<>
 		<header className="header student_header">
 			<h2 className="sound_only">메인메뉴 영역</h2>
@@ -9,24 +19,21 @@ export const StudentCaseHeader = () => (
 					<div className="flex">
 						<div className="img" aria-hidden="true"></div>
 						<div className="txt">
-							<div className="school_class">울산초등학교 5학년 2반</div>
-							<div className="people">총 22명</div>
+							<div className="school_class">{studentFlowClassName(flowSession)}</div>
+							<div className="people">총 {flowSession.totalStudentCount}명</div>
 						</div>
 					</div>
 					<div className="btns">
-						<a href="/student/resource_center.html" className="btn btn_kgg">자료실</a>
+						<a href="/student/resource_center" className="btn btn_kgg">자료실</a>
 						<button type="button" className="btn btn_kgg btn_open" data-target="pop_teacher_call">선생님 호출</button>
 					</div>
 				</div>
 				<div className="area">
-					<div className="tit"><h3>A팀 정보</h3><div className="people">6명</div></div>
+					<div className="tit"><h3>{teamName} 정보</h3><div className="people">{teamCount}명</div></div>
 					<ul className="people_list">
-						<li>김민준</li>
-						<li><strong>나서윤(나)</strong></li>
-						<li>박하윤</li>
-						<li>이서준</li>
-						<li>최하준</li>
-						<li>한서연</li>
+						{selectedStudents.map((student, index) => (
+							<li key={student.stdntSn}>{index === 0 ? <strong>{student.stdntNm}(나)</strong> : student.stdntNm}</li>
+						))}
 					</ul>
 				</div>
 				<div className="area">
@@ -64,4 +71,5 @@ export const StudentCaseHeader = () => (
 		</header>
 		<StudentPopups />
 	</>
-)
+	)
+}

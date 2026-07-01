@@ -29,6 +29,15 @@ export type TabletReservation = {
 	prgrmTypeNm: string
 	prgrmSn: number
 	prgrmNm: string
+	trgtCn?: string
+	totalTmMnt?: number
+	maxNope?: number
+	simpleExpln?: string
+	startExpln?: string
+	teamCnt?: number
+	routeJson?: string
+	stepJson?: string
+	evalJson?: string
 	lrnSttsCd: string
 	lrnSttsNm: string
 	stdntCnt: number
@@ -49,21 +58,61 @@ export type TabletStudent = {
 	prgrsRt: number
 }
 
+export type TabletContentQuestion = {
+	cntnQstnSn: number
+	cntnSn: number
+	qstnTypeCd: string
+	qstnTypeNm?: string
+	qstnNm: string
+	qstnImgAtchFileId?: string
+	optnCn?: string
+	sortSeq?: number
+}
+
+export type TabletContent = {
+	cntnSn: number
+	cntnTypeCd: string
+	cntnTypeNm?: string
+	cardClsfCd?: string
+	cardClsfNm?: string
+	cntnTtl: string
+	cntnCn?: string
+	prvdTypeCd?: string
+	prvdTypeNm?: string
+	imgAtchFileId?: string
+	videoUrlAddr?: string
+	videoThmbAtchFileId?: string
+	videoTtl?: string
+	questions: TabletContentQuestion[]
+}
+
 export type TabletSession = {
 	rsvtYmd: string
 	reservation: TabletReservation | null
 	students: TabletStudent[]
+	contents: TabletContent[]
 }
 
 const CSRF_HEADER = 'X-XSRF-TOKEN'
+const CSRF_COOKIE = 'XSRF-TOKEN'
 let csrfToken = ''
+
+const readCookie = (name: string) => {
+	if (typeof document === 'undefined') return ''
+	const cookie = document.cookie
+		.split('; ')
+		.find((item) => item.startsWith(`${name}=`))
+	const value = cookie?.slice(name.length + 1)
+	return value ? decodeURIComponent(value) : ''
+}
 
 const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
 	const headers = new Headers(init?.headers)
 	const method = (init?.method ?? 'GET').toUpperCase()
 
-	if (method !== 'GET' && csrfToken) {
-		headers.set(CSRF_HEADER, csrfToken)
+	if (method !== 'GET') {
+		const token = readCookie(CSRF_COOKIE) || csrfToken
+		if (token) headers.set(CSRF_HEADER, token)
 	}
 	if (init?.body && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json')
@@ -77,7 +126,15 @@ const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
 	const nextToken = response.headers.get(CSRF_HEADER)
 	if (nextToken) csrfToken = nextToken
 
-	const result = await response.json() as ApiResponse<T> | ErrorResponse
+	const responseText = await response.text()
+	let result: ApiResponse<T> | ErrorResponse
+	try {
+		result = responseText
+			? JSON.parse(responseText) as ApiResponse<T> | ErrorResponse
+			: ({ success: response.ok, message: '', data: undefined as T } satisfies ApiResponse<T>)
+	} catch {
+		result = { success: false, message: responseText || '요청 처리 중 오류가 발생했습니다.' }
+	}
 	if (!response.ok || !result.success) {
 		const errorResult = result as ErrorResponse
 		throw new Error(errorResult.message || errorResult.error || errorResult.detail || '요청 처리 중 오류가 발생했습니다.')
@@ -90,7 +147,9 @@ export const loginTablet = (userId: string, password: string) => request<TabletL
 	body: JSON.stringify({ userId, password })
 })
 
-export const fetchTabletSession = () => request<TabletSession>('/api/tablet/session')
+export const fetchTabletSession = () => request<TabletSession>('/api/tablet/session', {
+	cache: 'no-store'
+})
 
 export const markTabletAttendance = (rsvtSn: number, studentSns: number[]) => request<void>(`/api/tablet/reservations/${rsvtSn}/attendance`, {
 	method: 'POST',

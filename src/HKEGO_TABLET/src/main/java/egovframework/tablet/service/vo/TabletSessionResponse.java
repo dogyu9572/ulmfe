@@ -17,4 +17,6 @@ public class TabletSessionResponse {
 	private TabletReservationVO reservation;
 	@Builder.Default
 	private List<TabletStudentVO> students = new ArrayList<>();
+	@Builder.Default
+	private List<TabletContentVO> contents = new ArrayList<>();
 }

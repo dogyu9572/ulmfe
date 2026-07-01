@@ -26,4 +26,63 @@
 <link rel="stylesheet" href="/pub/css/reactive.css" media="all">
 <script src="/pub/js/com.js"></script>
 -->
+<script>
+(function () {
+	if (!window.location.pathname.startsWith('/publishing-original/')) return;
+
+	function normalizePublishingOriginalUrl(value) {
+		if (!value) return value;
+		if (value === '/') return '/publishing-original/index.html';
+		if (value.startsWith('/publishing-original/') || value.startsWith('/pub/') || value.startsWith('http') || value.startsWith('#')) return value;
+		if (value.startsWith('/student/') || value.startsWith('/teacher/') || value === '/select_user.html' || value === '/index.html') return '/publishing-original' + value;
+		return value;
+	}
+
+	function rewriteLinks(root) {
+		root.querySelectorAll && root.querySelectorAll('a[href]').forEach(function (link) {
+			var href = link.getAttribute('href');
+			var normalized = normalizePublishingOriginalUrl(href);
+			if (normalized !== href) link.setAttribute('href', normalized);
+		});
+	}
+
+	document.addEventListener('click', function (event) {
+		var target = event.target && event.target.closest ? event.target.closest('a[href], [onclick]') : null;
+		if (!target) return;
+
+		var href = target.getAttribute('href');
+		if (href) {
+			var normalizedHref = normalizePublishingOriginalUrl(href);
+			if (normalizedHref !== href) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				window.location.href = normalizedHref;
+				return;
+			}
+		}
+
+		var onclick = target.getAttribute('onclick') || '';
+		var match = onclick.match(/location\.href\s*=\s*['"]([^'"]+)['"]/);
+		if (match) {
+			var normalizedOnclickHref = normalizePublishingOriginalUrl(match[1]);
+			if (normalizedOnclickHref !== match[1]) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				window.location.href = normalizedOnclickHref;
+			}
+		}
+	}, true);
+
+	document.addEventListener('DOMContentLoaded', function () {
+		rewriteLinks(document);
+		new MutationObserver(function (mutations) {
+			mutations.forEach(function (mutation) {
+				mutation.addedNodes.forEach(function (node) {
+					if (node.nodeType === 1) rewriteLinks(node);
+				});
+			});
+		}).observe(document.documentElement, { childList: true, subtree: true });
+	});
+})();
+</script>
 <div class="blind_link"><a href="#mainContent">본문 바로가기</a></div>

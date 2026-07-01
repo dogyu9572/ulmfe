@@ -1,6 +1,12 @@
 import { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
+import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
+import {
+	studentFlowMissionQuestByRouteIndex,
+	studentFlowNextMissionLabelAfterRouteIndex,
+	studentFlowNextMissionPathAfterRouteIndex
+} from '../../../state/tabletStudentFlowSession'
 
 export const resourceItems = [
 	{ type: 'video', label: '동영상', title: 'OT(안전교육 영상)', text: '안전교육 영상', href: 'https://www.youtube.com/watch?v=AAhUypcfoxE', button: '보기' },
@@ -36,6 +42,16 @@ export const questionnaireQuestions = [
 	'3-3. 본 교육 프로그램의 발전을 위해 유익했던 점과 보완점을 적어주시기 바랍니다.'
 ]
 
+export const missionRouteIconSrc = (label: string) => {
+	if (label.includes('미래')) return '/pub/images/icon_activity_mission04.webp'
+	if (label.includes('사회')) return '/pub/images/icon_activity_mission05.webp'
+	if (label.includes('도서') || label.includes('열람')) return '/pub/images/icon_activity_mission_book.webp'
+	if (label.includes('정리') || label.includes('일반화')) return '/pub/images/icon_activity_order06.webp'
+	if (label.includes('탐색')) return '/pub/images/icon_activity_mission02.webp'
+	if (label.includes('사건') || label.includes('제시')) return '/pub/images/icon_activity_order01.webp'
+	return '/pub/images/icon_activity_mission03.webp'
+}
+
 export const MissionTitle = ({ step, subtitle, location }: { step: string; subtitle: string; location: string }) => (
 	<div className="student_title">
 		<div className="step">{step}</div>
@@ -44,16 +60,21 @@ export const MissionTitle = ({ step, subtitle, location }: { step: string; subti
 	</div>
 )
 
-export const MissionShell = ({ title, step, subtitle, location, children }: { title: string; step: string; subtitle: string; location: string; children: ReactNode }) => (
-	<main className="container" id="mainContent">
-		<h1 className="sound_only">{title}</h1>
-		<StudentMissionHeader />
-		<section className="basic_board mission_wrap">
-			<MissionTitle step={step} subtitle={subtitle} location={location} />
-			{children}
-		</section>
-	</main>
-)
+export const MissionShell = ({ title, step, subtitle, location, children }: { title: string; step: string; subtitle: string; location: string; children: ReactNode }) => {
+	const flowSession = useRequiredTabletStudentFlowSession()
+	if (!flowSession) return null
+
+	return (
+		<main className="container" id="mainContent">
+			<h1 className="sound_only">{title}</h1>
+			<StudentMissionHeader />
+			<section className="basic_board mission_wrap">
+				<MissionTitle step={step} subtitle={subtitle} location={location} />
+				{children}
+			</section>
+		</main>
+	)
+}
 
 export const CheckboxList = ({ name, items, setClassName = '' }: { name: string; items: string[]; setClassName?: string }) => (
 	<div className={`checkradio_select${setClassName ? ` ${setClassName}` : ''}`}>
@@ -73,8 +94,18 @@ export const RatingGroup = ({ name }: { name: string }) => (
 	</ul>
 )
 
-export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, nextText, nextButton, nextPath }: { title: string; text: ReactNode; image: string; onClass: string[]; nextTitle: string; nextText: string; nextButton: string; nextPath: string }) => {
+export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, nextText, nextButton, nextPath, routeIndex }: { title: string; text: ReactNode; image: string; onClass: string[]; nextTitle: string; nextText: string; nextButton: string; nextPath: string; routeIndex?: number }) => {
 	const navigate = useNavigate()
+	const flowSession = useRequiredTabletStudentFlowSession()
+	if (!flowSession) return null
+	const hasDynamicNext = typeof routeIndex === 'number'
+	const dynamicNextPath = hasDynamicNext ? studentFlowNextMissionPathAfterRouteIndex(flowSession, routeIndex) : nextPath
+	const dynamicNextLabel = hasDynamicNext ? studentFlowNextMissionLabelAfterRouteIndex(flowSession, routeIndex) : nextTitle
+	const dynamicNextQuest = hasDynamicNext ? studentFlowMissionQuestByRouteIndex(flowSession, routeIndex + 1) : null
+	const dynamicNextText = dynamicNextPath === '/student/mission_end'
+		? '오늘의 미션을 정리하고 실천력을 부여받으세요.'
+		: `${dynamicNextQuest?.place || dynamicNextLabel}로 이동하세요.`
+	const dynamicNextButton = dynamicNextPath === '/student/mission_end' ? '실천력 부여로 이동하기' : `${dynamicNextLabel}으로 이동하기`
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -102,7 +133,7 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 							</ul>
 						</div>
 					</div>
-					<div className="next_page_qr"><h3 className="tit">{nextTitle}</h3><p>{nextText}</p><button className="btn_after flex_center" onClick={() => navigate(nextPath)}>{nextButton}</button></div>
+					<div className="next_page_qr"><h3 className="tit">{dynamicNextLabel || nextTitle}</h3><p>{hasDynamicNext ? dynamicNextText : nextText}</p><button className="btn_after flex_center" onClick={() => navigate(dynamicNextPath)}>{hasDynamicNext ? dynamicNextButton : nextButton}</button></div>
 				</div>
 			</section>
 		</main>

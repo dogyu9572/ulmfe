@@ -37,6 +37,15 @@
 			END AS PRGRM_TYPE_NM,
 			R.PRGRM_SN,
 			P.PRGRM_NM,
+			P.TRGT_CN,
+			P.TOTAL_TM_MNT,
+			P.MAX_NOPE,
+			P.SIMPLE_EXPLN,
+			P.START_EXPLN,
+			P.TEAM_CNT,
+			P.ROUTE_JSON,
+			P.STEP_JSON,
+			P.EVAL_JSON,
 			R.LRN_STTS_CD,
 			CASE R.LRN_STTS_CD
 				WHEN 'READY' THEN '진행 전'
@@ -78,16 +87,102 @@
 		ORDER BY CAST(COALESCE(NULLIF(STDNT_NO, ''), STDNT_SN) AS UNSIGNED), STDNT_SN
 	</select>
 
-	<update id="markAttendance">
+	<sql id="tabletContentSelectColumns">
+		C.CNTN_SN,
+		C.CNTN_TYPE_CD,
+		CASE C.CNTN_TYPE_CD
+			WHEN 'INFO' THEN '정보안내'
+			WHEN 'VIDEO' THEN '애니메이션 영상'
+			WHEN 'SELECT' THEN '선택형 활동'
+			WHEN 'DATA' THEN '데이터 입력'
+			WHEN 'PHOTO' THEN '사진 업로드'
+			WHEN 'SENTENCE' THEN '문장완성형'
+			ELSE C.CNTN_TYPE_CD
+		END AS CNTN_TYPE_NM,
+		C.CARD_CLSF_CD,
+		CASE C.CARD_CLSF_CD
+			WHEN 'MISSION' THEN '미션카드'
+			WHEN 'EXPLORE' THEN '탐구카드'
+			WHEN 'EXPERIENCE' THEN '체험카드'
+			WHEN 'DESIGN' THEN '설계활동'
+			WHEN 'MAKER' THEN '메이커활동'
+			ELSE C.CARD_CLSF_CD
+		END AS CARD_CLSF_NM,
+		C.CNTN_TTL,
+		C.CNTN_CN,
+		C.PRVD_TYPE_CD,
+		CASE C.PRVD_TYPE_CD
+			WHEN 'IMAGE' THEN '이미지'
+			WHEN 'VIDEO' THEN '동영상'
+			ELSE C.PRVD_TYPE_CD
+		END AS PRVD_TYPE_NM,
+		C.IMG_ATCH_FILE_ID,
+		C.VIDEO_URL_ADDR,
+		C.VIDEO_THMB_ATCH_FILE_ID,
+		C.VIDEO_TTL
+	</sql>
+
+	<select id="selectContentsByIds" resultType="TabletContentVO">
+		SELECT
+		<include refid="tabletContentSelectColumns"/>
+		FROM EDU_CNTN_MST C
+		WHERE C.DEL_DT IS NULL
+		AND C.CNTN_SN IN
+		<foreach collection="contentIds" item="contentId" open="(" separator="," close=")">
+			#{contentId}
+		</foreach>
+		ORDER BY C.CNTN_SN ASC
+	</select>
+
+	<select id="selectContentsByNames" resultType="TabletContentVO">
+		SELECT
+		<include refid="tabletContentSelectColumns"/>
+		FROM EDU_CNTN_MST C
+		WHERE C.DEL_DT IS NULL
+		AND C.CNTN_TTL IN
+		<foreach collection="contentNames" item="contentName" open="(" separator="," close=")">
+			#{contentName}
+		</foreach>
+		ORDER BY C.CNTN_SN ASC
+	</select>
+
+	<select id="selectContentQuestions" resultType="TabletContentQuestionVO">
+		SELECT
+			Q.CNTN_QSTN_SN,
+			Q.CNTN_SN,
+			Q.QSTN_TYPE_CD,
+			CASE Q.QSTN_TYPE_CD
+				WHEN 'SELECT' THEN '선택형 활동'
+				WHEN 'DATA' THEN '데이터 입력'
+				WHEN 'PHOTO' THEN '사진 업로드'
+				WHEN 'SENTENCE' THEN '문장완성형'
+				ELSE Q.QSTN_TYPE_CD
+			END AS QSTN_TYPE_NM,
+			Q.QSTN_NM,
+			Q.QSTN_IMG_ATCH_FILE_ID,
+			Q.OPTN_CN,
+			Q.SORT_SEQ
+		FROM EDU_CNTN_QSTN Q
+		WHERE Q.CNTN_SN IN
+		<foreach collection="contentIds" item="contentId" open="(" separator="," close=")">
+			#{contentId}
+		</foreach>
+		ORDER BY Q.CNTN_SN ASC, Q.SORT_SEQ ASC, Q.CNTN_QSTN_SN ASC
+	</select>
+
+	<update id="syncAttendance">
 		UPDATE EDU_RSVT_STDNT
-		SET ATND_YN = 'Y',
+		SET ATND_YN = CASE
+				WHEN STDNT_SN IN
+				<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+					#{studentSn}
+				</foreach>
+				THEN 'Y'
+				ELSE 'N'
+			END,
 			MDFCN_DT = NOW(),
 			MDTR = 'tablet'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
-		AND STDNT_SN IN
-		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
-			#{studentSn}
-		</foreach>
 	</update>
 </mapper>

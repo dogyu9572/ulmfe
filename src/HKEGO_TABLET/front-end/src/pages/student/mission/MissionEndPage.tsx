@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
+import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import { evaluationQuestions, MissionQuestionnairePopup, MissionTitle, questionnaireQuestions } from './missionShared'
 
 type MissionPopup = 'evaluation' | 'questionnaire' | 'completed' | null
@@ -8,6 +9,8 @@ type MissionPopup = 'evaluation' | 'questionnaire' | 'completed' | null
 export const MissionEndPage = () => {
 	const navigate = useNavigate()
 	const [popup, setPopup] = useState<MissionPopup>(null)
+	const flowSession = useRequiredTabletStudentFlowSession()
+	if (!flowSession) return null
 
 	const openCompleted = () => {
 		const input = document.querySelector<HTMLInputElement>('.hero_name .inputs input[type="text"]')

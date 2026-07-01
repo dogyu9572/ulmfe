@@ -16,6 +16,15 @@ public class TabletReservationVO {
 	private String prgrmTypeNm;
 	private Integer prgrmSn;
 	private String prgrmNm;
+	private String trgtCn;
+	private Integer totalTmMnt;
+	private Integer maxNope;
+	private String simpleExpln;
+	private String startExpln;
+	private Integer teamCnt;
+	private String routeJson;
+	private String stepJson;
+	private String evalJson;
 	private String lrnSttsCd;
 	private String lrnSttsNm;
 	private Integer stdntCnt;
