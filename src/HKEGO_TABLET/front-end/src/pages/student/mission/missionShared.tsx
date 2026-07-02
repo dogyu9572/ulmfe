@@ -8,13 +8,6 @@ import {
 	studentFlowNextMissionPathAfterRouteIndex
 } from '../../../state/tabletStudentFlowSession'
 
-export const resourceItems = [
-	{ type: 'video', label: '동영상', title: 'OT(안전교육 영상)', text: '안전교육 영상', href: 'https://www.youtube.com/watch?v=AAhUypcfoxE', button: '보기' },
-	{ type: 'video', label: '동영상', title: 'OT(활동동선 안내)', text: '활동동선 안내 영상', href: 'https://www.youtube.com/watch?v=AAhUypcfoxE', button: '보기' },
-	{ type: 'video', label: '동영상', title: 'OT(사용법 튜토리얼)', text: '사용법 튜토리얼 영상', href: 'https://www.youtube.com/watch?v=AAhUypcfoxE', button: '보기' },
-	{ type: 'document', label: '문서', title: '디자인엔 없으나 탭에 있어서 임의로 넣은 문서', text: '디자인엔 없으나 탭에 있어서 임의로 넣은 문서', href: '/pub/pdf/sample_document.pdf', button: '다운로드' }
-]
-
 export const agreement = ['매우 그렇다', '그렇다', '보통이다', '아니다', '매우 아니다']
 
 export const evaluationQuestions = [
@@ -76,11 +69,11 @@ export const MissionShell = ({ title, step, subtitle, location, children }: { ti
 	)
 }
 
-export const CheckboxList = ({ name, items, setClassName = '' }: { name: string; items: string[]; setClassName?: string }) => (
+export const CheckboxList = ({ name, items, setClassName = '', checkedItems = [] }: { name: string; items: string[]; setClassName?: string; checkedItems?: string[] }) => (
 	<div className={`checkradio_select${setClassName ? ` ${setClassName}` : ''}`}>
 		{items.map((item, index) => {
 			const id = `${name}${String(index + 1).padStart(2, '0')}`
-			return <div className="box w100p" key={id}><input type="checkbox" name={name} id={id} /><label htmlFor={id}><span><i></i>{item}</span></label></div>
+			return <div className="box w100p" key={id}><input type="checkbox" name={name} id={id} defaultChecked={checkedItems.includes(item)} /><label htmlFor={id}><span><i></i>{item}</span></label></div>
 		})}
 	</div>
 )
@@ -100,6 +93,10 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 	if (!flowSession) return null
 	const hasDynamicNext = typeof routeIndex === 'number'
 	const dynamicNextPath = hasDynamicNext ? studentFlowNextMissionPathAfterRouteIndex(flowSession, routeIndex) : nextPath
+	const currentQuest = hasDynamicNext ? studentFlowMissionQuestByRouteIndex(flowSession, routeIndex) : null
+	const currentLabel = currentQuest?.name || ''
+	const dynamicTitle = currentLabel ? `${currentLabel} 미션 수행 완료!` : title
+	const dynamicText = hasDynamicNext ? <>미션을 완료했어요.<br /><strong>다음 활동으로 이동해 주세요.</strong></> : text
 	const dynamicNextLabel = hasDynamicNext ? studentFlowNextMissionLabelAfterRouteIndex(flowSession, routeIndex) : nextTitle
 	const dynamicNextQuest = hasDynamicNext ? studentFlowMissionQuestByRouteIndex(flowSession, routeIndex + 1) : null
 	const dynamicNextText = dynamicNextPath === '/student/mission_end'
@@ -109,14 +106,14 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 
 	return (
 		<main className="container flex_center" id="mainContent">
-			<h1 className="sound_only">{title}</h1>
+			<h1 className="sound_only">{dynamicTitle}</h1>
 			<StudentMissionHeader />
 			<section className="basic_board">
 				<div className={`page_end quest_end0${onClass.length}`}>
-					<div className="tit_area flex_center colm"><h2 className="end_tit">{title}</h2><p>{text}</p></div>
+					<div className="tit_area flex_center colm"><h2 className="end_tit">{dynamicTitle}</h2><p>{dynamicText}</p></div>
 					<div className="stamp_box">
-						<h3 className="tit">{onClass.length === 1 ? '과소비 퇴치장갑 획득!' : onClass.length === 2 ? '날씨 도사 스티커 획득!' : '편지 스티커 획득!'}</h3>
-						<p>{onClass.length === 1 ? <>재활용과 착한 소비를 실천하는<br />과소비 퇴치창갑 스티커를 획득했어요!</> : onClass.length === 2 ? <>세계와 연결된 나의 식생활을 생각하는<br />날씨 도사 스티커를 획득했어요!</> : <>공정한 소비를 실천하는<br />2025 편지 스티커를 획득했어요!</>}</p>
+						<h3 className="tit">{hasDynamicNext ? '스티커 획득!' : onClass.length === 1 ? '과소비 퇴치장갑 획득!' : onClass.length === 2 ? '날씨 도사 스티커 획득!' : '편지 스티커 획득!'}</h3>
+						<p>{hasDynamicNext ? <>미션 완료 스티커를 획득했어요!</> : onClass.length === 1 ? <>재활용과 착한 소비를 실천하는<br />과소비 퇴치창갑 스티커를 획득했어요!</> : onClass.length === 2 ? <>세계와 연결된 나의 식생활을 생각하는<br />날씨 도사 스티커를 획득했어요!</> : <>공정한 소비를 실천하는<br />2025 편지 스티커를 획득했어요!</>}</p>
 						<div className="large" aria-hidden="true"><img src={image} alt="" /></div>
 						<div className="stamp_area">
 							<ul className="flex type_sticker1">

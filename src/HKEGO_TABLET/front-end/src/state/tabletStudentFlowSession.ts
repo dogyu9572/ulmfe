@@ -1,4 +1,4 @@
-import { TabletContent, TabletSession, TabletStudent } from '../api/tabletApi'
+import { TabletContent, TabletProgressLog, TabletQuestionnaireQuestion, TabletSavedAnswer, TabletSession, TabletStudent } from '../api/tabletApi'
 
 const STORAGE_KEY = 'hkegoTabletStudentFlowSession'
 
@@ -10,7 +10,7 @@ const normalizeTeamName = (value?: string | null) => {
 
 const routeSeparators = /\s*(?:->|→|,|，|>|\/)\s*/g
 
-export type TabletStudentFlowStudent = Pick<TabletStudent, 'stdntSn' | 'stdntNo' | 'clasNm' | 'clasNo' | 'stdntNm' | 'teamNm' | 'asgnNm' | 'routeCn'>
+export type TabletStudentFlowStudent = Pick<TabletStudent, 'stdntSn' | 'stdntNo' | 'clasNm' | 'clasNo' | 'stdntNm' | 'teamNm' | 'asgnNm' | 'routeCn' | 'prgrsRt'>
 
 export type TabletProgramRouteRow = {
 	name: string
@@ -50,6 +50,7 @@ export type TabletStudentFlowSession = {
 	scyrNm: string
 	prgrmTypeCd: string
 	prgrmTypeNm: string
+	prgrmSn: number
 	prgrmNm: string
 	simpleExpln?: string
 	startExpln?: string
@@ -59,6 +60,10 @@ export type TabletStudentFlowSession = {
 	totalStudentCount: number
 	selectedStudents: TabletStudentFlowStudent[]
 	contents: TabletContent[]
+	progressLogs: TabletProgressLog[]
+	savedAnswers: TabletSavedAnswer[]
+	evaluationQuestions: TabletQuestionnaireQuestion[]
+	surveyQuestions: TabletQuestionnaireQuestion[]
 }
 
 const readJson = (value: string | null): TabletStudentFlowSession | null => {
@@ -83,7 +88,7 @@ export const saveTabletStudentFlowSession = (session: TabletSession, selectedStu
 	const selectedSet = new Set(selectedStudentSns)
 	const selectedStudents = session.students
 		.filter((student) => selectedSet.has(student.stdntSn))
-		.map(({ stdntSn, stdntNo, clasNm, clasNo, stdntNm, teamNm, asgnNm, routeCn }) => ({ stdntSn, stdntNo, clasNm, clasNo, stdntNm, teamNm: normalizeTeamName(teamNm), asgnNm, routeCn }))
+		.map(({ stdntSn, stdntNo, clasNm, clasNo, stdntNm, teamNm, asgnNm, routeCn, prgrsRt }) => ({ stdntSn, stdntNo, clasNm, clasNo, stdntNm, teamNm: normalizeTeamName(teamNm), asgnNm, routeCn, prgrsRt }))
 
 	if (selectedStudents.length === 0) return null
 
@@ -95,6 +100,7 @@ export const saveTabletStudentFlowSession = (session: TabletSession, selectedStu
 		scyrNm: reservation.scyrNm,
 		prgrmTypeCd: reservation.prgrmTypeCd,
 		prgrmTypeNm: reservation.prgrmTypeNm,
+		prgrmSn: reservation.prgrmSn,
 		prgrmNm: reservation.prgrmNm,
 		simpleExpln: reservation.simpleExpln,
 		startExpln: reservation.startExpln,
@@ -103,7 +109,11 @@ export const saveTabletStudentFlowSession = (session: TabletSession, selectedStu
 		evalJson: reservation.evalJson,
 		totalStudentCount: session.students.length || reservation.stdntCnt || reservation.actlNope || reservation.rsvtNope,
 		selectedStudents,
-		contents: session.contents ?? []
+		contents: session.contents ?? [],
+		progressLogs: session.progressLogs ?? [],
+		savedAnswers: session.savedAnswers ?? [],
+		evaluationQuestions: session.evaluationQuestions ?? [],
+		surveyQuestions: session.surveyQuestions ?? []
 	}
 	window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(flowSession))
 	return flowSession
@@ -235,6 +245,35 @@ export const studentFlowNextMissionLabelAfterRouteIndex = (session: TabletStuden
 	return nextLabel || '실천력 부여'
 }
 
+export const studentFlowCompletedMissionStepCodes = (session: TabletStudentFlowSession | null) => {
+	const selectedStudentIds = new Set((session?.selectedStudents ?? []).map((student) => student.stdntSn))
+	return new Set((session?.progressLogs ?? [])
+		.filter((log) => selectedStudentIds.has(log.stdntSn) && log.stepSttsCd === 'DONE')
+		.map((log) => log.stepCd))
+}
+
+export const studentFlowStoredProgressRate = (session: TabletStudentFlowSession | null) => {
+	const rates = (session?.selectedStudents ?? [])
+		.map((student) => Number(student.prgrsRt) || 0)
+		.filter((rate) => Number.isFinite(rate))
+	return rates.length > 0 ? Math.round(rates.reduce((sum, rate) => sum + rate, 0) / rates.length) : 0
+}
+
+export const studentFlowMissionStepCode = (routeIndex: number) => `MISSION${String(routeIndex + 1).padStart(2, '0')}`
+
+export const studentFlowSavedAnswersByQuestion = (session: TabletStudentFlowSession | null, routeIndex: number) => {
+	const selectedStudentIds = new Set((session?.selectedStudents ?? []).map((student) => student.stdntSn))
+	const stepCd = studentFlowMissionStepCode(routeIndex)
+	const map = new Map<string, string>()
+	;(session?.savedAnswers ?? [])
+		.filter((answer) => selectedStudentIds.has(answer.stdntSn) && answer.stepCd === stepCd)
+		.forEach((answer) => {
+			const key = `${answer.cntnSn || 0}:${answer.qstnSn || 0}`
+			if (!map.has(key)) map.set(key, answer.ansCn || '')
+		})
+	return map
+}
+
 export const studentFlowMissionQuestContents = (session: TabletStudentFlowSession | null, routeIndex: number) => {
 	const quest = studentFlowMissionQuestByRouteIndex(session, routeIndex)
 	const linkedContents = quest?.contents ?? []
@@ -253,10 +292,10 @@ export const studentFlowMissionQuestContents = (session: TabletStudentFlowSessio
 
 export const studentFlowClassName = (session: TabletStudentFlowSession | null) => {
 	const firstStudent = session?.selectedStudents[0]
-	const school = session?.schlNm || '울산초등학교'
-	const grade = session?.scyrNm ? `${session.scyrNm}학년` : '5학년'
-	const className = firstStudent?.clasNm ? `${firstStudent.clasNm}반` : '2반'
-	return `${school} ${grade} ${className}`
+	const school = session?.schlNm || ''
+	const grade = session?.scyrNm ? `${session.scyrNm}학년` : ''
+	const className = firstStudent?.clasNm ? `${firstStudent.clasNm}반` : ''
+	return [school, grade, className].filter(Boolean).join(' ')
 }
 
 export const studentFlowReservation = (session: TabletStudentFlowSession | null) => {

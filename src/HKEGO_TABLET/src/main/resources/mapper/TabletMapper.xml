@@ -170,6 +170,180 @@
 		ORDER BY Q.CNTN_SN ASC, Q.SORT_SEQ ASC, Q.CNTN_QSTN_SN ASC
 	</select>
 
+	<select id="selectProgressLogs" resultType="TabletProgressLogVO">
+		SELECT
+			STDNT_SN,
+			STEP_CD,
+			ACTVT_NM,
+			STEP_STTS_CD
+		FROM EDU_LRN_PRGRS_LOG
+		WHERE RSVT_SN = #{rsvtSn}
+		AND STEP_STTS_CD = 'DONE'
+		ORDER BY STDNT_SN ASC, STEP_CD ASC
+	</select>
+
+	<select id="selectSavedAnswers" resultType="TabletSavedAnswerVO">
+		SELECT
+			LRN_ANS_SN,
+			RSVT_SN,
+			STDNT_SN,
+			ANS_TYPE_CD,
+			STEP_CD,
+			CNTN_SN,
+			QSTNR_SN,
+			QSTN_SN,
+			QSTN_CN,
+			ANS_CN
+		FROM EDU_LRN_ANS
+		WHERE RSVT_SN = #{rsvtSn}
+		AND ANS_TYPE_CD IN ('WORKSHEET', 'HERO', 'EVALUATION', 'SURVEY')
+		AND DEL_DT IS NULL
+		ORDER BY STDNT_SN ASC, STEP_CD ASC, LRN_ANS_SN ASC
+	</select>
+
+	<select id="selectQuestionnaireQuestions" resultType="TabletQuestionnaireQuestionVO">
+		SELECT
+			Q.QSTNR_SN,
+			Q.QSTN_SN,
+			Q.QSTN_NO,
+			Q.ANS_TYPE_CD,
+			CASE Q.ANS_TYPE_CD
+				WHEN 'LIKERT5' THEN '리커트 5점'
+				WHEN 'LEVEL5' THEN '상중하 5단계'
+				WHEN 'TEXT' THEN '주관식'
+				ELSE Q.ANS_TYPE_CD
+			END AS ANS_TYPE_NM,
+			Q.QSTN_CN,
+			Q.SORT_SEQ
+		FROM EDU_QSTNR_QSTN Q
+		INNER JOIN EDU_QSTNR_MST M ON M.QSTNR_SN = Q.QSTNR_SN
+		WHERE Q.QSTNR_SN = #{qstnrSn}
+		AND M.QSTNR_TYPE_CD = #{qstnrTypeCd}
+		AND M.DEL_DT IS NULL
+		ORDER BY Q.SORT_SEQ ASC, Q.QSTN_SN ASC
+	</select>
+
+	<select id="selectLearningResources" resultType="TabletLearningResourceVO">
+		SELECT
+			B.PST_SN,
+			B.PST_TTL,
+			B.PST_CN,
+			B.ETC1 AS LRN_TYPE_CD,
+			CASE B.ETC1
+				WHEN 'PRE' THEN '사전학습'
+				WHEN 'MAIN' THEN '본학습'
+				WHEN 'POST' THEN '사후학습'
+				ELSE B.ETC1
+			END AS LRN_TYPE_NM,
+			B.ETC2 AS DATA_TYPE_CD,
+			CASE B.ETC2
+				WHEN 'LINK' THEN '링크'
+				WHEN 'DOC' THEN '문서'
+				WHEN 'VIDEO' THEN '동영상'
+				ELSE B.ETC2
+			END AS DATA_TYPE_NM,
+			B.ETC3 AS PRGRM_TYPE_CD,
+			CASE B.ETC3
+				WHEN 'MISSION' THEN '미션'
+				WHEN 'EXPLORE' THEN '사건탐구'
+				ELSE B.ETC3
+			END AS PRGRM_TYPE_NM,
+			CAST(NULLIF(B.ETC4, '') AS UNSIGNED) AS PRGRM_SN,
+			P.PRGRM_NM,
+			B.LNKG_URL_ADDR AS LINK_URL,
+			B.ETC5 AS VIDEO_EMBED_URL,
+			B.ATCH_FILE_MNG_NO,
+			F.FILE_SEQ,
+			F.ATCH_FILE_PATH_NM AS FILE_URL,
+			F.ORGNL_FILE_NM,
+			B.PSTG_YMD
+		FROM BBS_ARTICLE B
+		LEFT JOIN EDU_PRGRM_MST P
+			ON P.PRGRM_TYPE_CD = B.ETC3
+			AND P.PRGRM_SN = CAST(NULLIF(B.ETC4, '') AS UNSIGNED)
+			AND P.DEL_DT IS NULL
+		LEFT JOIN ATCH_FILE_INFO F
+			ON F.ATCH_FILE_MNG_NO = B.ATCH_FILE_MNG_NO
+			AND F.FILE_SEQ = (
+				SELECT MIN(F2.FILE_SEQ)
+				FROM ATCH_FILE_INFO F2
+				WHERE F2.ATCH_FILE_MNG_NO = B.ATCH_FILE_MNG_NO
+			)
+		WHERE B.BBS_ID = 'LRNSUP'
+		AND B.USE_YN = 'Y'
+		AND B.ETC1 = 'MAIN'
+		AND B.ETC3 = #{prgrmTypeCd}
+		AND CAST(NULLIF(B.ETC4, '') AS UNSIGNED) = #{prgrmSn}
+		ORDER BY B.PSTG_YMD DESC, B.REG_DT DESC, B.PST_SN DESC
+	</select>
+
+	<select id="selectTeacherCalls" resultType="TabletTeacherCallVO">
+		SELECT
+			CALL_SN,
+			RSVT_SN,
+			TEAM_NM,
+			STDNT_NMS AS STUDENT_NAMES,
+			STDNT_CNT AS STUDENT_COUNT,
+			PLACE_NM,
+			CALL_CN,
+			CALL_STTS_CD,
+			CASE CALL_STTS_CD
+				WHEN 'READ' THEN '읽음'
+				ELSE '대기'
+			END AS CALL_STTS_NM,
+			DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
+			DATE_FORMAT(READ_DT, '%Y-%m-%d %H:%i:%s') AS READ_DT
+		FROM EDU_TCHR_CALL
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+		ORDER BY REG_DT DESC, CALL_SN DESC
+	</select>
+
+	<insert id="insertTeacherCall" useGeneratedKeys="true" keyProperty="callSn">
+		INSERT INTO EDU_TCHR_CALL (
+			RSVT_SN,
+			TEAM_NM,
+			STDNT_NMS,
+			STDNT_CNT,
+			PLACE_NM,
+			CALL_CN,
+			CALL_STTS_CD,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{rsvtSn},
+			#{teamNm},
+			#{studentNames},
+			#{studentCount},
+			#{placeNm},
+			#{callCn},
+			'WAIT',
+			'tablet',
+			NOW()
+		)
+	</insert>
+
+	<update id="updateTeacherCallRead">
+		UPDATE EDU_TCHR_CALL
+		SET CALL_STTS_CD = 'READ',
+			READ_DT = COALESCE(READ_DT, NOW()),
+			MDTR = 'tablet',
+			MDFCN_DT = NOW()
+		WHERE CALL_SN = #{callSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="updateAllTeacherCallsRead">
+		UPDATE EDU_TCHR_CALL
+		SET CALL_STTS_CD = 'READ',
+			READ_DT = COALESCE(READ_DT, NOW()),
+			MDTR = 'tablet',
+			MDFCN_DT = NOW()
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+		AND CALL_STTS_CD != 'READ'
+	</update>
+
 	<update id="syncAttendance">
 		UPDATE EDU_RSVT_STDNT
 		SET ATND_YN = CASE
@@ -183,6 +357,128 @@
 			MDFCN_DT = NOW(),
 			MDTR = 'tablet'
 		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="deleteMissionAnswers">
+		UPDATE EDU_LRN_ANS
+		SET DEL_DT = NOW(),
+			DELTR = 'tablet'
+		WHERE RSVT_SN = #{rsvtSn}
+		AND STDNT_SN = #{stdntSn}
+		AND ANS_TYPE_CD = 'WORKSHEET'
+		AND STEP_CD = #{stepCd}
+		AND DEL_DT IS NULL
+	</update>
+
+	<insert id="insertMissionAnswer">
+		INSERT INTO EDU_LRN_ANS (
+			RSVT_SN,
+			STDNT_SN,
+			ANS_TYPE_CD,
+			STEP_CD,
+			CARD_CLSF_CD,
+			CNTN_SN,
+			QSTN_SN,
+			QSTN_CN,
+			ANS_CN,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{rsvtSn},
+			#{stdntSn},
+			'WORKSHEET',
+			#{stepCd},
+			#{answer.cardClsfCd},
+			#{answer.cntnSn},
+			#{answer.qstnSn},
+			#{answer.qstnCn},
+			#{answer.ansCn},
+			'tablet',
+			NOW()
+		)
+	</insert>
+
+	<update id="deleteTypedAnswers">
+		UPDATE EDU_LRN_ANS
+		SET DEL_DT = NOW(),
+			DELTR = 'tablet'
+		WHERE RSVT_SN = #{rsvtSn}
+		AND STDNT_SN = #{stdntSn}
+		AND ANS_TYPE_CD = #{ansTypeCd}
+		AND DEL_DT IS NULL
+	</update>
+
+	<insert id="insertTypedAnswer">
+		INSERT INTO EDU_LRN_ANS (
+			RSVT_SN,
+			STDNT_SN,
+			ANS_TYPE_CD,
+			STEP_CD,
+			QSTNR_SN,
+			QSTN_SN,
+			QSTN_CN,
+			ANS_CN,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{rsvtSn},
+			#{stdntSn},
+			#{ansTypeCd},
+			#{stepCd},
+			#{answer.qstnrSn},
+			#{answer.qstnSn},
+			#{answer.qstnCn},
+			#{answer.ansCn},
+			'tablet',
+			NOW()
+		)
+	</insert>
+
+	<update id="updateProgressLogDone">
+		UPDATE EDU_LRN_PRGRS_LOG
+		SET ACTVT_NM = #{actvtNm},
+			STEP_STTS_CD = 'DONE',
+			CMPTN_DT = NOW(),
+			MDTR = 'tablet',
+			MDFCN_DT = NOW()
+		WHERE RSVT_SN = #{rsvtSn}
+		AND STDNT_SN = #{stdntSn}
+		AND STEP_CD = #{stepCd}
+	</update>
+
+	<insert id="insertProgressLogDone">
+		INSERT INTO EDU_LRN_PRGRS_LOG (
+			RSVT_SN,
+			STDNT_SN,
+			STEP_CD,
+			ACTVT_NM,
+			STEP_STTS_CD,
+			BGNG_DT,
+			CMPTN_DT,
+			RGTR,
+			REG_DT
+		) VALUES (
+			#{rsvtSn},
+			#{stdntSn},
+			#{stepCd},
+			#{actvtNm},
+			'DONE',
+			NOW(),
+			NOW(),
+			'tablet',
+			NOW()
+		)
+	</insert>
+
+	<update id="updateStudentProgress">
+		UPDATE EDU_RSVT_STDNT
+		SET PRGRS_RT = #{progressRate},
+			LRN_STTS_CD = #{learningStatus},
+			MDTR = 'tablet',
+			MDFCN_DT = NOW()
+		WHERE RSVT_SN = #{rsvtSn}
+		AND STDNT_SN = #{stdntSn}
 		AND DEL_DT IS NULL
 	</update>
 </mapper>

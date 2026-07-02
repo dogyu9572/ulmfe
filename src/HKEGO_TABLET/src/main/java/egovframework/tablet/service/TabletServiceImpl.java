@@ -6,11 +6,19 @@ import egovframework.tablet.service.mapper.TabletMapper;
 import egovframework.tablet.service.vo.TabletAdminVO;
 import egovframework.tablet.service.vo.TabletContentQuestionVO;
 import egovframework.tablet.service.vo.TabletContentVO;
+import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletLoginRequest;
 import egovframework.tablet.service.vo.TabletLoginResponse;
+import egovframework.tablet.service.vo.TabletMissionFinalSubmitRequest;
+import egovframework.tablet.service.vo.TabletMissionAnswerVO;
+import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
+import egovframework.tablet.service.vo.TabletQuestionnaireAnswerVO;
+import egovframework.tablet.service.vo.TabletQuestionnaireQuestionVO;
 import egovframework.tablet.service.vo.TabletReservationVO;
 import egovframework.tablet.service.vo.TabletSessionResponse;
 import egovframework.tablet.service.vo.TabletStudentVO;
+import egovframework.tablet.service.vo.TabletTeacherCallRequest;
+import egovframework.tablet.service.vo.TabletTeacherCallVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -94,12 +102,35 @@ public class TabletServiceImpl implements TabletService {
 		TabletReservationVO reservation = tabletMapper.findReservationByDate(targetDate);
 		List<TabletStudentVO> students = reservation == null ? List.of() : tabletMapper.selectStudents(reservation.getRsvtSn());
 		List<TabletContentVO> contents = reservation == null ? List.of() : selectProgramContents(reservation.getStepJson());
+		List<TabletQuestionnaireQuestionVO> evaluationQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "studentEvaluationSn", "EVAL");
+		List<TabletQuestionnaireQuestionVO> surveyQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "surveySn", "SURVEY");
 		return TabletSessionResponse.builder()
 			.rsvtYmd(targetDate)
 			.reservation(reservation)
 			.students(students)
 			.contents(contents)
+			.progressLogs(reservation == null ? List.of() : tabletMapper.selectProgressLogs(reservation.getRsvtSn()))
+			.savedAnswers(reservation == null ? List.of() : tabletMapper.selectSavedAnswers(reservation.getRsvtSn()))
+			.evaluationQuestions(evaluationQuestions)
+			.surveyQuestions(surveyQuestions)
 			.build();
+	}
+
+	@Override
+	public List<TabletLearningResourceVO> getLearningResources(String prgrmTypeCd, Integer prgrmSn) {
+		String normalizedType = normalizeText(prgrmTypeCd);
+		if (isBlank(normalizedType) || prgrmSn == null || prgrmSn <= 0) {
+			return List.of();
+		}
+		return tabletMapper.selectLearningResources(normalizedType, prgrmSn);
+	}
+
+	@Override
+	public List<TabletTeacherCallVO> getTeacherCalls(Integer rsvtSn) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			return List.of();
+		}
+		return tabletMapper.selectTeacherCalls(rsvtSn);
 	}
 
 	@Override
@@ -114,11 +145,192 @@ public class TabletServiceImpl implements TabletService {
 		tabletMapper.syncAttendance(rsvtSn, studentSns);
 	}
 
+	@Override
+	@Transactional
+	public void submitMission(Integer rsvtSn, TabletMissionSubmitRequest request) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
+		}
+		if (request == null || request.getStudentSns() == null || request.getStudentSns().isEmpty()) {
+			throw new IllegalArgumentException("미션을 저장할 학생 정보가 없습니다.");
+		}
+		Integer routeIndex = request.getRouteIndex();
+		if (routeIndex == null || routeIndex < 0) {
+			throw new IllegalArgumentException("미션 단계 정보가 올바르지 않습니다.");
+		}
+		String stepCd = missionStepCode(routeIndex);
+		String activityName = normalizeText(request.getRouteName());
+		int totalRouteCount = Math.max(request.getTotalRouteCount() == null ? 0 : request.getTotalRouteCount(), routeIndex + 1);
+		int progressRate = totalRouteCount <= 0 ? 0 : Math.min(100, Math.round(((routeIndex + 1) * 100f) / totalRouteCount));
+		String learningStatus = progressRate >= 100 ? "DONE" : "ING";
+		List<TabletMissionAnswerVO> answers = request.getAnswers() == null ? List.of() : request.getAnswers();
+
+		for (Integer studentSn : request.getStudentSns()) {
+			if (studentSn == null || studentSn <= 0) continue;
+			tabletMapper.deleteMissionAnswers(rsvtSn, studentSn, stepCd);
+			for (TabletMissionAnswerVO answer : answers) {
+				if (answer == null || isBlank(answer.getAnsCn())) continue;
+				tabletMapper.insertMissionAnswer(rsvtSn, studentSn, stepCd, answer);
+			}
+			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, stepCd, activityName) == 0) {
+				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, stepCd, activityName);
+			}
+			tabletMapper.updateStudentProgress(rsvtSn, studentSn, progressRate, learningStatus);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void submitMissionFinal(Integer rsvtSn, TabletMissionFinalSubmitRequest request) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
+		}
+		if (request == null || request.getStudentSns() == null || request.getStudentSns().isEmpty()) {
+			throw new IllegalArgumentException("최종 미션을 저장할 학생 정보가 없습니다.");
+		}
+		String heroName = normalizeText(request.getHeroName());
+		boolean updateHero = Boolean.TRUE.equals(request.getUpdateHero()) || Boolean.TRUE.equals(request.getComplete());
+		boolean updateEvaluation = Boolean.TRUE.equals(request.getUpdateEvaluation()) || Boolean.TRUE.equals(request.getComplete());
+		boolean updateSurvey = Boolean.TRUE.equals(request.getUpdateSurvey()) || Boolean.TRUE.equals(request.getComplete());
+		boolean complete = Boolean.TRUE.equals(request.getComplete());
+
+		if (updateHero && isBlank(heroName)) {
+			throw new IllegalArgumentException("SDGs 히어로즈 이름을 입력해주세요.");
+		}
+
+		TabletQuestionnaireAnswerVO heroAnswer = new TabletQuestionnaireAnswerVO();
+		heroAnswer.setQstnCn("SDGs 히어로즈 이름");
+		heroAnswer.setAnsCn(heroName);
+
+		for (Integer studentSn : request.getStudentSns()) {
+			if (studentSn == null || studentSn <= 0) continue;
+			if (updateHero) saveTypedAnswers(rsvtSn, studentSn, "HERO", "STEP4", List.of(heroAnswer));
+			if (updateEvaluation) saveTypedAnswers(rsvtSn, studentSn, "EVALUATION", "STEP4", request.getEvaluationAnswers());
+			if (updateSurvey) saveTypedAnswers(rsvtSn, studentSn, "SURVEY", "STEP4", request.getSurveyAnswers());
+			if (complete) {
+				if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, "STEP4", "실천력 부여") == 0) {
+					tabletMapper.insertProgressLogDone(rsvtSn, studentSn, "STEP4", "실천력 부여");
+				}
+				tabletMapper.updateStudentProgress(rsvtSn, studentSn, 100, "DONE");
+			}
+		}
+	}
+
+	@Override
+	@Transactional
+	public void createTeacherCall(Integer rsvtSn, TabletTeacherCallRequest request) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
+		}
+		if (request == null || request.getStudentSns() == null || request.getStudentSns().isEmpty()) {
+			throw new IllegalArgumentException("호출할 학생 정보가 없습니다.");
+		}
+
+		Set<Integer> selectedStudentIds = request.getStudentSns().stream()
+			.filter(studentSn -> studentSn != null && studentSn > 0)
+			.collect(Collectors.toCollection(LinkedHashSet::new));
+		if (selectedStudentIds.isEmpty()) {
+			throw new IllegalArgumentException("호출할 학생 정보가 없습니다.");
+		}
+
+		List<TabletStudentVO> selectedStudents = tabletMapper.selectStudents(rsvtSn).stream()
+			.filter(student -> selectedStudentIds.contains(student.getStdntSn()))
+			.toList();
+		if (selectedStudents.isEmpty()) {
+			throw new IllegalArgumentException("예약에 포함된 학생 정보가 없습니다.");
+		}
+
+		TabletTeacherCallVO teacherCall = new TabletTeacherCallVO();
+		teacherCall.setRsvtSn(rsvtSn);
+		teacherCall.setTeamNm(joinUnique(selectedStudents.stream().map(TabletStudentVO::getTeamNm).toList()));
+		teacherCall.setStudentNames(displayStudentNames(selectedStudents));
+		teacherCall.setStudentCount(selectedStudents.size());
+		teacherCall.setPlaceNm(normalizeText(request.getPlaceNm()));
+		teacherCall.setCallCn("선생님을 호출했어요.");
+		tabletMapper.insertTeacherCall(teacherCall);
+	}
+
+	@Override
+	@Transactional
+	public void markTeacherCallRead(Long callSn) {
+		if (callSn == null || callSn <= 0) {
+			throw new IllegalArgumentException("호출 내역 정보가 올바르지 않습니다.");
+		}
+		tabletMapper.updateTeacherCallRead(callSn);
+	}
+
+	@Override
+	@Transactional
+	public void markAllTeacherCallsRead(Integer rsvtSn) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
+		}
+		tabletMapper.updateAllTeacherCallsRead(rsvtSn);
+	}
+
+	private String missionStepCode(int routeIndex) {
+		return "MISSION" + String.format("%02d", routeIndex + 1);
+	}
+
+	private String normalizeText(String value) {
+		return value == null ? "" : value.trim();
+	}
+
+	private String joinUnique(List<String> values) {
+		return values.stream()
+			.map(this::normalizeText)
+			.filter(value -> !value.isEmpty())
+			.collect(Collectors.toCollection(LinkedHashSet::new))
+			.stream()
+			.collect(Collectors.joining(", "));
+	}
+
+	private String displayStudentNames(List<TabletStudentVO> students) {
+		if (students == null || students.isEmpty()) return "";
+		String firstName = normalizeText(students.get(0).getStdntNm());
+		if (students.size() == 1) return firstName;
+		return firstName + " 외 " + (students.size() - 1) + "명";
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
+	}
+
+	private void saveTypedAnswers(Integer rsvtSn, Integer studentSn, String ansTypeCd, String stepCd, List<TabletQuestionnaireAnswerVO> answers) {
+		tabletMapper.deleteTypedAnswers(rsvtSn, studentSn, ansTypeCd);
+		if (answers == null) return;
+		for (TabletQuestionnaireAnswerVO answer : answers) {
+			if (answer == null || isBlank(answer.getAnsCn())) continue;
+			tabletMapper.insertTypedAnswer(rsvtSn, studentSn, ansTypeCd, stepCd, answer);
+		}
+	}
+
 	private String normalizeDate(String value) {
 		if (value == null || value.trim().isEmpty()) {
 			return LocalDate.now().toString();
 		}
 		return value.trim();
+	}
+
+	private List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestions(String evalJson, String key, String qstnrTypeCd) {
+		Integer qstnrSn = questionnaireSn(evalJson, key);
+		if (qstnrSn == null || qstnrSn <= 0) return List.of();
+		return tabletMapper.selectQuestionnaireQuestions(qstnrSn, qstnrTypeCd);
+	}
+
+	private Integer questionnaireSn(String evalJson, String key) {
+		if (isBlank(evalJson)) return null;
+		try {
+			JsonNode node = objectMapper.readTree(evalJson);
+			JsonNode value = node.get(key);
+			if (value == null || value.isNull()) return null;
+			if (value.isInt() || value.isLong()) return value.asInt();
+			String text = value.asText("").trim();
+			if (text.isEmpty()) return null;
+			return Integer.parseInt(text);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private List<TabletContentVO> selectProgramContents(String stepJson) {

@@ -1,9 +1,78 @@
+import { useEffect, useMemo, useState } from 'react'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
-import { resourceItems } from './missionShared'
+import { fetchTabletLearningResources, TabletLearningResource } from '../../../api/tabletApi'
+
+type ResourceFilter = 'ALL' | 'DOC' | 'VIDEO'
+
+const resourceType = (resource: TabletLearningResource) => {
+	if (resource.dataTypeCd === 'VIDEO') return 'video'
+	return 'document'
+}
+
+const resourceLabel = (resource: TabletLearningResource) => {
+	if (resource.dataTypeCd === 'VIDEO') return '동영상'
+	if (resource.dataTypeCd === 'LINK') return '링크'
+	return '문서'
+}
+
+const resourceHref = (resource: TabletLearningResource) => {
+	if (resource.dataTypeCd === 'VIDEO') return resource.videoEmbedUrl || resource.linkUrl || ''
+	if (resource.dataTypeCd === 'LINK') return resource.linkUrl || ''
+	return resource.fileUrl || resource.linkUrl || ''
+}
+
+const resourceButton = (resource: TabletLearningResource) => {
+	if (resource.dataTypeCd === 'VIDEO' || resource.dataTypeCd === 'LINK') return '보기'
+	return '다운로드'
+}
+
+const textOnly = (value?: string) => {
+	if (!value) return ''
+	return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}
 
 export const MissionResourceCenterPage = () => {
 	const flowSession = useRequiredTabletStudentFlowSession()
+	const [resources, setResources] = useState<TabletLearningResource[]>([])
+	const [filter, setFilter] = useState<ResourceFilter>('ALL')
+	const [keyword, setKeyword] = useState('')
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState('')
+
+	useEffect(() => {
+		if (!flowSession?.prgrmTypeCd || !flowSession.prgrmSn) {
+			setLoading(false)
+			return
+		}
+		let alive = true
+		setLoading(true)
+		setError('')
+		fetchTabletLearningResources(flowSession.prgrmTypeCd, flowSession.prgrmSn)
+			.then((items) => {
+				if (alive) setResources(items)
+			})
+			.catch((err) => {
+				if (alive) setError(err instanceof Error ? err.message : '자료실을 불러오지 못했습니다.')
+			})
+			.finally(() => {
+				if (alive) setLoading(false)
+			})
+		return () => {
+			alive = false
+		}
+	}, [flowSession?.prgrmSn, flowSession?.prgrmTypeCd])
+
+	const filteredResources = useMemo(() => {
+		const normalizedKeyword = keyword.trim().toLowerCase()
+		return resources.filter((resource) => {
+			if (filter === 'DOC' && resource.dataTypeCd === 'VIDEO') return false
+			if (filter === 'VIDEO' && resource.dataTypeCd !== 'VIDEO') return false
+			if (!normalizedKeyword) return true
+			return `${resource.pstTtl ?? ''} ${textOnly(resource.pstCn)} ${resource.orgnlFileNm ?? ''}`.toLowerCase().includes(normalizedKeyword)
+		})
+	}, [filter, keyword, resources])
+
 	if (!flowSession) return null
 
 	return (
@@ -13,10 +82,26 @@ export const MissionResourceCenterPage = () => {
 			<section className="basic_board">
 				<div className="subtitle"><strong>자료실</strong><p className="info">홈페이지 연계 자료 및 교육 콘텐츠</p></div>
 				<div className="page_scroll">
-					<div className="board_top"><div className="select_tab"><button type="button" className="btn on" id="selectAll">전체</button><button type="button" className="btn ico" id="selectDocument">문서</button><button type="button" className="btn ico" id="selectVideo">동영상</button></div><div className="search_area"><input type="text" placeholder="자료를 검색하세요." /><button className="btn_search"></button></div></div>
+					<div className="board_top"><div className="select_tab"><button type="button" className={`btn${filter === 'ALL' ? ' on' : ''}`} id="selectAll" onClick={() => setFilter('ALL')}>전체</button><button type="button" className={`btn ico${filter === 'DOC' ? ' on' : ''}`} id="selectDocument" onClick={() => setFilter('DOC')}>문서</button><button type="button" className={`btn ico${filter === 'VIDEO' ? ' on' : ''}`} id="selectVideo" onClick={() => setFilter('VIDEO')}>동영상</button></div><div className="search_area"><input type="text" placeholder="자료를 검색하세요." value={keyword} onChange={(event) => setKeyword(event.target.value)} /><button type="button" className="btn_search" onClick={() => undefined}></button></div></div>
 					<h2 className="sound_only">자료실 목록</h2>
-					<ul className="resource_wrap">{resourceItems.map((resource) => <li key={resource.title}><div className={`type ${resource.type}`}>{resource.label}</div><h3 className="tit">{resource.title}</h3><p>{resource.text}</p><a href={resource.href} target="_blank" className="btn">{resource.button}</a></li>)}</ul>
-					<div className="board_bottom"><nav className="paging" aria-label="게시판 페이지 이동"><a href="#this" className="arrow two first" aria-label="첫 페이지로 이동">처음</a><a href="#this" className="arrow one prev" aria-label="이전 페이지로 이동">이전</a><a href="#this" className="on" aria-current="page" aria-label="현재 1페이지">1</a><a href="#this" aria-label="2페이지로 이동">2</a><a href="#this" aria-label="3페이지로 이동">3</a><a href="#this" aria-label="4페이지로 이동">4</a><a href="#this" aria-label="5페이지로 이동">5</a><a href="#this" className="arrow one next" aria-label="다음 페이지로 이동">다음</a><a href="#this" className="arrow two last" aria-label="마지막 페이지로 이동">맨끝</a></nav></div>
+					{loading && <div className="wbox" style={{ padding: 32 }}>자료를 불러오는 중입니다.</div>}
+					{!loading && error && <div className="wbox" style={{ padding: 32 }}>{error}</div>}
+					{!loading && !error && filteredResources.length === 0 && <div className="wbox" style={{ padding: 32 }}>등록된 자료가 없습니다.</div>}
+					{!loading && !error && filteredResources.length > 0 && (
+						<ul className="resource_wrap">
+							{filteredResources.map((resource) => {
+								const href = resourceHref(resource)
+								return (
+									<li key={resource.pstSn}>
+										<div className={`type ${resourceType(resource)}`}>{resourceLabel(resource)}</div>
+										<h3 className="tit">{resource.pstTtl}</h3>
+										<p>{textOnly(resource.pstCn) || resource.orgnlFileNm || ''}</p>
+										{href ? <a href={href} target="_blank" rel="noreferrer" className="btn">{resourceButton(resource)}</a> : <span className="btn" aria-disabled="true">자료 없음</span>}
+									</li>
+								)
+							})}
+						</ul>
+					)}
 				</div>
 			</section>
 		</main>

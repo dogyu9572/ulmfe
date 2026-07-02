@@ -5,7 +5,7 @@ const teacherMenus = [
 	{ className: 'menu i2', path: '/teacher/monitoring', label: '모니터링' },
 	{ className: 'menu i3', path: '/teacher/real_time_location', label: '실시간 위치' },
 	{ className: 'menu i4', path: '/teacher/message_sending', label: '메시지 발송' },
-	{ className: 'menu i5 count', path: '/teacher/call_history', label: '호출 내역', count: '3' },
+	{ className: 'menu i5', path: '/teacher/call_history', label: '호출 내역' },
 	{ className: 'menu i7', path: '/teacher/resource_center', label: '자료실' }
 ]
 
@@ -28,7 +28,7 @@ export const TeacherHeader = () => {
 			<div className="gnb">
 				<h3 className="tit">메뉴</h3>
 				<ul className="list">
-					{teacherMenus.map((menu) => <li className={`${menu.className}${currentPath === menu.path ? ' on' : ''}`} key={menu.path}><Link to={menu.path}>{menu.label}{menu.count && <span>{menu.count}</span>}</Link></li>)}
+					{teacherMenus.map((menu) => <li className={`${menu.className}${currentPath === menu.path ? ' on' : ''}`} key={menu.path}><Link to={menu.path}>{menu.label}</Link></li>)}
 				</ul>
 			</div>
 			<button type="button" className="btn_menu">메뉴 닫기</button>

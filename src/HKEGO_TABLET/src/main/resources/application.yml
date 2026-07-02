@@ -22,6 +22,10 @@ app:
       - https://ulmfe-tablet.hk-test.co.kr
       - http://ulmfe-tablet.hk-test.co.kr
 
+file:
+  upload:
+    path: ${FILE_UPLOAD_PATH:/home/ulmfe/uploads}
+
 spring:
   datasource:
     driver-class-name: com.p6spy.engine.spy.P6SpyDriver

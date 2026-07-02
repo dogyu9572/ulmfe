@@ -58,6 +58,71 @@ export type TabletStudent = {
 	prgrsRt: number
 }
 
+export type TabletProgressLog = {
+	stdntSn: number
+	stepCd: string
+	actvtNm?: string
+	stepSttsCd: string
+}
+
+export type TabletSavedAnswer = {
+	lrnAnsSn: number
+	rsvtSn: number
+	stdntSn: number
+	ansTypeCd: string
+	stepCd: string
+	cntnSn?: number
+	qstnrSn?: number
+	qstnSn?: number
+	qstnCn?: string
+	ansCn: string
+}
+
+export type TabletQuestionnaireQuestion = {
+	qstnrSn: number
+	qstnSn: number
+	qstnNo?: string
+	ansTypeCd: string
+	ansTypeNm?: string
+	qstnCn: string
+	sortSeq?: number
+}
+
+export type TabletLearningResource = {
+	pstSn: string
+	pstTtl: string
+	pstCn?: string
+	lrnTypeCd?: string
+	lrnTypeNm?: string
+	dataTypeCd?: string
+	dataTypeNm?: string
+	prgrmTypeCd?: string
+	prgrmTypeNm?: string
+	prgrmSn?: number
+	prgrmNm?: string
+	linkUrl?: string
+	videoEmbedUrl?: string
+	atchFileMngNo?: string
+	fileSeq?: number
+	fileUrl?: string
+	orgnlFileNm?: string
+	pstgYmd?: string
+}
+
+export type TabletTeacherCall = {
+	callSn: number
+	rsvtSn: number
+	teamNm?: string
+	studentNames?: string
+	studentCount?: number
+	placeNm?: string
+	callCn?: string
+	callSttsCd: string
+	callSttsNm?: string
+	regDt?: string
+	readDt?: string
+}
+
 export type TabletContentQuestion = {
 	cntnQstnSn: number
 	cntnSn: number
@@ -91,11 +156,31 @@ export type TabletSession = {
 	reservation: TabletReservation | null
 	students: TabletStudent[]
 	contents: TabletContent[]
+	progressLogs: TabletProgressLog[]
+	savedAnswers: TabletSavedAnswer[]
+	evaluationQuestions: TabletQuestionnaireQuestion[]
+	surveyQuestions: TabletQuestionnaireQuestion[]
+}
+
+export type TabletMissionAnswer = {
+	cntnSn?: number
+	qstnSn?: number
+	qstnCn: string
+	ansCn: string
+	cardClsfCd?: string
+}
+
+export type TabletQuestionnaireAnswer = {
+	qstnrSn?: number
+	qstnSn?: number
+	qstnCn: string
+	ansCn: string
 }
 
 const CSRF_HEADER = 'X-XSRF-TOKEN'
 const CSRF_COOKIE = 'XSRF-TOKEN'
 let csrfToken = ''
+let authRedirecting = false
 
 const readCookie = (name: string) => {
 	if (typeof document === 'undefined') return ''
@@ -104,6 +189,21 @@ const readCookie = (name: string) => {
 		.find((item) => item.startsWith(`${name}=`))
 	const value = cookie?.slice(name.length + 1)
 	return value ? decodeURIComponent(value) : ''
+}
+
+const redirectToLoginOnAuthExpired = (url: string, response: Response) => {
+	if (typeof window === 'undefined') return false
+	if (url === '/api/tablet/auth/login') return false
+	if (response.status !== 401 && response.status !== 403) return false
+	if (authRedirecting) return true
+
+	authRedirecting = true
+	window.sessionStorage.removeItem('hkegoTabletStudentFlowSession')
+	if (window.location.pathname !== '/') {
+		window.alert('로그인이 필요합니다.')
+		window.location.replace('/')
+	}
+	return true
 }
 
 const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
@@ -123,6 +223,9 @@ const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
 		headers,
 		credentials: 'include'
 	})
+	if (redirectToLoginOnAuthExpired(url, response)) {
+		return new Promise<T>(() => undefined)
+	}
 	const nextToken = response.headers.get(CSRF_HEADER)
 	if (nextToken) csrfToken = nextToken
 
@@ -154,4 +257,59 @@ export const fetchTabletSession = () => request<TabletSession>('/api/tablet/sess
 export const markTabletAttendance = (rsvtSn: number, studentSns: number[]) => request<void>(`/api/tablet/reservations/${rsvtSn}/attendance`, {
 	method: 'POST',
 	body: JSON.stringify({ studentSns })
+})
+
+export const submitTabletMission = (rsvtSn: number, payload: {
+	studentSns: number[]
+	routeIndex: number
+	routeName: string
+	totalRouteCount: number
+	answers: TabletMissionAnswer[]
+}) => request<void>(`/api/tablet/reservations/${rsvtSn}/mission`, {
+	method: 'POST',
+	body: JSON.stringify(payload)
+})
+
+export const submitTabletMissionFinal = (rsvtSn: number, payload: {
+	studentSns: number[]
+	heroName: string
+	updateHero?: boolean
+	updateEvaluation?: boolean
+	updateSurvey?: boolean
+	complete?: boolean
+	evaluationAnswers: TabletQuestionnaireAnswer[]
+	surveyAnswers: TabletQuestionnaireAnswer[]
+}) => request<void>(`/api/tablet/reservations/${rsvtSn}/mission-final`, {
+	method: 'POST',
+	body: JSON.stringify(payload)
+})
+
+export const fetchTabletLearningResources = (prgrmTypeCd: string, prgrmSn: number) => {
+	const params = new URLSearchParams({
+		prgrmTypeCd,
+		prgrmSn: String(prgrmSn)
+	})
+	return request<TabletLearningResource[]>(`/api/tablet/learning-resources?${params.toString()}`, {
+		cache: 'no-store'
+	})
+}
+
+export const fetchTabletTeacherCalls = (rsvtSn: number) => request<TabletTeacherCall[]>(`/api/tablet/reservations/${rsvtSn}/teacher-calls`, {
+	cache: 'no-store'
+})
+
+export const createTabletTeacherCall = (rsvtSn: number, payload: {
+	studentSns: number[]
+	placeNm?: string
+}) => request<void>(`/api/tablet/reservations/${rsvtSn}/teacher-calls`, {
+	method: 'POST',
+	body: JSON.stringify(payload)
+})
+
+export const markTabletTeacherCallRead = (callSn: number) => request<void>(`/api/tablet/teacher-calls/${callSn}/read`, {
+	method: 'POST'
+})
+
+export const markAllTabletTeacherCallsRead = (rsvtSn: number) => request<void>(`/api/tablet/reservations/${rsvtSn}/teacher-calls/read-all`, {
+	method: 'POST'
 })

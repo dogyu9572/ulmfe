@@ -1,9 +1,11 @@
 import { StudentPopups } from './TabletPopup'
 import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
+import { useTabletSidebarToggle } from '../../hooks/useTabletSidebarToggle'
 import { studentFlowClassName, studentFlowTeamName } from '../../state/tabletStudentFlowSession'
 
 export const StudentCaseHeader = () => {
 	const flowSession = useTabletStudentFlowSession()
+	const { collapsed, toggleSidebar } = useTabletSidebarToggle()
 	if (!flowSession) return null
 
 	const teamName = studentFlowTeamName(flowSession)
@@ -12,7 +14,7 @@ export const StudentCaseHeader = () => {
 
 	return (
 	<>
-		<header className="header student_header">
+		<header className={`header student_header${collapsed ? ' off' : ''}`}>
 			<h2 className="sound_only">메인메뉴 영역</h2>
 			<div className="inbox_scroll">
 				<div className="student_info">
@@ -67,7 +69,7 @@ export const StudentCaseHeader = () => {
 					</ul>
 				</div>
 			</div>
-			<button type="button" className="btn_menu">메뉴 닫기</button>
+			<button type="button" className="btn_menu" onClick={toggleSidebar}>{collapsed ? '메뉴 열기' : '메뉴 닫기'}</button>
 		</header>
 		<StudentPopups />
 	</>

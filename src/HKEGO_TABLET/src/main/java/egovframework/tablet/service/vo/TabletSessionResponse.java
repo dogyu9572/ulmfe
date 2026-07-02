@@ -19,4 +19,12 @@ public class TabletSessionResponse {
 	private List<TabletStudentVO> students = new ArrayList<>();
 	@Builder.Default
 	private List<TabletContentVO> contents = new ArrayList<>();
+	@Builder.Default
+	private List<TabletProgressLogVO> progressLogs = new ArrayList<>();
+	@Builder.Default
+	private List<TabletSavedAnswerVO> savedAnswers = new ArrayList<>();
+	@Builder.Default
+	private List<TabletQuestionnaireQuestionVO> evaluationQuestions = new ArrayList<>();
+	@Builder.Default
+	private List<TabletQuestionnaireQuestionVO> surveyQuestions = new ArrayList<>();
 }

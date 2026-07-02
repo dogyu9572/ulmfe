@@ -1,7 +1,8 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TabletContentQuestion } from '../../../api/tabletApi'
+import { fetchTabletSession, submitTabletMission, TabletContentQuestion, TabletMissionAnswer } from '../../../api/tabletApi'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
-import { studentFlowMissionQuestByRouteIndex, studentFlowMissionQuestContents } from '../../../state/tabletStudentFlowSession'
+import { saveTabletStudentFlowSession, studentFlowMissionQuestByRouteIndex, studentFlowMissionQuestContents, studentFlowRouteItems, studentFlowSavedAnswersByQuestion } from '../../../state/tabletStudentFlowSession'
 import { CheckboxList, MissionShell } from './missionShared'
 
 type QuestionOption = {
@@ -35,16 +36,17 @@ const renderDataInputs = (question: TabletContentQuestion, options: QuestionOpti
 	return <ul className="input_list"><li><label htmlFor={id} className="tt">{question.qstnNm}</label><input type="text" id={id} className="text w100p" placeholder={options.data?.placeholder || '내용을 입력해주세요.'} /></li></ul>
 }
 
-const renderQuestionControl = (question: TabletContentQuestion, index: number, pageKey: string) => {
+const renderQuestionControl = (question: TabletContentQuestion, index: number, pageKey: string, savedAnswer = '') => {
 	const options = parseQuestionOption(question.optnCn)
 	const types = questionTypes(question)
 	const baseId = `${pageKey}_${question.cntnQstnSn || index + 1}`
 	const selectItems = options.select?.items?.filter(Boolean) ?? []
+	const selectedItems = parseSavedAnswerLines(savedAnswer)
 	const sentenceItems = options.sentence?.items?.filter(Boolean) ?? []
 	const photoLabels = options.photo?.labels?.filter(Boolean) ?? []
 
 	if (types.includes('SELECT') && selectItems.length > 0) {
-		return <CheckboxList name={`${baseId}_select`} items={selectItems} />
+		return <CheckboxList name={`${baseId}_select`} items={selectItems} checkedItems={selectedItems} />
 	}
 	if (types.includes('DATA')) {
 		return renderDataInputs(question, options, baseId)
@@ -65,36 +67,215 @@ const renderQuestionControl = (question: TabletContentQuestion, index: number, p
 	return <ul className="input_list"><li><label htmlFor={`${baseId}_text`} className="tt">{question.qstnNm}</label><input type="text" id={`${baseId}_text`} className="text w100p" placeholder="내용을 입력해주세요." /></li></ul>
 }
 
+const collectCardAnswer = (card: HTMLElement) => {
+	const values: string[] = []
+	card.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
+		if (!input.checked) return
+		const label = input.closest('.box')?.textContent?.trim() || input.value
+		if (label) values.push(label)
+	})
+	card.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+		if (!input.checked) return
+		const label = input.closest('.box')?.textContent?.trim() || input.value
+		if (label) values.push(label)
+	})
+	card.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[type="text"], textarea').forEach((input) => {
+		const value = input.value.trim()
+		if (!value) return
+		const label = input.closest('li')?.querySelector('label')?.textContent?.trim()
+		values.push(label ? `${label}: ${value}` : value)
+	})
+	card.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((input) => {
+		const files = Array.from(input.files ?? []).map((file) => file.name)
+		if (files.length === 0) return
+		const label = input.closest('li')?.querySelector('label')?.textContent?.trim()
+		values.push(label ? `${label}: ${files.join(', ')}` : files.join(', '))
+	})
+	return values.join('\n')
+}
+
+const parseSavedAnswerLines = (value: string) => value.split('\n').map((line) => line.trim()).filter(Boolean)
+
+const restoreCardAnswer = (card: HTMLElement, answer: string) => {
+	const lines = parseSavedAnswerLines(answer)
+	if (lines.length === 0) return
+	card.querySelectorAll<HTMLInputElement>('input[type="checkbox"], input[type="radio"]').forEach((input) => {
+		const label = input.closest('.box')?.textContent?.trim() || input.value
+		input.checked = Boolean(label && lines.includes(label))
+	})
+
+	const textControls = Array.from(card.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[type="text"], textarea'))
+	textControls.forEach((input) => {
+		const label = input.closest('li')?.querySelector('label')?.textContent?.trim()
+		if (label) {
+			const matchedLine = lines.find((line) => line.startsWith(`${label}:`))
+			if (matchedLine) input.value = matchedLine.slice(label.length + 1).trim()
+			return
+		}
+		if (textControls.length === 1) input.value = answer
+	})
+}
+
+const readDraftAnswers = (storageKey: string) => {
+	if (typeof window === 'undefined') return new Map<string, string>()
+	try {
+		const parsed = JSON.parse(window.sessionStorage.getItem(storageKey) || '{}') as Record<string, string>
+		return new Map(Object.entries(parsed).filter(([, value]) => typeof value === 'string'))
+	} catch {
+		return new Map<string, string>()
+	}
+}
+
+const writeDraftAnswers = (storageKey: string, answers: Map<string, string>) => {
+	if (typeof window === 'undefined') return
+	window.sessionStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(answers)))
+}
+
 export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { routeIndex: number; submitPath: string; pageKey: string }) => {
 	const navigate = useNavigate()
+	const pageRef = useRef<HTMLDivElement>(null)
+	const [saving, setSaving] = useState(false)
 	const flowSession = useRequiredTabletStudentFlowSession()
-	if (!flowSession) return null
+	const selectedStudentKey = useMemo(
+		() => (flowSession?.selectedStudents ?? []).map((student) => student.stdntSn).sort((a, b) => a - b).join(','),
+		[flowSession]
+	)
+	const draftStorageKey = flowSession
+		? `hkegoTabletMissionAnswers:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}`
+		: ''
 
-	const quest = studentFlowMissionQuestByRouteIndex(flowSession, routeIndex)
-	const contents = studentFlowMissionQuestContents(flowSession, routeIndex)
-	const dynamicQuestions = contents.flatMap((content) => {
+	const quest = flowSession ? studentFlowMissionQuestByRouteIndex(flowSession, routeIndex) : null
+	const contents = flowSession ? studentFlowMissionQuestContents(flowSession, routeIndex) : []
+	const routeItems = flowSession ? studentFlowRouteItems(flowSession) : []
+	const savedAnswersByQuestion = useMemo(
+		() => flowSession ? studentFlowSavedAnswersByQuestion(flowSession, routeIndex) : new Map<string, string>(),
+		[flowSession, routeIndex]
+	)
+	const draftAnswersByQuestion = useMemo(
+		() => draftStorageKey ? readDraftAnswers(draftStorageKey) : new Map<string, string>(),
+		[draftStorageKey]
+	)
+	const visibleAnswersByQuestion = useMemo(() => {
+		const answers = new Map(savedAnswersByQuestion)
+		draftAnswersByQuestion.forEach((value, key) => answers.set(key, value))
+		return answers
+	}, [draftAnswersByQuestion, savedAnswersByQuestion])
+	const dynamicQuestions = useMemo(() => contents.flatMap((content) => {
 		const questions = content.questions.length > 0
 			? content.questions
 			: [{ cntnQstnSn: content.cntnSn, cntnSn: content.cntnSn, qstnTypeCd: content.cntnTypeCd, qstnNm: content.cntnCn || content.cntnTtl }] as TabletContentQuestion[]
 		return questions.map((question) => ({ content, question }))
-	})
+	}), [contents])
 	const zoneName = quest?.name || ''
 	const title = quest?.title || ''
 	const location = quest?.place || ''
+	useEffect(() => {
+		if (!draftStorageKey) return
+		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-question-index]') ?? [])
+		cards.forEach((card) => {
+			const index = Number(card.dataset.questionIndex)
+			const item = dynamicQuestions[index]
+			if (!item) return
+			const answerKey = `${item.content.cntnSn || 0}:${item.question.cntnQstnSn || 0}`
+			const savedAnswer = visibleAnswersByQuestion.get(answerKey)
+			if (savedAnswer) restoreCardAnswer(card, savedAnswer)
+		})
+	}, [draftStorageKey, dynamicQuestions, visibleAnswersByQuestion])
+
+	useEffect(() => {
+		if (!draftStorageKey) return
+		const root = pageRef.current
+		if (!root) return
+
+		const saveDraft = () => {
+			const nextAnswers = new Map<string, string>()
+			const cards = Array.from(root.querySelectorAll<HTMLElement>('.a_card_box[data-question-index]'))
+			cards.forEach((card) => {
+				const index = Number(card.dataset.questionIndex)
+				const item = dynamicQuestions[index]
+				if (!item) return
+				const answer = collectCardAnswer(card)
+				const answerKey = `${item.content.cntnSn || 0}:${item.question.cntnQstnSn || 0}`
+				if (answer.trim()) nextAnswers.set(answerKey, answer)
+			})
+			writeDraftAnswers(draftStorageKey, nextAnswers)
+		}
+
+		root.addEventListener('change', saveDraft)
+		root.addEventListener('input', saveDraft)
+		return () => {
+			root.removeEventListener('change', saveDraft)
+			root.removeEventListener('input', saveDraft)
+		}
+	}, [draftStorageKey, dynamicQuestions])
+
+	if (!flowSession) return null
+
+	const handleSubmit = async () => {
+		if (saving) return
+		if (!quest) {
+			alert('저장할 미션 정보가 없습니다.')
+			return
+		}
+		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-question-index]') ?? [])
+		const answers = cards.reduce<TabletMissionAnswer[]>((acc, card) => {
+			const index = Number(card.dataset.questionIndex)
+			const item = dynamicQuestions[index]
+			if (!item) return acc
+			const ansCn = collectCardAnswer(card)
+			if (!ansCn.trim()) return acc
+			acc.push({
+				cntnSn: item.content.cntnSn,
+				qstnSn: item.question.cntnQstnSn,
+				qstnCn: item.question.qstnNm,
+				ansCn,
+				cardClsfCd: item.content.cardClsfCd
+			})
+			return acc
+		}, [])
+		if (answers.length === 0) {
+			alert('답을 선택해주세요.')
+			return
+		}
+
+		try {
+			setSaving(true)
+			await submitTabletMission(flowSession.rsvtSn, {
+				studentSns: flowSession.selectedStudents.map((student) => student.stdntSn),
+				routeIndex,
+				routeName: zoneName,
+				totalRouteCount: routeItems.length,
+				answers
+			})
+			const nextSession = await fetchTabletSession()
+			saveTabletStudentFlowSession(nextSession, flowSession.selectedStudents.map((student) => student.stdntSn))
+			const savedDraft = new Map<string, string>()
+			answers.forEach((answer) => {
+				const answerKey = `${answer.cntnSn || 0}:${answer.qstnSn || 0}`
+				savedDraft.set(answerKey, answer.ansCn)
+			})
+			writeDraftAnswers(draftStorageKey, savedDraft)
+			navigate(submitPath)
+		} catch (error) {
+			alert(error instanceof Error ? error.message : '미션 저장 중 오류가 발생했습니다.')
+		} finally {
+			setSaving(false)
+		}
+	}
 
 	return (
 		<MissionShell title={title || 'STEP 3 미션수행'} step={`STEP 3 미션수행${zoneName ? ` - ${zoneName}` : ''}`} subtitle={title} location={location}>
-			<div className="page_quest">
+			<div className="page_quest" ref={pageRef}>
 				{dynamicQuestions.length > 0 ? dynamicQuestions.map(({ content, question }, index) => (
-					<div className="wbox a_card_box" key={`${content.cntnSn}_${question.cntnQstnSn || index}`}>
+					<div className="wbox a_card_box" key={`${content.cntnSn}_${question.cntnQstnSn || index}`} data-question-index={index}>
 						<div className="card_top">문항풀이 #{index + 1}</div>
 						<h3 className="tit">{question.qstnNm}</h3>
-						<div className="con">{renderQuestionControl(question, index, pageKey)}</div>
+						<div className="con">{renderQuestionControl(question, index, pageKey, visibleAnswersByQuestion.get(`${content.cntnSn || 0}:${question.cntnQstnSn || 0}`) || '')}</div>
 					</div>
 				)) : <div className="wbox a_card_box">
 					<h3 className="tit">관리자에 연결된 콘텐츠가 없습니다.</h3>
 				</div>}
-				<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button><button type="button" className="btn btn_wbb" onClick={() => navigate(submitPath)}>제출</button></div>
+				<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button><button type="button" className="btn btn_wbb" onClick={handleSubmit} disabled={saving}>{saving ? '저장 중' : '제출'}</button></div>
 			</div>
 		</MissionShell>
 	)
