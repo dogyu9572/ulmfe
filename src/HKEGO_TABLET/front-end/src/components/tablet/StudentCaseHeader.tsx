@@ -1,16 +1,86 @@
 import { StudentPopups } from './TabletPopup'
 import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { useTabletSidebarToggle } from '../../hooks/useTabletSidebarToggle'
-import { studentFlowClassName, studentFlowTeamName } from '../../state/tabletStudentFlowSession'
+import { useLocation } from 'react-router-dom'
+import {
+	studentFlowClassName,
+	studentFlowCompletedExploreStepCodes,
+	studentFlowExploreIntroStep,
+	studentFlowExploreQuestByRouteIndex,
+	studentFlowRouteItems,
+	studentFlowStoredProgressRate,
+	studentFlowTeamName
+} from '../../state/tabletStudentFlowSession'
+import { missionRouteIconSrc } from '../../pages/student/mission/missionShared'
+
+const progressClassName = (progress: number) => {
+	if (progress >= 67) return 'line_area pct_step3'
+	if (progress >= 34) return 'line_area pct_step2'
+	return 'line_area pct_step1'
+}
+
+const getExploreHeaderProgress = (pathname: string, dynamicStepCount: number) => {
+	const totalSteps = 1 + dynamicStepCount + 2
+	const endStepIndex = totalSteps - 1
+	const match = pathname.match(/\/student\/quest(0[1-4])(_end)?$/)
+	let activeIndex = pathname.endsWith('/student/quest00') || pathname.endsWith('/student/quest_video') ? 0 : 0
+	let completedUntil = -1
+
+	if (match) {
+		const routeIndex = Number(match[1]) - 1
+		const currentStepIndex = 1 + routeIndex
+		if (match[2]) {
+			completedUntil = currentStepIndex
+			activeIndex = Math.min(currentStepIndex + 1, endStepIndex)
+		} else {
+			activeIndex = currentStepIndex
+			completedUntil = currentStepIndex - 1
+		}
+	} else if (pathname.endsWith('/student/quest05')) {
+		activeIndex = 1 + dynamicStepCount
+		completedUntil = activeIndex - 1
+	} else if (pathname.endsWith('/student/quest_end')) {
+		activeIndex = endStepIndex
+		completedUntil = endStepIndex - 1
+	} else if (pathname.endsWith('/student/resource_center')) {
+		activeIndex = -1
+		completedUntil = -1
+	}
+
+	const progress = endStepIndex <= 0 ? 0 : Math.max(0, Math.min(100, Math.round((Math.max(activeIndex, 0) / endStepIndex) * 100)))
+	return { activeIndex, completedUntil, progress }
+}
 
 export const StudentCaseHeader = () => {
 	const flowSession = useTabletStudentFlowSession()
+	const location = useLocation()
 	const { collapsed, toggleSidebar } = useTabletSidebarToggle()
 	if (!flowSession) return null
 
 	const teamName = studentFlowTeamName(flowSession)
 	const selectedStudents = flowSession.selectedStudents
 	const teamCount = selectedStudents.length
+	const routeItems = studentFlowRouteItems(flowSession)
+	const introStep = studentFlowExploreIntroStep(flowSession)
+	const dynamicSteps = routeItems.map((routeName, index) => {
+		const quest = studentFlowExploreQuestByRouteIndex(flowSession, index)
+		return {
+			title: routeName,
+			description: quest?.title || '',
+			time: quest?.limitMin ? `${quest.limitMin}분` : '',
+			icon: missionRouteIconSrc(routeName)
+		}
+	})
+	const steps = [
+		{ title: '사건제시', description: introStep?.title || '', time: introStep?.limitMin ? `${introStep.limitMin}분` : '', icon: '/pub/images/icon_activity_order01.webp' },
+		...dynamicSteps,
+		{ title: '메이커 활동', description: '메이커 활동', time: '', icon: '/pub/images/icon_activity_order_make.webp' },
+		{ title: '정리 및 일반화', description: '마무리', time: '', icon: '/pub/images/icon_activity_order06.webp' }
+	]
+	const completedExploreStepCodes = studentFlowCompletedExploreStepCodes(flowSession)
+	const { activeIndex, completedUntil, progress: routeProgress } = getExploreHeaderProgress(location.pathname, routeItems.length)
+	const storedProgress = studentFlowStoredProgressRate(flowSession)
+	const progress = Math.max(routeProgress, storedProgress)
 
 	return (
 	<>
@@ -40,22 +110,32 @@ export const StudentCaseHeader = () => {
 				</div>
 				<div className="area">
 					<div className="tit"><h3>전체 진척률</h3></div>
-					<div className="line_area">
-						<div className="pct"><strong>50</strong>%</div>
-						<div className="bar"></div>
+					<div className={progressClassName(progress)}>
+						<div className="pct"><strong>{progress}</strong>%</div>
+						<div className="bar" style={{ width: `${Math.max(progress, 1)}%` }}><div className="pct"><strong>{progress}</strong>%</div></div>
 					</div>
 				</div>
 				<div className="area">
 					<div className="tit"><h3>활동 순서</h3></div>
 					<div className="step_list">
 						<ul>
-							<li className="step0"><i aria-hidden="true"><img src="/pub/images/icon_activity_order01.webp" alt="" /></i><strong>사건제시</strong><p><span>영상 3개 시청</span><span>10분</span></p></li>
-							<li className="step1"><i aria-hidden="true"><img src="/pub/images/icon_activity_order02.webp" alt="" /></i><strong>퀘스트1</strong><p><span>살기 좋은 곳</span><span>25분</span></p></li>
-							<li className="step2"><i aria-hidden="true"><img src="/pub/images/icon_activity_order03.webp" alt="" /></i><strong>퀘스트2</strong><p><span>재미있는 울산</span><span>25분</span></p></li>
-							<li className="step3"><i aria-hidden="true"><img src="/pub/images/icon_activity_order04.webp" alt="" /></i><strong>퀘스트3</strong><p><span>행복한 울산</span><span>25분</span></p></li>
-							<li className="step4"><i aria-hidden="true"><img src="/pub/images/icon_activity_order05.webp" alt="" /></i><strong>퀘스트4</strong><p><span>미래 울산</span><span>25분</span></p></li>
-							<li className="step5"><i aria-hidden="true"><img src="/pub/images/icon_activity_order_make.webp" alt="" /></i><strong>메이커 활동</strong><p><span>연필꽂이 제작</span><span>60분</span></p></li>
-							<li className="step6"><i aria-hidden="true"><img src="/pub/images/icon_activity_order06.webp" alt="" /></i><strong>정리 및 일반화</strong><p><span>마무리</span><span>20분</span></p></li>
+							{steps.map((step, index) => {
+								const className = [
+									`step${index}`,
+									index === activeIndex ? 'on' : '',
+									index <= completedUntil || (index > 0 && index <= routeItems.length && completedExploreStepCodes.has(`QUEST${String(index).padStart(2, '0')}`)) ? 'end' : ''
+								].filter(Boolean).join(' ')
+								return (
+									<li className={className} key={`${step.title}-${index}`}>
+										<i aria-hidden="true"><img src={step.icon} alt="" /></i>
+										<strong>{step.title}</strong>
+										<p>
+											{step.description && <span>{step.description}</span>}
+											{step.time && <span>{step.time}</span>}
+										</p>
+									</li>
+								)
+							})}
 						</ul>
 					</div>
 				</div>

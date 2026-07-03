@@ -223,6 +223,28 @@
 		ORDER BY Q.SORT_SEQ ASC, Q.QSTN_SN ASC
 	</select>
 
+	<select id="selectQuestionnaireQuestionsByName" resultType="TabletQuestionnaireQuestionVO">
+		SELECT
+			Q.QSTNR_SN,
+			Q.QSTN_SN,
+			Q.QSTN_NO,
+			Q.ANS_TYPE_CD,
+			CASE Q.ANS_TYPE_CD
+				WHEN 'LIKERT5' THEN '리커트 5점'
+				WHEN 'LEVEL5' THEN '상중하 5단계'
+				WHEN 'TEXT' THEN '주관식'
+				ELSE Q.ANS_TYPE_CD
+			END AS ANS_TYPE_NM,
+			Q.QSTN_CN,
+			Q.SORT_SEQ
+		FROM EDU_QSTNR_QSTN Q
+		INNER JOIN EDU_QSTNR_MST M ON M.QSTNR_SN = Q.QSTNR_SN
+		WHERE M.QSTNR_NM = #{qstnrNm}
+		AND M.QSTNR_TYPE_CD = #{qstnrTypeCd}
+		AND M.DEL_DT IS NULL
+		ORDER BY Q.SORT_SEQ ASC, Q.QSTN_SN ASC
+	</select>
+
 	<select id="selectLearningResources" resultType="TabletLearningResourceVO">
 		SELECT
 			B.PST_SN,

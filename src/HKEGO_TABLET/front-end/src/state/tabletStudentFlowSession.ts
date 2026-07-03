@@ -33,13 +33,23 @@ export type TabletProgramContentRow = {
 	videoUrl?: string
 }
 
+export type TabletProgramTextRow = {
+	text: string
+}
+
 export type TabletProgramStep = {
 	step: string
 	stepName?: string
 	title?: string
 	place?: string
 	limitMin?: number | string
+	content?: string
+	videos?: TabletProgramContentRow[]
+	thoughts?: TabletProgramTextRow[]
 	quests?: TabletProgramQuest[]
+	contents?: TabletProgramContentRow[]
+	safetyRules?: TabletProgramTextRow[]
+	checklists?: TabletProgramTextRow[]
 }
 
 export type TabletStudentFlowSession = {
@@ -126,20 +136,20 @@ export const clearTabletStudentFlowSession = () => {
 
 export const studentFlowDisplayName = (session: TabletStudentFlowSession | null) => {
 	const students = session?.selectedStudents ?? []
-	if (students.length === 0) return '홍길동'
+	if (students.length === 0) return '학생 정보 없음'
 	if (students.length === 1) return students[0].stdntNm
 	return `${students[0].stdntNm} 외 ${students.length - 1}명`
 }
 
 export const studentFlowTeamName = (session: TabletStudentFlowSession | null) => {
 	const teams = Array.from(new Set((session?.selectedStudents ?? []).map((student) => normalizeTeamName(student.teamNm)).filter(Boolean)))
-	return teams.length > 0 ? teams.join(', ') : 'A팀'
+	return teams.length > 0 ? teams.join(', ') : '팀 정보 없음'
 }
 
 export const studentFlowCourseName = (session: TabletStudentFlowSession | null) => {
 	const teams = Array.from(new Set((session?.selectedStudents ?? []).map((student) => normalizeTeamName(student.teamNm)).filter(Boolean)))
 	if (teams.length > 0) return teams.map((team) => team.replace(/팀$/, '코스')).join(', ')
-	return 'A코스'
+	return '동선 정보 없음'
 }
 
 const parseJsonList = <T>(value?: string | null): T[] => {
@@ -150,6 +160,33 @@ const parseJsonList = <T>(value?: string | null): T[] => {
 	} catch {
 		return []
 	}
+}
+
+const normalizeProgramContentRows = (rows: unknown): TabletProgramContentRow[] => {
+	if (!Array.isArray(rows)) return []
+	return rows
+		.map((content) => {
+			const row = content as Partial<TabletProgramContentRow>
+			return {
+				cntnSn: row.cntnSn,
+				contentName: typeof row.contentName === 'string' ? row.contentName.trim() : '',
+				contentType: typeof row.contentType === 'string' ? row.contentType.trim() : '',
+				cardCategory: typeof row.cardCategory === 'string' ? row.cardCategory.trim() : '',
+				videoUrl: typeof row.videoUrl === 'string' ? row.videoUrl.trim() : ''
+			}
+		})
+		.filter((content) => content.cntnSn || content.contentName || content.videoUrl)
+}
+
+const normalizeProgramTextRows = (rows: unknown): TabletProgramTextRow[] => {
+	if (!Array.isArray(rows)) return []
+	return rows
+		.map((row) => {
+			if (typeof row === 'string') return { text: row.trim() }
+			const text = (row as Partial<TabletProgramTextRow>)?.text
+			return { text: typeof text === 'string' ? text.trim() : '' }
+		})
+		.filter((row) => row.text)
 }
 
 const courseKeyFromTeam = (session: TabletStudentFlowSession | null) => {
@@ -204,23 +241,21 @@ export const studentFlowProgramSteps = (session: TabletStudentFlowSession | null
 		title: typeof row.title === 'string' ? row.title.trim() : '',
 		place: typeof row.place === 'string' ? row.place.trim() : '',
 		limitMin: row.limitMin,
+		content: typeof row.content === 'string' ? row.content.trim() : '',
+		videos: normalizeProgramContentRows(row.videos),
+		thoughts: normalizeProgramTextRows(row.thoughts),
 		quests: Array.isArray(row.quests)
 			? row.quests.map((quest) => ({
 					name: typeof quest.name === 'string' ? quest.name.trim() : '',
 					title: typeof quest.title === 'string' ? quest.title.trim() : '',
 					place: typeof quest.place === 'string' ? quest.place.trim() : '',
 					limitMin: quest.limitMin,
-					contents: Array.isArray(quest.contents)
-						? quest.contents.map((content) => ({
-								cntnSn: content.cntnSn,
-								contentName: typeof content.contentName === 'string' ? content.contentName.trim() : '',
-								contentType: typeof content.contentType === 'string' ? content.contentType.trim() : '',
-								cardCategory: typeof content.cardCategory === 'string' ? content.cardCategory.trim() : '',
-								videoUrl: typeof content.videoUrl === 'string' ? content.videoUrl.trim() : ''
-							})).filter((content) => content.cntnSn || content.contentName)
-						: []
+					contents: normalizeProgramContentRows(quest.contents)
 				})).filter((quest) => quest.name || quest.title || quest.place)
-			: []
+			: [],
+		contents: normalizeProgramContentRows(row.contents),
+		safetyRules: normalizeProgramTextRows(row.safetyRules),
+		checklists: normalizeProgramTextRows(row.checklists)
 	}))
 	.filter((row) => row.step || row.title || row.place || (row.quests?.length ?? 0) > 0)
 
@@ -274,20 +309,109 @@ export const studentFlowSavedAnswersByQuestion = (session: TabletStudentFlowSess
 	return map
 }
 
+const contentTypeNameByCode: Record<string, string> = {
+	SELECT: '선택형 활동',
+	DATA: '데이터 입력',
+	SENTENCE: '문장 완성',
+	PHOTO: '사진 업로드'
+}
+
+const cardCategoryNameByCode: Record<string, string> = {
+	EXP: '탐구카드',
+	EXPLORE: '탐구카드',
+	MISSION: '미션카드',
+	EXPERIENCE: '체험카드',
+	ACTIVITY: '체험카드'
+}
+
+const resolveLinkedProgramContents = (linkedContents: TabletProgramContentRow[], contentDetails: TabletContent[]): TabletContent[] => linkedContents.map((linked, index) => {
+	const linkedId = Number(linked.cntnSn)
+	const detail = contentDetails.find((content) => Number.isFinite(linkedId) && content.cntnSn === linkedId)
+		?? contentDetails.find((content) => content.cntnTtl === linked.contentName)
+	if (detail) return detail
+
+	const contentType = linked.contentType || ''
+	const cardCategory = linked.cardCategory || ''
+	return {
+		cntnSn: Number.isFinite(linkedId) ? linkedId : -1 * (index + 1),
+		cntnTypeCd: contentType,
+		cntnTypeNm: contentTypeNameByCode[contentType] || contentType,
+		cardClsfCd: cardCategory,
+		cardClsfNm: cardCategoryNameByCode[cardCategory] || cardCategory,
+		cntnTtl: linked.contentName || '콘텐츠 상세가 없습니다.',
+		cntnCn: '',
+		questions: []
+	}
+})
+
 export const studentFlowMissionQuestContents = (session: TabletStudentFlowSession | null, routeIndex: number) => {
 	const quest = studentFlowMissionQuestByRouteIndex(session, routeIndex)
 	const linkedContents = quest?.contents ?? []
 	const contentDetails = session?.contents ?? []
 	if (linkedContents.length === 0) return []
 
-	return linkedContents
-		.map((linked: TabletProgramContentRow) => {
-			const linkedId = Number(linked.cntnSn)
-			return contentDetails.find((content) => Number.isFinite(linkedId) && content.cntnSn === linkedId)
-				?? contentDetails.find((content) => content.cntnTtl === linked.contentName)
-				?? null
+	return resolveLinkedProgramContents(linkedContents, contentDetails)
+}
+
+export const studentFlowExploreIntroStep = (session: TabletStudentFlowSession | null) => studentFlowProgramSteps(session).find((step) => step.step === 'STEP1') ?? null
+
+export const studentFlowExploreVideoRows = (session: TabletStudentFlowSession | null) => {
+	const step = studentFlowExploreIntroStep(session)
+	return step?.videos ?? []
+}
+
+export const studentFlowExploreThoughtRows = (session: TabletStudentFlowSession | null) => {
+	const step = studentFlowExploreIntroStep(session)
+	return (step?.thoughts ?? []).map((thought) => thought.text).filter(Boolean)
+}
+
+export const studentFlowExploreStepByCode = (session: TabletStudentFlowSession | null, stepCode: string) => studentFlowProgramSteps(session).find((step) => step.step === stepCode) ?? null
+
+export const studentFlowExploreQuestByRouteIndex = (session: TabletStudentFlowSession | null, routeIndex: number): TabletProgramQuest | null => {
+	const routeName = studentFlowRouteItems(session)[routeIndex] || ''
+	const step2 = studentFlowExploreStepByCode(session, 'STEP2')
+	const quest = step2?.quests?.find((item) => item.name === routeName)
+	return quest ?? (routeName ? { name: routeName, title: '', place: '', contents: [] } : null)
+}
+
+export const studentFlowExploreStepCode = (routeIndex: number) => `QUEST${String(routeIndex + 1).padStart(2, '0')}`
+
+export const studentFlowExploreSavedAnswersByQuestion = (session: TabletStudentFlowSession | null, routeIndex: number) => {
+	const selectedStudentIds = new Set((session?.selectedStudents ?? []).map((student) => student.stdntSn))
+	const stepCd = studentFlowExploreStepCode(routeIndex)
+	const map = new Map<string, string>()
+	;(session?.savedAnswers ?? [])
+		.filter((answer) => selectedStudentIds.has(answer.stdntSn) && answer.stepCd === stepCd)
+		.forEach((answer) => {
+			const key = `${answer.cntnSn || 0}:${answer.qstnSn || 0}`
+			if (!map.has(key)) map.set(key, answer.ansCn || '')
 		})
-		.filter((content): content is TabletContent => Boolean(content))
+	return map
+}
+
+export const studentFlowExploreQuestContents = (session: TabletStudentFlowSession | null, routeIndex: number) => {
+	const quest = studentFlowExploreQuestByRouteIndex(session, routeIndex)
+	const linkedContents = quest?.contents ?? []
+	const contentDetails = session?.contents ?? []
+	if (linkedContents.length === 0) return []
+
+	return resolveLinkedProgramContents(linkedContents, contentDetails)
+}
+
+export const studentFlowExploreStepContents = (session: TabletStudentFlowSession | null, stepCode: string) => {
+	const step = studentFlowExploreStepByCode(session, stepCode)
+	const linkedContents = step?.contents ?? []
+	const contentDetails = session?.contents ?? []
+	if (linkedContents.length === 0) return []
+
+	return resolveLinkedProgramContents(linkedContents, contentDetails)
+}
+
+export const studentFlowCompletedExploreStepCodes = (session: TabletStudentFlowSession | null) => {
+	const selectedStudentIds = new Set((session?.selectedStudents ?? []).map((student) => student.stdntSn))
+	return new Set((session?.progressLogs ?? [])
+		.filter((log) => selectedStudentIds.has(log.stdntSn) && log.stepSttsCd === 'DONE')
+		.map((log) => log.stepCd))
 }
 
 export const studentFlowClassName = (session: TabletStudentFlowSession | null) => {

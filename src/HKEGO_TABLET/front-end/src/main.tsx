@@ -25,6 +25,7 @@ import { Quest05Page } from './pages/student/Quest05Page'
 import { QuestEndPage } from './pages/student/QuestEndPage'
 import { QuestVideoPage } from './pages/student/QuestVideoPage'
 import { ResourceCenterPage } from './pages/student/ResourceCenterPage'
+import { QuestDynamicContentPage } from './pages/student/questDynamicShared'
 import {
 	Mission01Page,
 	Mission02Page,
@@ -139,6 +140,12 @@ const UnknownPage = () => (
 
 const PageRoute = () => {
 	const location = useLocation()
+	const dynamicQuestMatch = location.pathname.replace(/\.html$/, '').match(/^\/student\/quest(0[1-4])(?:_(\d+))?$/)
+	if (dynamicQuestMatch) {
+		const routeIndex = Number(dynamicQuestMatch[1]) - 1
+		const contentIndex = dynamicQuestMatch[2] ? Number(dynamicQuestMatch[2]) - 1 : 0
+		if (contentIndex >= 0) return <QuestDynamicContentPage routeIndex={routeIndex} contentIndex={contentIndex} />
+	}
 	const page = pageFromLocation(location.pathname)
 
 	if (!page) return <UnknownPage />

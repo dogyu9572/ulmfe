@@ -102,8 +102,8 @@ public class TabletServiceImpl implements TabletService {
 		TabletReservationVO reservation = tabletMapper.findReservationByDate(targetDate);
 		List<TabletStudentVO> students = reservation == null ? List.of() : tabletMapper.selectStudents(reservation.getRsvtSn());
 		List<TabletContentVO> contents = reservation == null ? List.of() : selectProgramContents(reservation.getStepJson());
-		List<TabletQuestionnaireQuestionVO> evaluationQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "studentEvaluationSn", "EVAL");
-		List<TabletQuestionnaireQuestionVO> surveyQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "surveySn", "SURVEY");
+		List<TabletQuestionnaireQuestionVO> evaluationQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "studentEvaluationSn", "studentEvaluation", "EVAL");
+		List<TabletQuestionnaireQuestionVO> surveyQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "surveySn", "survey", "SURVEY");
 		return TabletSessionResponse.builder()
 			.rsvtYmd(targetDate)
 			.reservation(reservation)
@@ -158,7 +158,10 @@ public class TabletServiceImpl implements TabletService {
 		if (routeIndex == null || routeIndex < 0) {
 			throw new IllegalArgumentException("미션 단계 정보가 올바르지 않습니다.");
 		}
-		String stepCd = missionStepCode(routeIndex);
+		String stepCd = normalizeText(request.getStepCd());
+		if (isBlank(stepCd)) {
+			stepCd = missionStepCode(routeIndex);
+		}
 		String activityName = normalizeText(request.getRouteName());
 		int totalRouteCount = Math.max(request.getTotalRouteCount() == null ? 0 : request.getTotalRouteCount(), routeIndex + 1);
 		int progressRate = totalRouteCount <= 0 ? 0 : Math.min(100, Math.round(((routeIndex + 1) * 100f) / totalRouteCount));
@@ -189,7 +192,7 @@ public class TabletServiceImpl implements TabletService {
 			throw new IllegalArgumentException("최종 미션을 저장할 학생 정보가 없습니다.");
 		}
 		String heroName = normalizeText(request.getHeroName());
-		boolean updateHero = Boolean.TRUE.equals(request.getUpdateHero()) || Boolean.TRUE.equals(request.getComplete());
+		boolean updateHero = Boolean.TRUE.equals(request.getUpdateHero());
 		boolean updateEvaluation = Boolean.TRUE.equals(request.getUpdateEvaluation()) || Boolean.TRUE.equals(request.getComplete());
 		boolean updateSurvey = Boolean.TRUE.equals(request.getUpdateSurvey()) || Boolean.TRUE.equals(request.getComplete());
 		boolean complete = Boolean.TRUE.equals(request.getComplete());
@@ -312,10 +315,14 @@ public class TabletServiceImpl implements TabletService {
 		return value.trim();
 	}
 
-	private List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestions(String evalJson, String key, String qstnrTypeCd) {
-		Integer qstnrSn = questionnaireSn(evalJson, key);
-		if (qstnrSn == null || qstnrSn <= 0) return List.of();
-		return tabletMapper.selectQuestionnaireQuestions(qstnrSn, qstnrTypeCd);
+	private List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestions(String evalJson, String snKey, String nameKey, String qstnrTypeCd) {
+		Integer qstnrSn = questionnaireSn(evalJson, snKey);
+		if (qstnrSn != null && qstnrSn > 0) {
+			return tabletMapper.selectQuestionnaireQuestions(qstnrSn, qstnrTypeCd);
+		}
+		String qstnrNm = questionnaireText(evalJson, nameKey);
+		if (isBlank(qstnrNm)) return List.of();
+		return tabletMapper.selectQuestionnaireQuestionsByName(qstnrNm, qstnrTypeCd);
 	}
 
 	private Integer questionnaireSn(String evalJson, String key) {
@@ -330,6 +337,18 @@ public class TabletServiceImpl implements TabletService {
 			return Integer.parseInt(text);
 		} catch (Exception e) {
 			return null;
+		}
+	}
+
+	private String questionnaireText(String evalJson, String key) {
+		if (isBlank(evalJson)) return "";
+		try {
+			JsonNode node = objectMapper.readTree(evalJson);
+			JsonNode value = node.get(key);
+			if (value == null || value.isNull()) return "";
+			return value.asText("").trim();
+		} catch (Exception e) {
+			return "";
 		}
 	}
 

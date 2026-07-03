@@ -8,7 +8,6 @@ export const Quest02EndPage = () => {
 		<main className="container flex_center" id="mainContent">
 			<h1 className="sound_only">살기 좋은 곳 IN THE WORLD</h1>
 			<StudentCaseHeader />
-
 			<section className="basic_board">
 				<div className="page_end quest_end02">
 					<div className="tit_area flex_center colm">
@@ -18,12 +17,7 @@ export const Quest02EndPage = () => {
 					<div className="stamp_box">
 						<h3 className="tit">퀘스트2 도장 획득 !</h3>
 						<div className="large" aria-hidden="true"><img src="/pub/images/icon_stamp02_large.svg" alt="" /></div>
-						<ul className="stamp_area">
-							<li className="i1 on">퀘스트1 도장</li>
-							<li className="i2 on">퀘스트2 도장</li>
-							<li className="i3">퀘스트3 도장</li>
-							<li className="i4">퀘스트4 도장</li>
-						</ul>
+						<ul className="stamp_area"><li className="i1 on">퀘스트1 도장</li><li className="i2 on">퀘스트2 도장</li><li className="i3">퀘스트3 도장</li><li className="i4">퀘스트4 도장</li></ul>
 					</div>
 					<div className="next_page_qr">
 						<h3 className="tit">1층 ESD체험터 사회존 3번 구역</h3>

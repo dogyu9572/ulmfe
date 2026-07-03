@@ -263,6 +263,7 @@ export const submitTabletMission = (rsvtSn: number, payload: {
 	studentSns: number[]
 	routeIndex: number
 	routeName: string
+	stepCd?: string
 	totalRouteCount: number
 	answers: TabletMissionAnswer[]
 }) => request<void>(`/api/tablet/reservations/${rsvtSn}/mission`, {

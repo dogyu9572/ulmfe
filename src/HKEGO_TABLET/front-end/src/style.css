@@ -75,3 +75,23 @@ body,
 	font-size: 18px;
 	color: #4a5568;
 }
+
+.case_activity_order_step_area {
+	width: min(100%, 1020px);
+	justify-content: space-between;
+	gap: 0;
+}
+
+.case_activity_order_step_area li {
+	width: 120px;
+}
+
+.case_activity_order_step_area li + li::before {
+	left: -36px;
+	width: 36px;
+}
+
+.page_quest .a_card_box + .q_card_box,
+.page_quest .q_card_box + .q_card_box {
+	margin-top: 28px;
+}

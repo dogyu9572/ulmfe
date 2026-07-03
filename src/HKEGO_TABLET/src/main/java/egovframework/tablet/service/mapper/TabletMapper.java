@@ -39,6 +39,8 @@ public interface TabletMapper {
 
 	List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestions(@Param("qstnrSn") Integer qstnrSn, @Param("qstnrTypeCd") String qstnrTypeCd);
 
+	List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestionsByName(@Param("qstnrNm") String qstnrNm, @Param("qstnrTypeCd") String qstnrTypeCd);
+
 	List<TabletLearningResourceVO> selectLearningResources(@Param("prgrmTypeCd") String prgrmTypeCd, @Param("prgrmSn") Integer prgrmSn);
 
 	List<TabletTeacherCallVO> selectTeacherCalls(Integer rsvtSn);
