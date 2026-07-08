@@ -34,6 +34,7 @@ public class EgovCodeServiceImpl extends EgovAbstractServiceImpl implements Egov
 
 	@Transactional
 	public void createCodeMa(CodeMaVO codeMa) {
+		normalizeCodeMa(codeMa);
 		CodeMaVO existing = codeDAO.selectCodeMa(codeMa.getCdId());
 		if (existing != null) {
 			throw new RuntimeException("이미 존재하는 코드ID입니다: " + codeMa.getCdId());
@@ -43,6 +44,7 @@ public class EgovCodeServiceImpl extends EgovAbstractServiceImpl implements Egov
 
 	@Transactional
 	public void createCodeDt(CodeDtVO codeDt) {
+		normalizeCodeDt(codeDt);
 		CodeDtVO existing = codeDAO.selectCodeDt(codeDt.getCdId(), codeDt.getCdDtlId());
 		if (existing != null) {
 			throw new RuntimeException("이미 존재하는 코드값입니다: " + codeDt.getCdDtlId());
@@ -51,13 +53,33 @@ public class EgovCodeServiceImpl extends EgovAbstractServiceImpl implements Egov
 	}
 
 	@Transactional
-	public void updateCodeMa(CodeMaVO codeMa) {
-		codeDAO.updateCodeMa(codeMa);
+	public int updateCodeMa(CodeMaVO codeMa) {
+		normalizeCodeMa(codeMa);
+		return codeDAO.updateCodeMa(codeMa);
 	}
 
 	@Transactional
-	public void updateCodeDt(CodeDtVO codeDt) {
-		codeDAO.updateCodeDt(codeDt);
+	public int updateCodeDt(CodeDtVO codeDt) {
+		normalizeCodeDt(codeDt);
+		return codeDAO.updateCodeDt(codeDt);
+	}
+
+	private void normalizeCodeMa(CodeMaVO codeMa) {
+		if (codeMa.getUseYn() == null || codeMa.getUseYn().isBlank()) {
+			codeMa.setUseYn("Y");
+		}
+	}
+
+	private void normalizeCodeDt(CodeDtVO codeDt) {
+		if (codeDt.getSeq() == null) {
+			codeDt.setSeq(0);
+		}
+		if (codeDt.getUseYn() == null || codeDt.getUseYn().isBlank()) {
+			codeDt.setUseYn("Y");
+		}
+		if (codeDt.getRgtr() == null || codeDt.getRgtr().isBlank()) {
+			codeDt.setRgtr("admin");
+		}
 	}
 
 	@Transactional

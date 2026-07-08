@@ -130,7 +130,7 @@
 		) VALUES (
 			#{bbsId}, #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, #{sortSeq},
 			#{ctgrCd}, #{ntcYn}, #{upendFixYn}, #{lckYn}, #{lnkgUrlAddr}, #{pstgYmd},
-			#{atchFileMngNo}, #{thmbFileId}, #{vodFileId}, #{useYn}, #{inqCnt},
+			COALESCE(#{atchFileMngNo}, ''), #{thmbFileId}, #{vodFileId}, #{useYn}, #{inqCnt},
 			#{etc1}, #{etc2}, #{etc3}, #{etc4}, #{etc5},
 			#{ansSttsCd}, #{ansCn}, #{answrNm}, #{answrId}, #{ansYmd},
 			CASE WHEN #{ansSttsCd} = 'DONE' THEN NOW() ELSE NULL END,
@@ -143,7 +143,7 @@
 			PST_TTL = #{pstTtl}, PST_CN = #{pstCn}, WRTR_NM = #{wrtrNm}, WRTR_ID = #{wrtrId},
 			SORT_SEQ = #{sortSeq}, CTGR_CD = #{ctgrCd}, NTC_YN = #{ntcYn},
 			UPEND_FIX_YN = #{upendFixYn}, LCK_YN = #{lckYn}, LNKG_URL_ADDR = #{lnkgUrlAddr}, PSTG_YMD = #{pstgYmd},
-			ATCH_FILE_MNG_NO = #{atchFileMngNo}, THMB_FILE_ID = #{thmbFileId}, VOD_FILE_ID = #{vodFileId},
+			ATCH_FILE_MNG_NO = COALESCE(#{atchFileMngNo}, ''), THMB_FILE_ID = #{thmbFileId}, VOD_FILE_ID = #{vodFileId},
 			USE_YN = #{useYn},
 			ETC1 = #{etc1}, ETC2 = #{etc2}, ETC3 = #{etc3},
 			ETC4 = #{etc4}, ETC5 = #{etc5},

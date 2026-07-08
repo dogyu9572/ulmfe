@@ -37,6 +37,12 @@ public class EgovHomepageOrgChartServiceImpl extends EgovAbstractServiceImpl imp
 			member.setSortSeq(0);
 		}
 		member.setUseYn("N".equalsIgnoreCase(member.getUseYn()) ? "N" : "Y");
+		if (isBlank(member.getRgtr())) {
+			member.setRgtr("admin");
+		}
+		if (isBlank(member.getMdtr())) {
+			member.setMdtr(member.getRgtr());
+		}
 		if (member.getOrgMbrSn() == null) {
 			homepageOrgChartDAO.insertMember(member);
 		} else {

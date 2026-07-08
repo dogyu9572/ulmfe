@@ -94,6 +94,7 @@ public class EgovUserInfoServiceImpl extends EgovAbstractServiceImpl implements 
 		if (userInfo.getMmplSttsCd() == null || userInfo.getMmplSttsCd().isEmpty()) {
 			userInfo.setMmplSttsCd("Y");
 		}
+		normalizeAuthrtCd(userInfo);
 		userInfo.setEnpswd(passwordEncoder.encode(userInfo.getEnpswd()));
 		encryptPersonalInfo(userInfo);
 		userInfo.setRgtr(actorId);
@@ -107,6 +108,7 @@ public class EgovUserInfoServiceImpl extends EgovAbstractServiceImpl implements 
 		} else {
 			userInfo.setEnpswd(null);
 		}
+		normalizeAuthrtCd(userInfo);
 		encryptPersonalInfo(userInfo);
 		userInfo.setMdtr(actorId);
 		userInfoDAO.updateUser(userInfo);
@@ -128,6 +130,12 @@ public class EgovUserInfoServiceImpl extends EgovAbstractServiceImpl implements 
 	@Transactional
 	public void withdrawUser(Integer userSn, String actorId) {
 		userInfoDAO.withdrawUser(userSn, actorId);
+	}
+
+	private void normalizeAuthrtCd(UserInfoVO userInfo) {
+		if (userInfo.getAuthrtCd() == null || userInfo.getAuthrtCd().isBlank()) {
+			userInfo.setAuthrtCd("USER");
+		}
 	}
 
 	private void encryptPersonalInfo(UserInfoVO userInfo) {

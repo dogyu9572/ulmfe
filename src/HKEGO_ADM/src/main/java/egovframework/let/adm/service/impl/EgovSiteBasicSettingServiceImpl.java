@@ -28,6 +28,12 @@ public class EgovSiteBasicSettingServiceImpl extends EgovAbstractServiceImpl imp
 		validateRequired(setting.getSiteTtl(), "사이트 타이틀");
 		validateRequired(setting.getHmpgAddr(), "사이트 URL");
 		validateRequired(setting.getMngrEmlAddr(), "관리자 이메일");
+		if (setting.getRgtr() == null || setting.getRgtr().isBlank()) {
+			setting.setRgtr("admin");
+		}
+		if (setting.getMdtr() == null || setting.getMdtr().isBlank()) {
+			setting.setMdtr(setting.getRgtr());
+		}
 		int rows = siteBasicSettingDAO.upsertDefaultSetting(setting);
 		if (rows <= 0) {
 			throw new RuntimeException("기본설정 저장에 실패했습니다.");

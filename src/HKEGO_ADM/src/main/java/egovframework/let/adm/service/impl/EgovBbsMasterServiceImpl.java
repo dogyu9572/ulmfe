@@ -44,10 +44,11 @@ public class EgovBbsMasterServiceImpl extends EgovAbstractServiceImpl implements
 	@Transactional
 	public BbsMasterVO createBbsMaster(BbsMasterVO bbsMaster, String adminId) {
 		String bbsId = generateBbsId();
+		String actorId = normalizeActorId(adminId);
 		bbsMaster.setBbsId(bbsId);
 		setDefaultValues(bbsMaster);
-		bbsMaster.setRgtr(adminId);
-		bbsMaster.setMdtr(adminId);
+		bbsMaster.setRgtr(actorId);
+		bbsMaster.setMdtr(actorId);
 		bbsMaster.setRegDt(LocalDateTime.now());
 		bbsMaster.setMdfcnDt(LocalDateTime.now());
 		int rows = bbsMasterDAO.insertBbsMaster(bbsMaster);
@@ -62,7 +63,7 @@ public class EgovBbsMasterServiceImpl extends EgovAbstractServiceImpl implements
 		if (bbsMasterDAO.selectBbsMasterById(bbsMaster.getBbsId()) == null) {
 			throw new RuntimeException("수정할 게시판 마스터를 찾을 수 없습니다.");
 		}
-		bbsMaster.setMdtr(adminId);
+		bbsMaster.setMdtr(normalizeActorId(adminId));
 		bbsMaster.setMdfcnDt(LocalDateTime.now());
 		int rows = bbsMasterDAO.updateBbsMaster(bbsMaster);
 		if (rows <= 0) {
@@ -102,6 +103,10 @@ public class EgovBbsMasterServiceImpl extends EgovAbstractServiceImpl implements
 			}
 		} while (bbsMasterDAO.checkBbsIdExists(sb.toString()) > 0);
 		return sb.toString();
+	}
+
+	private String normalizeActorId(String adminId) {
+		return adminId == null || adminId.isBlank() ? "admin" : adminId;
 	}
 
 	private void setDefaultValues(BbsMasterVO bbsMaster) {

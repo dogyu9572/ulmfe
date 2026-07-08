@@ -95,7 +95,7 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 		if (rows <= 0) {
 			throw new RuntimeException("게시글 수정에 실패했습니다.");
 		}
-		return bbsPost;
+		return getBbsPostById(bbsPost.getBbsId(), bbsPost.getPstSn());
 	}
 
 	@Transactional
@@ -162,5 +162,12 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 		if (bbsPost.getInqCnt() == null) bbsPost.setInqCnt(0);
 		if (bbsPost.getSortSeq() == null) bbsPost.setSortSeq(0);
 		if (bbsPost.getAnsSttsCd() == null) bbsPost.setAnsSttsCd("WAIT");
+		if (bbsPost.getWrtrId() == null || bbsPost.getWrtrId().isBlank()) {
+			String fallbackId = bbsPost.getRgtr();
+			if (fallbackId == null || fallbackId.isBlank()) {
+				fallbackId = bbsPost.getMdtr();
+			}
+			bbsPost.setWrtrId((fallbackId == null || fallbackId.isBlank()) ? "admin" : fallbackId);
+		}
 	}
 }

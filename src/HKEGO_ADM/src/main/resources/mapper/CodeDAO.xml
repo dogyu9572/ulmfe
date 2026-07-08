@@ -14,7 +14,7 @@
 		<result property="cdDtlId" column="CD_DTL_ID"/>
 		<result property="cdDtlNm" column="CD_DTL_NM"/>
 		<result property="cdDtlCn" column="CD_DTL_CN"/>
-		<result property="seq" column="SEQ"/>
+		<result property="seq" column="SORT_SEQ"/>
 		<result property="useYn" column="USE_YN"/>
 		<result property="etc1" column="ETC1"/>
 		<result property="etc2" column="ETC2"/>
@@ -42,7 +42,7 @@
 	</select>
 
 	<select id="selectCodeDtList" resultMap="CodeDtResultMap">
-		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
+		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
 		FROM CMMN_CD_DTL
 		<where>
 			<if test="cdId != null and cdId != ''">
@@ -52,11 +52,11 @@
 				AND USE_YN = #{useYn}
 			</if>
 		</where>
-		ORDER BY SEQ, CD_DTL_ID
+		ORDER BY SORT_SEQ, CD_DTL_ID
 	</select>
 
 	<select id="selectCodeDt" resultMap="CodeDtResultMap">
-		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
+		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
 		FROM CMMN_CD_DTL
 		WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
 	</select>
@@ -67,8 +67,8 @@
 	</insert>
 
 	<insert id="insertCodeDt">
-		INSERT INTO CMMN_CD_DTL (CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR)
-		VALUES (#{cdId}, #{cdDtlId}, #{cdDtlNm}, #{cdDtlCn}, #{seq}, #{useYn}, #{etc1}, #{etc2}, #{etc3}, #{atchFileMngNo}, NOW(), #{rgtr})
+		INSERT INTO CMMN_CD_DTL (CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR)
+		VALUES (#{cdId}, #{cdDtlId}, #{cdDtlNm}, #{cdDtlCn}, #{seq}, #{useYn}, #{etc1}, #{etc2}, #{etc3}, COALESCE(#{atchFileMngNo}, ''), NOW(), #{rgtr})
 	</insert>
 
 	<update id="updateCodeMa">
@@ -83,12 +83,12 @@
 		UPDATE CMMN_CD_DTL SET
 			CD_DTL_NM = #{cdDtlNm},
 			CD_DTL_CN = #{cdDtlCn},
-			SEQ = #{seq},
+			SORT_SEQ = #{seq},
 			USE_YN = #{useYn},
 			ETC1 = #{etc1},
 			ETC2 = #{etc2},
 			ETC3 = #{etc3},
-			ATCH_FILE_MNG_NO = #{atchFileMngNo}
+			ATCH_FILE_MNG_NO = COALESCE(#{atchFileMngNo}, '')
 		WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
 	</update>
 
@@ -100,4 +100,3 @@
 		DELETE FROM CMMN_CD_DTL WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
 	</delete>
 </mapper>
-

@@ -47,15 +47,20 @@ public class EgovAdminServiceImpl extends EgovAbstractServiceImpl implements Ego
 		if (admin.getAcntSttsCd() == null) {
 			admin.setAcntSttsCd("ACTIVE");
 		}
-		if (admin.getAuthrtCd() == null) {
-			admin.setAuthrtCd("ADMIN");
-		}
+		normalizeAuthrtCd(admin);
 		adminDAO.insert(admin);
 	}
 
 	@Transactional
-	public void update(AdminInfoVO admin) {
-		adminDAO.update(admin);
+	public int update(AdminInfoVO admin) {
+		normalizeAuthrtCd(admin);
+		return adminDAO.update(admin);
+	}
+
+	private void normalizeAuthrtCd(AdminInfoVO admin) {
+		if (admin.getAuthrtCd() == null || admin.getAuthrtCd().isBlank()) {
+			admin.setAuthrtCd("ADMIN");
+		}
 	}
 
 	@Transactional
@@ -71,6 +76,9 @@ public class EgovAdminServiceImpl extends EgovAbstractServiceImpl implements Ego
 
 	@Transactional
 	public void recordAccessLog(AdminAccessLogVO log) {
+		if (log.getCntnTypeCd() == null || log.getCntnTypeCd().isBlank()) {
+			log.setCntnTypeCd("UNKNOWN");
+		}
 		accessLogDAO.insert(log);
 	}
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
 import { DEFAULT_LIST_PAGE_SIZE, extractPagedList, type PagedListData } from '../utils/listPaginationConstants'
 import { ListPagination } from '../components/ListPagination'
@@ -78,6 +78,7 @@ export const AdminListPage: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [page, setPage] = useState(1)
 	const [totalCount, setTotalCount] = useState(0)
+	const formRef = useRef<HTMLFormElement | null>(null)
 	const pageSize = DEFAULT_LIST_PAGE_SIZE
 
 	const fetchAuthGroups = useCallback(async () => {
@@ -157,11 +158,20 @@ export const AdminListPage: React.FC = () => {
 	}
 
 	const handleSave = async () => {
-		if (!form.id?.trim()) {
+		const formData = formRef.current ? new FormData(formRef.current) : null
+		const currentForm: AdminDto = {
+			id: String(formData?.get('id') ?? form.id),
+			userNm: String(formData?.get('userNm') ?? form.userNm),
+			emlAddr: String(formData?.get('emlAddr') ?? form.emlAddr),
+			acntSttsCd: String(formData?.get('acntSttsCd') ?? form.acntSttsCd),
+			authrtCd: String(formData?.get('authrtCd') ?? form.authrtCd)
+		}
+		setForm(currentForm)
+		if (!currentForm.id?.trim()) {
 			setError('아이디를 입력하세요.')
 			return
 		}
-		if (!form.userNm?.trim()) {
+		if (!currentForm.userNm?.trim()) {
 			setError('이름을 입력하세요.')
 			return
 		}
@@ -177,7 +187,7 @@ export const AdminListPage: React.FC = () => {
 				const res = await fetch(`${BACKEND}/api/admin/admins?password=${encodeURIComponent(password)}`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(form),
+					body: JSON.stringify(currentForm),
 					credentials: 'include'
 				})
 				const result: ApiResponse<unknown> = await res.json()
@@ -188,10 +198,10 @@ export const AdminListPage: React.FC = () => {
 				setMessage('관리자를 등록했습니다.')
 				closePopup()
 			} else {
-				const res = await fetch(`${BACKEND}/api/admin/admins/${encodeURIComponent(form.id)}`, {
+				const res = await fetch(`${BACKEND}/api/admin/admins/${encodeURIComponent(currentForm.id)}`, {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(form),
+					body: JSON.stringify(currentForm),
 					credentials: 'include'
 				})
 				const result: ApiResponse<unknown> = await res.json()
@@ -394,6 +404,7 @@ export const AdminListPage: React.FC = () => {
 				}
 			>
 				{error && <p className="form-error">{error}</p>}
+				<form ref={formRef} onSubmit={(e) => e.preventDefault()}>
 				<table className="form-table">
 								<tbody>
 									<tr>
@@ -401,6 +412,7 @@ export const AdminListPage: React.FC = () => {
 										<td>
 											<input
 												type="text"
+												name="id"
 												value={form.id}
 												onChange={(e) => setForm({ ...form, id: e.target.value })}
 												disabled={popupMode === 'edit'}
@@ -412,6 +424,7 @@ export const AdminListPage: React.FC = () => {
 										<td>
 											<input
 												type="text"
+												name="userNm"
 												value={form.userNm}
 												onChange={(e) => setForm({ ...form, userNm: e.target.value })}
 											/>
@@ -422,6 +435,7 @@ export const AdminListPage: React.FC = () => {
 										<td>
 											<input
 												type="text"
+												name="emlAddr"
 												value={form.emlAddr}
 												onChange={(e) => setForm({ ...form, emlAddr: e.target.value })}
 											/>
@@ -431,6 +445,7 @@ export const AdminListPage: React.FC = () => {
 										<th>상태</th>
 										<td>
 											<select
+												name="acntSttsCd"
 												value={form.acntSttsCd}
 												onChange={(e) => setForm({ ...form, acntSttsCd: e.target.value })}
 											>
@@ -443,6 +458,7 @@ export const AdminListPage: React.FC = () => {
 										<th>역할 (권한그룹)</th>
 										<td>
 											<select
+												name="authrtCd"
 												value={form.authrtCd}
 												onChange={(e) => setForm({ ...form, authrtCd: e.target.value })}
 											>
@@ -498,6 +514,7 @@ export const AdminListPage: React.FC = () => {
 									)}
 								</tbody>
 							</table>
+							</form>
 			</LayerPopup>
 		</AdminLayout>
 	)

@@ -66,7 +66,10 @@ public class EgovCodeManageApiController {
 	@PutMapping("/master/{codeId}")
 	public ApiResponse<Void> updateCodeMaster(@PathVariable String codeId, @RequestBody CodeMaVO codeMa) {
 		codeMa.setCodeId(codeId);
-		codeService.updateCodeMa(codeMa);
+		int updated = codeService.updateCodeMa(codeMa);
+		if (updated < 1) {
+			return ApiResponse.error("수정된 공통코드 마스터가 없습니다.");
+		}
 		return ApiResponse.success("공통코드 마스터가 수정되었습니다.", null);
 	}
 
@@ -77,7 +80,10 @@ public class EgovCodeManageApiController {
 		@RequestBody CodeDtVO codeDt) {
 		codeDt.setCodeId(codeId);
 		codeDt.setCode(code);
-		codeService.updateCodeDt(codeDt);
+		int updated = codeService.updateCodeDt(codeDt);
+		if (updated < 1) {
+			return ApiResponse.error("수정된 공통코드 상세가 없습니다.");
+		}
 		return ApiResponse.success("공통코드 상세가 수정되었습니다.", null);
 	}
 

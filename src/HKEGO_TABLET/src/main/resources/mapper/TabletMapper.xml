@@ -4,19 +4,19 @@
 <mapper namespace="egovframework.tablet.service.mapper.TabletMapper">
 	<select id="findAdminById" resultType="TabletAdminVO">
 		SELECT
-			ID,
+			USER_ID AS ID,
 			USER_NM,
 			ENPSWD,
 			ACNT_STTS_CD,
 			AUTHRT_CD
 		FROM ADMIN_MST
-		WHERE ID = #{id}
+		WHERE USER_ID = #{id}
 	</select>
 
 	<update id="updateAdminLastLogin">
 		UPDATE ADMIN_MST
 		SET LAST_CNTN_DT = NOW()
-		WHERE ID = #{id}
+		WHERE USER_ID = #{id}
 	</update>
 
 	<select id="findReservationByDate" resultType="TabletReservationVO">
@@ -412,9 +412,9 @@
 			'WORKSHEET',
 			#{stepCd},
 			#{answer.cardClsfCd},
-			#{answer.cntnSn},
-			#{answer.qstnSn},
-			#{answer.qstnCn},
+			COALESCE(#{answer.cntnSn}, 0),
+			COALESCE(#{answer.qstnSn}, 0),
+			COALESCE(#{answer.qstnCn}, ''),
 			#{answer.ansCn},
 			'tablet',
 			NOW()
@@ -448,9 +448,9 @@
 			#{stdntSn},
 			#{ansTypeCd},
 			#{stepCd},
-			#{answer.qstnrSn},
-			#{answer.qstnSn},
-			#{answer.qstnCn},
+			COALESCE(#{answer.qstnrSn}, 0),
+			COALESCE(#{answer.qstnSn}, 0),
+			COALESCE(#{answer.qstnCn}, ''),
 			#{answer.ansCn},
 			'tablet',
 			NOW()

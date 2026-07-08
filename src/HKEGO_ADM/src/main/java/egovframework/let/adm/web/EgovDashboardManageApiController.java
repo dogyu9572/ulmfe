@@ -37,12 +37,12 @@ public class EgovDashboardManageApiController {
 
 	private List<Map<String, Object>> buildMemberTypeCounts() {
 		List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-			"SELECT C.CD_DTL_ID AS usrGb, C.CD_DTL_NM AS codeName, C.SEQ AS seq, COUNT(U.USER_SN) AS memberCount "
+			"SELECT C.CD_DTL_ID AS usrGb, C.CD_DTL_NM AS codeName, C.SORT_SEQ AS seq, COUNT(U.USER_SN) AS memberCount "
 				+ "FROM CMMN_CD_DTL C "
 				+ "LEFT JOIN USER_MST U ON U.USER_SE_CD = C.CD_DTL_ID AND U.DEL_DT IS NULL "
 				+ "WHERE C.CD_ID = 'COM010' AND C.USE_YN = 'Y' "
-				+ "GROUP BY C.CD_DTL_ID, C.CD_DTL_NM, C.SEQ "
-				+ "ORDER BY C.SEQ ASC, C.CD_DTL_ID ASC"
+				+ "GROUP BY C.CD_DTL_ID, C.CD_DTL_NM, C.SORT_SEQ "
+				+ "ORDER BY C.SORT_SEQ ASC, C.CD_DTL_ID ASC"
 		);
 
 		List<Map<String, Object>> out = new ArrayList<>();
@@ -184,4 +184,3 @@ public class EgovDashboardManageApiController {
 		}
 	}
 }
-

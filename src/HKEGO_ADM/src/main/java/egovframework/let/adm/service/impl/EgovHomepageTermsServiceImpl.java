@@ -48,6 +48,12 @@ public class EgovHomepageTermsServiceImpl extends EgovAbstractServiceImpl implem
 		terms.setTrmsTtl(terms.getTrmsTtl().trim());
 		terms.setTrmsCn(terms.getTrmsCn().trim());
 		terms.setCurrentYn("Y".equalsIgnoreCase(terms.getCurrentYn()) ? "Y" : "N");
+		if (isBlank(terms.getRgtr())) {
+			terms.setRgtr("admin");
+		}
+		if (isBlank(terms.getMdtr())) {
+			terms.setMdtr(terms.getRgtr());
+		}
 		if ("Y".equals(terms.getCurrentYn())) {
 			homepageTermsDAO.clearCurrentTerms(terms.getTrmsTypeCd(), terms.getTrmsSn());
 		}

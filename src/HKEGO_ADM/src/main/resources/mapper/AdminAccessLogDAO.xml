@@ -22,9 +22,9 @@
 		)
 		VALUES
 		(
-			#{userSn},
-			#{userId},
-			#{userNm},
+			COALESCE(#{userSn}, 0),
+			COALESCE(#{userId}, ''),
+			COALESCE(#{userNm}, ''),
 			#{ipAddr},
 			#{userAgtNm},
 			#{rfrerAddr},
@@ -99,4 +99,3 @@
 		</if>
 	</select>
 </mapper>
-

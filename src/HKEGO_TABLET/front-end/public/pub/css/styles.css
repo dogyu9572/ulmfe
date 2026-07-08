@@ -573,6 +573,7 @@
 /* 영상 페이지 */
 	.video_page {width:100%; height:100vh; display:flex; flex-direction:column;}
 	.video_page video {width:100%; height:calc(100% - 88px); object-fit:cover;}
+	.video_page iframe.youtube_video {width:100%; height:calc(100% - 88px); background:#000;}
 	.video_page .video_controls {position:relative; height:88px;}
 	.video_page .seek_wrap {position:relative; width:100%; height:16px; background:#FAFAFA; padding:2px;}
 	.video_page .seek_track {position:absolute; top:0; left:0; width:100%; height:12px; border-radius:8px; overflow:visible;}
@@ -861,6 +862,7 @@
 	.mission_wrap.case_investigation_btm .left .tit strong:before {}
 /* STEP1 */
 	.mission_wrap .start_video_area li .img {aspect-ratio:16/9; height:auto; border-radius:20px;}
+	.mission_wrap .start_video_area li .img img {display:block; width:100%; height:100%; object-fit:cover;}
 	.mission_wrap .start_video_area li .img:after {background-size:80px;}
 /* STEP2 */
 	.page_mission .wbox {padding:32px;}

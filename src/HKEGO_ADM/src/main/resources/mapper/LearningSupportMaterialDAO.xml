@@ -125,7 +125,7 @@
 		) VALUES (
 			'LRNSUP', #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, 0,
 			NULL, 'N', 'N', 'N', #{linkUrl}, #{pstgYmd},
-			#{atchFileMngNo}, NULL, NULL, #{useYn}, #{inqCnt},
+			COALESCE(#{atchFileMngNo}, ''), NULL, NULL, #{useYn}, #{inqCnt},
 			#{lrnTypeCd}, #{dataTypeCd}, #{prgrmTypeCd}, #{prgrmSn}, #{videoEmbedUrl},
 			'WAIT', NOW(), #{rgtr}, NOW(), #{mdtr}
 		)
@@ -137,7 +137,7 @@
 			PST_CN = #{pstCn},
 			LNKG_URL_ADDR = #{linkUrl},
 			PSTG_YMD = #{pstgYmd},
-			ATCH_FILE_MNG_NO = #{atchFileMngNo},
+			ATCH_FILE_MNG_NO = COALESCE(#{atchFileMngNo}, ''),
 			USE_YN = #{useYn},
 			ETC1 = #{lrnTypeCd},
 			ETC2 = #{dataTypeCd},

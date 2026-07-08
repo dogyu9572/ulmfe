@@ -34,10 +34,10 @@
 			AND USE_YN = #{useYn}
 		</if>
 		<if test="startPublishDate != null and startPublishDate != ''">
-			AND PSTG_BGNG_YMD &gt;= #{startPublishDate}
+			AND PSTG_BGNG_YMD &gt;= STR_TO_DATE(#{startPublishDate}, '%Y-%m-%d')
 		</if>
 		<if test="endPublishDate != null and endPublishDate != ''">
-			AND PSTG_END_YMD &lt;= #{endPublishDate}
+			AND PSTG_END_YMD &lt;= STR_TO_DATE(#{endPublishDate}, '%Y-%m-%d')
 		</if>
 		<if test="startRegDate != null and startRegDate != ''">
 			AND DATE(REG_DT) &gt;= #{startRegDate}
@@ -107,8 +107,8 @@
 			#{newBadgeYn},
 			#{lnkgUrlAddr},
 			#{lnkgSeCd},
-			#{pstgBgngYmd},
-			#{pstgEndYmd},
+			STR_TO_DATE(NULLIF(#{pstgBgngYmd}, ''), '%Y-%m-%d'),
+			STR_TO_DATE(NULLIF(#{pstgEndYmd}, ''), '%Y-%m-%d'),
 			#{pstgPrdUseYn},
 			#{pcAtchFileId},
 			#{moblAtchFileId},
@@ -128,8 +128,8 @@
 			NEW_BADGE_YN = #{newBadgeYn},
 			LNKG_URL_ADDR = #{lnkgUrlAddr},
 			LNKG_SE_CD = #{lnkgSeCd},
-			PSTG_BGNG_YMD = #{pstgBgngYmd},
-			PSTG_END_YMD = #{pstgEndYmd},
+			PSTG_BGNG_YMD = STR_TO_DATE(NULLIF(#{pstgBgngYmd}, ''), '%Y-%m-%d'),
+			PSTG_END_YMD = STR_TO_DATE(NULLIF(#{pstgEndYmd}, ''), '%Y-%m-%d'),
 			PSTG_PRD_USE_YN = #{pstgPrdUseYn},
 			PC_ATCH_FILE_ID = #{pcAtchFileId},
 			MOBL_ATCH_FILE_ID = #{moblAtchFileId},

@@ -223,7 +223,9 @@ export const BbsPostPage: React.FC = () => {
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	const postFormRef = useRef<HTMLFormElement | null>(null)
 	const initialContentRef = useRef<string>('')
+	const postContentRef = useRef<string>('')
 	const [bbsMaster, setBbsMaster] = useState<Record<string, string | undefined> | null>(null)
 	const [etcCodeOptions, setEtcCodeOptions] = useState<Record<string, CodeDetailRow[]>>({})
 	const [thumFile, setThumFile] = useState<File | null>(null)
@@ -246,6 +248,116 @@ export const BbsPostPage: React.FC = () => {
 	const contentFieldLabel = isFaqBoard ? '답변' : isQnaBoard ? '문의내용' : '내용'
 	const linkFieldLabel = isGalleryBoard ? '영상 임베드 링크' : '링크'
 	const attachFieldLabel = isGalleryBoard ? '첨부파일(이미지)' : '첨부파일'
+
+	const getPostFormValue = (formData: FormData, name: string, fallback = '') => {
+		const value = formData.get(name)
+		return typeof value === 'string' ? value : fallback
+	}
+
+	const getLiveFormValue = (name: string, fallback = '', formElement = postFormRef.current) => {
+		const field = formElement?.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+			`[name="${name}"]`
+		)
+		return field ? field.value : fallback
+	}
+
+	const getVisibleDocumentValue = (name: string, fallback = '') => {
+		const fields = Array.from(
+			document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`[name="${name}"]`)
+		)
+		const visibleField = fields.find((field) => !field.disabled && field.offsetParent !== null)
+		return visibleField ? visibleField.value : fields.at(-1)?.value ?? fallback
+	}
+
+	const buildBbsPostRequestBody = (source: Partial<BbsPostDto> & { bbsId: string; pstCn: string }) => {
+		const body = { ...source } as Record<string, unknown>
+		const text = (value: unknown) => (value == null ? '' : String(value))
+		const numberValue = (value: unknown, fallback = 0) => {
+			const n = Number(value)
+			return Number.isFinite(n) ? n : fallback
+		}
+
+		body.postId = body.pstSn ?? body.postId ?? ''
+		body.pstTtl = text(body.pstTtl ?? body.nttSj)
+		body.nttSj = body.pstTtl
+		body.pstCn = text(body.pstCn ?? body.nttCn)
+		body.nttCn = body.pstCn
+		body.wrtrNm = text(body.wrtrNm ?? body.nttNm)
+		body.nttNm = body.wrtrNm
+		body.wrtrId = text(body.wrtrId ?? body.nttId)
+		body.nttId = body.wrtrId
+		body.sortSeq = numberValue(body.sortSeq ?? body.nttSeq)
+		body.nttSeq = body.sortSeq
+		body.ctgrCd = text(body.ctgrCd ?? body.category)
+		body.category = body.ctgrCd
+		body.nttLink = text(body.lnkgUrlAddr ?? body.nttLink)
+		body.lnkgUrlAddr = body.nttLink
+		body.nttRegdt = text(body.pstgYmd ?? body.nttRegdt)
+		body.pstgYmd = body.nttRegdt
+		body.thmbFileId = text(body.thmbFileId ?? body.thumFileId)
+		body.thumFileId = body.thmbFileId
+		body.vodFileId = text(body.vodFileId ?? body.vdoFileId)
+		body.vdoFileId = body.vodFileId
+		;([1, 2, 3, 4, 5] as const).forEach((idx) => {
+			const canonical = `etc${idx}`
+			const alias = `nttEtc${idx}`
+			body[canonical] = text(body[canonical] ?? body[alias])
+			body[alias] = body[canonical]
+		})
+
+		return body
+	}
+
+	const getCurrentPostForm = (formElement = postFormRef.current): Partial<BbsPostDto> => {
+		if (!formElement) return form
+		const formData = new FormData(formElement)
+		const pstTtl = getLiveFormValue('pstTtl', getPostFormValue(formData, 'pstTtl', form.pstTtl ?? ''), formElement)
+		const current: Partial<BbsPostDto> = {
+			...form,
+			pstTtl: getVisibleDocumentValue('pstTtl', pstTtl),
+			useYn: getLiveFormValue('useYn', getPostFormValue(formData, 'useYn', form.useYn ?? 'Y'), formElement),
+			pstgYmd: getLiveFormValue('pstgYmd', getPostFormValue(formData, 'pstgYmd', form.pstgYmd ?? ''), formElement),
+			category: getLiveFormValue('category', getPostFormValue(formData, 'category', form.category ?? ''), formElement),
+			upendFixYn: getLiveFormValue('upendFixYn', getPostFormValue(formData, 'upendFixYn', form.upendFixYn ?? 'N'), formElement),
+			lckYn: getLiveFormValue('lckYn', getPostFormValue(formData, 'lckYn', form.lckYn ?? 'N'), formElement),
+			lnkgUrlAddr: getLiveFormValue('lnkgUrlAddr', getPostFormValue(formData, 'lnkgUrlAddr', form.lnkgUrlAddr ?? ''), formElement),
+			ansSttsCd: getLiveFormValue('ansSttsCd', getPostFormValue(formData, 'ansSttsCd', form.ansSttsCd ?? 'WAIT'), formElement),
+			ansYmd: getLiveFormValue('ansYmd', getPostFormValue(formData, 'ansYmd', form.ansYmd ?? ''), formElement),
+			ansCn: getLiveFormValue('ansCn', getPostFormValue(formData, 'ansCn', form.ansCn ?? ''), formElement),
+			wrtrNm: getLiveFormValue('wrtrNm', getPostFormValue(formData, 'wrtrNm', form.wrtrNm ?? ''), formElement),
+			wrtrId: getLiveFormValue('wrtrId', getPostFormValue(formData, 'wrtrId', form.wrtrId ?? ''), formElement)
+		}
+		;([1, 2, 3, 4, 5] as const).forEach((idx) => {
+			const field = `etc${idx}` as NttEtcKey
+			const values = formData
+				.getAll(field)
+				.map((value) => (typeof value === 'string' ? value : ''))
+				.filter(Boolean)
+			current[field] = values.length > 1 ? values.join(',') : values[0] ?? form[field] ?? ''
+		})
+		return current
+	}
+
+	const getCurrentPostContent = (fallback = '') => {
+		if (isQnaBoard) return fallback
+		const w = typeof window !== 'undefined' ? (window as unknown as { jQuery?: JqLike; $?: JqLike }) : null
+		const $: JqLike | undefined = w ? (w.jQuery ?? w.$) : undefined
+		if ($) {
+			try {
+				const code = $('#' + SUMMERNOTE_ID).summernote('code')
+				if (typeof code === 'string') return code
+			} catch {
+				// fall through to DOM/ref fallback
+			}
+		}
+		const editable = document
+			.getElementById(SUMMERNOTE_ID)
+			?.parentElement
+			?.querySelector<HTMLElement>('.note-editable')
+		if (editable) return editable.innerHTML
+		const textarea = document.getElementById(SUMMERNOTE_ID) as HTMLTextAreaElement | null
+		return textarea?.value || postContentRef.current || fallback
+	}
 
 	useEffect(() => {
 		if (!message) return
@@ -714,6 +826,7 @@ export const BbsPostPage: React.FC = () => {
 			return
 		}
 		initialContentRef.current = form.pstCn ?? ''
+		postContentRef.current = form.pstCn ?? ''
 		const t = setTimeout(() => {
 			if (typeof window === 'undefined' || !$) return
 			const el = document.getElementById(SUMMERNOTE_ID)
@@ -739,6 +852,10 @@ export const BbsPostPage: React.FC = () => {
 					onKeydown: summernoteOnEnterKeydown($el),
 					onInit: function () {
 						if (initial) $el.summernote('code', initial)
+					},
+					onChange: function (contents: string) {
+						postContentRef.current = contents
+						setForm((prev) => ({ ...prev, pstCn: contents }))
 					},
 					onImageUpload: function (files: FileList | File[]) {
 						const fileList = Array.isArray(files) ? files : Array.from(files)
@@ -791,27 +908,18 @@ export const BbsPostPage: React.FC = () => {
 		}
 	}, [popupOpen])
 
-	const handleSave = async () => {
+	const handleSave = async (formElement = postFormRef.current) => {
 		if (!bbsId) return
-		if (!form.pstTtl?.trim()) {
+		const currentForm = getCurrentPostForm(formElement)
+		setForm(currentForm)
+		if (!currentForm.pstTtl?.trim()) {
 			setError('제목을 입력하세요.')
 			return
 		}
-		let pstCn = form.pstCn ?? ''
-		if (!isQnaBoard) {
-			try {
-				const w = typeof window !== 'undefined' ? (window as unknown as { $?: (s: string) => { summernote: (c: string) => string } }) : null
-				if (w?.$) {
-					const code = w.$('#' + SUMMERNOTE_ID).summernote('code')
-					if (typeof code === 'string') pstCn = code
-				}
-			} catch {
-				// keep form.pstCn
-			}
-		}
+		let pstCn = getCurrentPostContent(currentForm.pstCn ?? '')
 		// img src에서 도메인 제거 → /uploads/... 만 저장 (사용자페이지 공통 노출용)
 		pstCn = (pstCn || '').replace(/src="(https?:\/\/[^"]*)(\/uploads\/[^"]+)"/gi, 'src="$2"')
-		const payload: Partial<BbsPostDto> & { bbsId: string; pstCn: string } = { ...form, pstCn, bbsId }
+		const payload: Partial<BbsPostDto> & { bbsId: string; pstCn: string } = { ...currentForm, pstCn, bbsId }
 		if (isQnaBoard) {
 			const answerStatus = (payload.ansSttsCd || 'WAIT').toUpperCase()
 			payload.ansSttsCd = answerStatus === 'DONE' ? 'DONE' : 'WAIT'
@@ -863,7 +971,7 @@ export const BbsPostPage: React.FC = () => {
 					mdtr: adminId || payload.answrId || ''
 				}
 				const res = await fetch(
-					`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}/${encodeURIComponent(form.pstSn!)}/answer`,
+					`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}/${encodeURIComponent(currentForm.pstSn!)}/answer`,
 					{
 						method: 'PUT',
 						headers: { 'Content-Type': 'application/json' },
@@ -901,7 +1009,7 @@ export const BbsPostPage: React.FC = () => {
 					payload.thumFileId = uploadResult.data.fiId
 					payload.thmbFileId = uploadResult.data.fiId
 				} else {
-					const thumbnailId = getExplicitThumbnailId(form)
+					const thumbnailId = getExplicitThumbnailId(currentForm)
 					payload.thumFileId = thumbnailId
 					payload.thmbFileId = thumbnailId
 				}
@@ -911,7 +1019,7 @@ export const BbsPostPage: React.FC = () => {
 			}
 
 			if (bbsMasterIsY(bbsMaster, 'atchFileYn')) {
-				let atchFiId = (form.atchFileMngNo ?? '').trim()
+				let atchFiId = (currentForm.atchFileMngNo ?? '').trim()
 				let firstNewAttachIsImage = false
 				for (let i = 0; i < attachFiles.length; i++) {
 					if (i === 0) firstNewAttachIsImage = attachFiles[i].type.startsWith('image/')
@@ -926,9 +1034,13 @@ export const BbsPostPage: React.FC = () => {
 				payload.atchFileMngNo = ''
 			}
 
+			payload.pstTtl = getVisibleDocumentValue('pstTtl', currentForm.pstTtl ?? '')
+			const requestBody = buildBbsPostRequestBody(payload)
+
 			if (popupMode === 'new') {
-				const body = { ...payload }
+				const body = { ...requestBody }
 				delete (body as Record<string, unknown>).pstSn
+				delete (body as Record<string, unknown>).postId
 				const res = await fetch(`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -943,11 +1055,11 @@ export const BbsPostPage: React.FC = () => {
 				setMessage('게시글이 등록되었습니다.')
 			} else {
 				const res = await fetch(
-					`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}/${encodeURIComponent(form.pstSn!)}`,
+					`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}/${encodeURIComponent(currentForm.pstSn!)}`,
 					{
 						method: 'PUT',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(payload),
+						body: JSON.stringify(requestBody),
 						credentials: 'include'
 					}
 				)
@@ -1364,7 +1476,7 @@ export const BbsPostPage: React.FC = () => {
 								삭제
 							</button>
 						)}
-						<button type="button" className="admin-list-btn-edit" onClick={handleSave} disabled={loading}>
+						<button type="submit" form="bbs-post-form" className="admin-list-btn-edit" disabled={loading}>
 							{isQnaBoard ? '저장' : popupMode === 'new' ? '등록' : '수정'}
 						</button>
 						<button type="button" className="admin-footer-btn-close" onClick={closePopup}>닫기</button>
@@ -1372,13 +1484,21 @@ export const BbsPostPage: React.FC = () => {
 				}
 			>
 				{error && <p className="form-error">{error}</p>}
+				<form
+					id="bbs-post-form"
+					ref={postFormRef}
+					onSubmit={(e) => {
+						e.preventDefault()
+						void handleSave(e.currentTarget)
+					}}
+				>
 				<table className="form-table form-table-cols4">
 					<tbody>
 						{popupMode === 'edit' && (
 							<tr>
 								<th>게시글ID</th>
 								<td>
-									<input type="text" value={form.pstSn ?? ''} readOnly />
+									<input type="text" name="pstSn" value={form.pstSn ?? ''} readOnly />
 								</td>
 								<th>조회수</th>
 								<td>
@@ -1390,9 +1510,10 @@ export const BbsPostPage: React.FC = () => {
 							<th>{titleFieldLabel}</th>
 							<td colSpan={3}>
 								<input
+									name="pstTtl"
 									type="text"
-									value={form.pstTtl ?? ''}
-									onChange={(e) => setForm({ ...form, pstTtl: e.target.value })}
+									key={`pstTtl-${form.pstSn ?? 'new'}-${popupOpen ? 'open' : 'closed'}`}
+									defaultValue={form.pstTtl ?? ''}
 									readOnly={isQnaBoard}
 									style={{ width: '100%', maxWidth: '100%' }}
 								/>
@@ -1401,6 +1522,7 @@ export const BbsPostPage: React.FC = () => {
 						<tr>
 							<th>사용여부</th>
 							<td>
+								<input type="hidden" name="useYn" value={form.useYn ?? 'Y'} />
 								{renderYnToggle(
 									'useYn',
 									form.useYn ?? 'Y',
@@ -1412,6 +1534,7 @@ export const BbsPostPage: React.FC = () => {
 							<th>표시등록일</th>
 							<td>
 								<input
+									name="pstgYmd"
 									type="date"
 									className="bbs-post-regDt-input"
 									value={form.pstgYmd ?? ''}
@@ -1431,6 +1554,7 @@ export const BbsPostPage: React.FC = () => {
 												if (opts.length > 0) {
 													return (
 														<select
+															name="category"
 															className="bbs-post-category-input"
 															value={form.category ?? ''}
 															onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -1446,6 +1570,7 @@ export const BbsPostPage: React.FC = () => {
 												}
 												return (
 													<input
+														name="category"
 														type="text"
 														className="bbs-post-category-input"
 														value={form.category ?? ''}
@@ -1461,6 +1586,7 @@ export const BbsPostPage: React.FC = () => {
 									<>
 										<th>상단고정</th>
 										<td colSpan={bbsMasterIsY(bbsMaster, 'cateYn') ? 1 : 3}>
+											<input type="hidden" name="upendFixYn" value={form.upendFixYn ?? 'N'} />
 											{renderYnToggle(
 												'upendFixYn',
 												form.upendFixYn ?? 'N',
@@ -1477,6 +1603,7 @@ export const BbsPostPage: React.FC = () => {
 							<tr>
 								<th>비밀글</th>
 								<td colSpan={3}>
+									<input type="hidden" name="lckYn" value={form.lckYn ?? 'N'} />
 									{renderYnToggle(
 										'lckYn',
 										form.lckYn ?? 'N',
@@ -1492,6 +1619,7 @@ export const BbsPostPage: React.FC = () => {
 									<th>{linkFieldLabel}</th>
 								<td colSpan={3}>
 									<input
+										name="lnkgUrlAddr"
 										type="text"
 										value={form.lnkgUrlAddr ?? ''}
 										onChange={(e) => setForm({ ...form, lnkgUrlAddr: e.target.value })}
@@ -1662,6 +1790,7 @@ export const BbsPostPage: React.FC = () => {
 							if (tp === 'textarea') {
 								control = (
 									<textarea
+										name={field}
 										value={rawVal}
 										onChange={(e) => setForm({ ...form, [field]: e.target.value })}
 										rows={4}
@@ -1671,6 +1800,7 @@ export const BbsPostPage: React.FC = () => {
 							} else if (tp === 'select' && opts.length > 0) {
 								control = (
 									<select
+										name={field}
 										value={rawVal}
 										onChange={(e) => setForm({ ...form, [field]: e.target.value })}
 										style={{ minWidth: 200 }}
@@ -1690,7 +1820,8 @@ export const BbsPostPage: React.FC = () => {
 											<label key={o.code} style={{ marginRight: 8 }}>
 												<input
 													type="radio"
-													name={`bbs-post-etc-${idx}`}
+													name={field}
+													value={o.code}
 													checked={rawVal === o.code}
 													onChange={() => setForm({ ...form, [field]: o.code })}
 												/>{' '}
@@ -1707,6 +1838,8 @@ export const BbsPostPage: React.FC = () => {
 											<label key={o.code} style={{ marginRight: 8 }}>
 												<input
 													type="checkbox"
+													name={field}
+													value={o.code}
 													checked={selected.has(o.code)}
 													onChange={() =>
 														setForm({ ...form, [field]: toggleEtcCsv(rawVal, o.code) })
@@ -1729,6 +1862,7 @@ export const BbsPostPage: React.FC = () => {
 							} else if ((tp === 'select' || tp === 'radio') && opts.length === 0) {
 								control = (
 									<input
+										name={field}
 										type="text"
 										value={rawVal}
 										onChange={(e) => setForm({ ...form, [field]: e.target.value })}
@@ -1739,6 +1873,7 @@ export const BbsPostPage: React.FC = () => {
 							} else {
 								control = (
 									<input
+										name={field}
 										type="text"
 										value={rawVal}
 										onChange={(e) => setForm({ ...form, [field]: e.target.value })}
@@ -1769,6 +1904,7 @@ export const BbsPostPage: React.FC = () => {
 										<th>답변상태</th>
 										<td>
 											<select
+												name="ansSttsCd"
 												value={(form.ansSttsCd || 'WAIT').toUpperCase()}
 												onChange={(e) => setForm({ ...form, ansSttsCd: e.target.value })}
 												className="bbs-post-category-input"
@@ -1780,6 +1916,7 @@ export const BbsPostPage: React.FC = () => {
 										<th>답변일</th>
 										<td>
 											<input
+												name="ansYmd"
 												type="date"
 												className="bbs-post-regDt-input"
 												value={form.ansYmd ?? ''}
@@ -1803,6 +1940,7 @@ export const BbsPostPage: React.FC = () => {
 										<th>답변내용</th>
 										<td colSpan={3}>
 											<textarea
+												name="ansCn"
 												value={form.ansCn ?? ''}
 												disabled={(form.ansSttsCd || 'WAIT').toUpperCase() !== 'DONE'}
 												onChange={(e) => setForm({ ...form, ansCn: e.target.value })}
@@ -1819,6 +1957,7 @@ export const BbsPostPage: React.FC = () => {
 										<div className="bbs-post-summernote-wrap">
 											<textarea
 												id={SUMMERNOTE_ID}
+												name="pstCn"
 												defaultValue={form.pstCn ?? ''}
 												className="board-form-textarea summernote-editor"
 												rows={10}
@@ -1831,6 +1970,7 @@ export const BbsPostPage: React.FC = () => {
 							<th>작성자명</th>
 							<td>
 								<input
+									name="wrtrNm"
 									type="text"
 									className="bbs-post-author-input"
 									value={form.wrtrNm ?? ''}
@@ -1840,6 +1980,7 @@ export const BbsPostPage: React.FC = () => {
 							<th>작성자ID</th>
 							<td>
 								<input
+									name="wrtrId"
 									type="text"
 									className="bbs-post-author-input"
 									value={form.wrtrId ?? ''}
@@ -1849,6 +1990,7 @@ export const BbsPostPage: React.FC = () => {
 						</tr>
 					</tbody>
 				</table>
+				</form>
 			</LayerPopup>
 		</AdminLayout>
 	)

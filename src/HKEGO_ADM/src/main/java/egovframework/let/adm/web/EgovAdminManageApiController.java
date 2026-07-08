@@ -55,7 +55,10 @@ public class EgovAdminManageApiController {
 		admin.setEmlAddr(dto.getEmlAddr());
 		admin.setAcntSttsCd(dto.getAcntSttsCd());
 		admin.setAuthrtCd(dto.getAuthrtCd());
-		adminService.update(admin);
+		int updated = adminService.update(admin);
+		if (updated < 1) {
+			return ResponseEntity.badRequest().body(ApiResponse.error("관리자 정보가 수정되지 않았습니다."));
+		}
 		return ResponseEntity.ok(ApiResponse.success("관리자 정보를 수정했습니다.", null));
 	}
 

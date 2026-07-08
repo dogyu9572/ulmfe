@@ -5,7 +5,7 @@
 
 <mapper namespace="egovframework.let.adm.service.impl.AdminDAO">
 	<resultMap id="AdminInfoMap" type="egovframework.let.adm.service.vo.AdminInfoVO">
-		<id property="id" column="ID"/>
+		<id property="id" column="USER_ID"/>
 		<result property="userNm" column="USER_NM"/>
 		<result property="emlAddr" column="EML_ADDR"/>
 		<result property="enpswd" column="ENPSWD"/>
@@ -19,7 +19,7 @@
 	<select id="findById" parameterType="string" resultMap="AdminInfoMap">
 		SELECT *
 		FROM ADMIN_MST
-		WHERE ID = #{id}
+		WHERE USER_ID = #{id}
 	</select>
 
 	<sql id="adminListWhere">
@@ -48,7 +48,7 @@
 	<insert id="insert" parameterType="egovframework.let.adm.service.vo.AdminInfoVO">
 		INSERT INTO ADMIN_MST
 		(
-			ID,
+			USER_ID,
 			USER_NM,
 			EML_ADDR,
 			ENPSWD,
@@ -73,18 +73,17 @@
 			EML_ADDR = #{emlAddr},
 			ACNT_STTS_CD = #{acntSttsCd},
 			AUTHRT_CD = #{authrtCd}
-		WHERE ID = #{id}
+		WHERE USER_ID = #{id}
 	</update>
 
 	<update id="updatePassword">
 		UPDATE ADMIN_MST
 		SET ENPSWD = #{enpswd}
-		WHERE ID = #{id}
+		WHERE USER_ID = #{id}
 	</update>
 
 	<delete id="delete" parameterType="string">
 		DELETE FROM ADMIN_MST
-		WHERE ID = #{id}
+		WHERE USER_ID = #{id}
 	</delete>
 </mapper>
-

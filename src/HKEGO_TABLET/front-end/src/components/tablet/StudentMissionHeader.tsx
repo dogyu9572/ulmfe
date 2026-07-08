@@ -5,6 +5,7 @@ import { useTabletSidebarToggle } from '../../hooks/useTabletSidebarToggle'
 import {
 	studentFlowClassName,
 	studentFlowCompletedMissionStepCodes,
+	studentFlowExploreIntroStep,
 	studentFlowMissionQuestByRouteIndex,
 	studentFlowRouteItems,
 	studentFlowStoredProgressRate,
@@ -19,11 +20,6 @@ type MissionSideStep = {
 	icon: string
 }
 
-const fixedStartSteps: MissionSideStep[] = [
-	{ title: '스토리 제시', description: '영상 1개 시청', time: '10분', icon: '/pub/images/icon_activity_order01.webp' },
-	{ title: '미션 탐색', description: '미션 열어보기, 동선안내', time: '20분', icon: '/pub/images/icon_activity_mission02.webp' }
-]
-
 const fixedEndStep: MissionSideStep = {
 	title: '실천력 부여',
 	description: 'SDGs 히어로 완성·평가/설문',
@@ -31,8 +27,10 @@ const fixedEndStep: MissionSideStep = {
 	icon: '/pub/images/icon_activity_mission_end.webp'
 }
 
+const fixedStartStepCount = 2
+
 const getMissionHeaderProgress = (pathname: string, dynamicStepCount: number) => {
-	const totalSteps = fixedStartSteps.length + dynamicStepCount + 1
+	const totalSteps = fixedStartStepCount + dynamicStepCount + 1
 	const endStepIndex = totalSteps - 1
 	const match = pathname.match(/\/student\/mission(0[3-6])(_end)?$/)
 	let activeIndex = 0
@@ -43,7 +41,7 @@ const getMissionHeaderProgress = (pathname: string, dynamicStepCount: number) =>
 		completedUntil = 0
 	} else if (match) {
 		const routeIndex = Number(match[1]) - 3
-		const currentStepIndex = fixedStartSteps.length + routeIndex
+		const currentStepIndex = fixedStartStepCount + routeIndex
 		if (match[2]) {
 			completedUntil = currentStepIndex
 			activeIndex = Math.min(currentStepIndex + 1, endStepIndex)
@@ -78,6 +76,16 @@ export const StudentMissionHeader = () => {
 	const teamName = studentFlowTeamName(flowSession)
 	const routeItems = studentFlowRouteItems(flowSession)
 	const selectedCount = flowSession.totalStudentCount
+	const introStep = studentFlowExploreIntroStep(flowSession)
+	const fixedStartSteps: MissionSideStep[] = [
+		{
+			title: introStep?.stepName || '스토리 제시',
+			description: introStep?.title || '',
+			time: introStep?.limitMin ? `${introStep.limitMin}분` : '',
+			icon: '/pub/images/icon_activity_order01.webp'
+		},
+		{ title: '미션 탐색', description: '미션 열어보기, 동선안내', time: '20분', icon: '/pub/images/icon_activity_mission02.webp' }
+	]
 	const dynamicSteps = routeItems.map((routeName, index) => {
 		const quest = studentFlowMissionQuestByRouteIndex(flowSession, index)
 		return {

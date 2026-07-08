@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
@@ -86,6 +86,8 @@ const renderEtc3Cell = (value?: string) => {
 export const CodePage: React.FC<CodePageProps> = () => {
 	const [masters, setMasters] = useState<CodeMa[]>([])
 	const [details, setDetails] = useState<CodeDt[]>([])
+	const masterFormRef = useRef<HTMLFormElement | null>(null)
+	const detailFormRef = useRef<HTMLFormElement | null>(null)
 
 	const [selectedCodeId, setSelectedCodeId] = useState<string>('')
 
@@ -131,6 +133,40 @@ export const CodePage: React.FC<CodePageProps> = () => {
 	const masterNameLabel = '코드명'
 	const detailNameLabel = '코드명'
 	const detailDescriptionLabel = selectedCodeId === 'COM001' || selectedCodeId === 'COM002' ? '메뉴 URL' : '설명'
+
+	const getFormValue = (formData: FormData, name: string, fallback = '') => {
+		const value = formData.get(name)
+		return typeof value === 'string' ? value : fallback
+	}
+
+	const getCurrentMasterForm = (): CodeMa => {
+		if (!masterFormRef.current) return masterForm
+		const formData = new FormData(masterFormRef.current)
+		return {
+			cdId: getFormValue(formData, 'cdId', masterForm.cdId),
+			cdNm: getFormValue(formData, 'cdNm', masterForm.cdNm),
+			cdCn: getFormValue(formData, 'cdCn', masterForm.cdCn),
+			useYn: getFormValue(formData, 'useYn', masterForm.useYn)
+		}
+	}
+
+	const getCurrentDetailForm = (): CodeDt => {
+		if (!detailFormRef.current) return detailForm
+		const formData = new FormData(detailFormRef.current)
+		const seqValue = getFormValue(formData, 'seq', detailForm.seq === null ? '' : String(detailForm.seq))
+		return {
+			cdId: getFormValue(formData, 'cdId', detailForm.cdId),
+			code: getFormValue(formData, 'code', detailForm.code),
+			cdDtlNm: getFormValue(formData, 'cdDtlNm', detailForm.cdDtlNm),
+			cdDtlCn: getFormValue(formData, 'cdDtlCn', detailForm.cdDtlCn),
+			seq: seqValue === '' ? null : Number(seqValue),
+			useYn: getFormValue(formData, 'useYn', detailForm.useYn),
+			etc1: getFormValue(formData, 'etc1', detailForm.etc1),
+			codeEtc2: getFormValue(formData, 'codeEtc2', detailForm.codeEtc2),
+			codeEtc3: getFormValue(formData, 'codeEtc3', detailForm.codeEtc3),
+			atchFileMngNo: getFormValue(formData, 'atchFileMngNo', detailForm.atchFileMngNo)
+		}
+	}
 
 	const fetchMasters = async () => {
 		setError(null)
@@ -258,7 +294,8 @@ export const CodePage: React.FC<CodePageProps> = () => {
 	}
 
 	const handleSaveMaster = async () => {
-		if (!masterForm.cdId || !masterForm.cdNm) {
+		const currentMasterForm = getCurrentMasterForm()
+		if (!currentMasterForm.cdId || !currentMasterForm.cdNm) {
 			setError('코드ID와 코드명은 필수입니다.')
 			return
 		}
@@ -269,14 +306,14 @@ export const CodePage: React.FC<CodePageProps> = () => {
 			const isNew = masterFormPopupMode === 'new'
 			const url = isNew
 				? `${backendBaseUrl}/api/admin/codes/master`
-				: `${backendBaseUrl}/api/admin/codes/master/${encodeURIComponent(masterForm.cdId)}`
+				: `${backendBaseUrl}/api/admin/codes/master/${encodeURIComponent(currentMasterForm.cdId)}`
 			const method = isNew ? 'POST' : 'PUT'
 			const response = await fetch(url, {
 				method,
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(masterForm),
+				body: JSON.stringify(currentMasterForm),
 				credentials: 'include'
 			})
 			const result: ApiResponse<null> = await response.json()
@@ -288,8 +325,8 @@ export const CodePage: React.FC<CodePageProps> = () => {
 			closeMasterPopup()
 			await fetchMasters()
 			if (isNew) {
-				setSelectedCodeId(masterForm.cdId)
-				fetchDetails(masterForm.cdId)
+				setSelectedCodeId(currentMasterForm.cdId)
+				fetchDetails(currentMasterForm.cdId)
 			}
 		} catch (e) {
 			setError('공통코드 마스터 저장 중 오류가 발생했습니다.')
@@ -365,7 +402,8 @@ export const CodePage: React.FC<CodePageProps> = () => {
 	}
 
 	const handleSaveDetail = async () => {
-		if (!detailForm.cdId || !detailForm.code || !detailForm.cdDtlNm) {
+		const currentDetailForm = getCurrentDetailForm()
+		if (!currentDetailForm.cdId || !currentDetailForm.code || !currentDetailForm.cdDtlNm) {
 			setError('상세 코드ID, 코드, 코드명은 필수입니다.')
 			return
 		}
@@ -377,15 +415,15 @@ export const CodePage: React.FC<CodePageProps> = () => {
 			const url = isNew
 				? `${backendBaseUrl}/api/admin/codes/detail`
 				: `${backendBaseUrl}/api/admin/codes/detail/${encodeURIComponent(
-						detailForm.cdId
-					)}/${encodeURIComponent(detailForm.code)}`
+						currentDetailForm.cdId
+					)}/${encodeURIComponent(currentDetailForm.code)}`
 			const method = isNew ? 'POST' : 'PUT'
 			const response = await fetch(url, {
 				method,
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(detailForm),
+				body: JSON.stringify(currentDetailForm),
 				credentials: 'include'
 			})
 			const result: ApiResponse<null> = await response.json()
@@ -532,7 +570,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th style={{ width: '80px'}}>코드</th>
 										<th style={{ width: 'auto'}}>{detailNameLabel}</th>
 										<th>{detailDescriptionLabel}</th>
-										<th style={{ width: '60px'}}>SEQ</th>
+										<th style={{ width: '60px'}}>정렬순서</th>
 										<th style={{ width: '80px'}}>ETC3</th>
 										<th style={{ width: '80px'}}>사용여부</th>
 										<th style={{ width: '120px'}}>관리</th>
@@ -605,12 +643,14 @@ export const CodePage: React.FC<CodePageProps> = () => {
 				}
 			>
 				{error && <p className="form-error">{error}</p>}
-				<table className="form-table">
+				<form ref={masterFormRef}>
+					<table className="form-table">
 								<tbody>
 									<tr>
 										<th>코드ID</th>
 										<td>
 											<input
+												name="cdId"
 												type="text"
 												value={masterForm.cdId}
 												onChange={(e) => setMasterForm({ ...masterForm, cdId: e.target.value })}
@@ -622,6 +662,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>{masterNameLabel}</th>
 										<td>
 											<input
+												name="cdNm"
 												type="text"
 												value={masterForm.cdNm}
 												onChange={(e) => setMasterForm({ ...masterForm, cdNm: e.target.value })}
@@ -632,6 +673,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>설명</th>
 										<td>
 											<input
+												name="cdCn"
 												type="text"
 												value={masterForm.cdCn}
 												onChange={(e) => setMasterForm({ ...masterForm, cdCn: e.target.value })}
@@ -641,11 +683,13 @@ export const CodePage: React.FC<CodePageProps> = () => {
 									<tr>
 										<th>사용여부</th>
 										<td>
+											<input type="hidden" name="useYn" value={masterForm.useYn} />
 											{renderYnToggle(masterForm.useYn, (useYn) => setMasterForm({ ...masterForm, useYn }))}
 										</td>
 									</tr>
 								</tbody>
 							</table>
+						</form>
 			</LayerPopup>
 
 			<LayerPopup
@@ -674,18 +718,20 @@ export const CodePage: React.FC<CodePageProps> = () => {
 				}
 			>
 							{error && <p className="form-error">{error}</p>}
+							<form ref={detailFormRef}>
 							<table className="form-table">
 								<tbody>
 									<tr>
 										<th>코드ID</th>
 										<td>
-											<input type="text" value={detailForm.cdId} readOnly />
+											<input type="text" name="cdId" value={detailForm.cdId} readOnly />
 										</td>
 									</tr>
 									<tr>
 										<th>코드</th>
 										<td>
 											<input
+												name="code"
 												type="text"
 												value={detailForm.code}
 												onChange={(e) => setDetailForm({ ...detailForm, code: e.target.value })}
@@ -697,6 +743,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>{detailNameLabel}</th>
 										<td>
 											<input
+												name="cdDtlNm"
 												type="text"
 												value={detailForm.cdDtlNm}
 												onChange={(e) => setDetailForm({ ...detailForm, cdDtlNm: e.target.value })}
@@ -707,6 +754,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>{detailDescriptionLabel}</th>
 										<td>
 											<input
+												name="cdDtlCn"
 												type="text"
 												value={detailForm.cdDtlCn}
 												onChange={(e) => setDetailForm({ ...detailForm, cdDtlCn: e.target.value })}
@@ -715,9 +763,10 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										</td>
 									</tr>
 									<tr>
-										<th>SEQ</th>
+										<th>정렬순서</th>
 										<td>
 											<input
+												name="seq"
 												type="number"
 												value={detailForm.seq ?? ''}
 												onChange={(e) => setDetailForm({ ...detailForm, seq: e.target.value === '' ? null : Number(e.target.value) })}
@@ -727,6 +776,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 									<tr>
 										<th>사용여부</th>
 										<td>
+											<input type="hidden" name="useYn" value={detailForm.useYn} />
 											{renderYnToggle(detailForm.useYn, (useYn) => setDetailForm({ ...detailForm, useYn }))}
 										</td>
 									</tr>
@@ -734,6 +784,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>ETC1</th>
 										<td>
 											<input
+												name="etc1"
 												type="text"
 												value={detailForm.etc1}
 												onChange={(e) => setDetailForm({ ...detailForm, etc1: e.target.value })}
@@ -744,6 +795,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>ETC2</th>
 										<td>
 											<input
+												name="codeEtc2"
 												type="text"
 												value={detailForm.codeEtc2}
 												onChange={(e) => setDetailForm({ ...detailForm, codeEtc2: e.target.value })}
@@ -755,6 +807,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<td>
 											<div className="code-etc3-color-wrap">
 												<input
+													name="codeEtc3"
 													type="text"
 													className="code-etc3-color-text"
 													value={detailForm.codeEtc3}
@@ -783,6 +836,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 										<th>파일</th>
 										<td>
 											<input
+												name="atchFileMngNo"
 												type="text"
 												value={detailForm.atchFileMngNo}
 												onChange={(e) => setDetailForm({ ...detailForm, atchFileMngNo: e.target.value })}
@@ -791,6 +845,7 @@ export const CodePage: React.FC<CodePageProps> = () => {
 									</tr>
 								</tbody>
 							</table>
+							</form>
 			</LayerPopup>
 		</AdminLayout>
 	)

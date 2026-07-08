@@ -48,7 +48,7 @@ public class EgovAuthGroupServiceImpl extends EgovAbstractServiceImpl implements
 			.authrtCd(dto.getAuthrtCd())
 			.authrtNm(dto.getAuthrtNm())
 			.authrtCn(dto.getAuthrtCn())
-			.useYn(dto.getUseYn() != null ? dto.getUseYn() : "Y")
+			.useYn(normalizeUseYn(dto.getUseYn()))
 			.build();
 		authDAO.insertAuthGroup(g);
 	}
@@ -59,7 +59,7 @@ public class EgovAuthGroupServiceImpl extends EgovAbstractServiceImpl implements
 			.authrtCd(dto.getAuthrtCd())
 			.authrtNm(dto.getAuthrtNm())
 			.authrtCn(dto.getAuthrtCn())
-			.useYn(dto.getUseYn())
+			.useYn(normalizeUseYn(dto.getUseYn()))
 			.build();
 		authDAO.updateAuthGroup(g);
 	}
@@ -118,5 +118,9 @@ public class EgovAuthGroupServiceImpl extends EgovAbstractServiceImpl implements
 			.authrtCn(g.getAuthrtCn())
 			.useYn(g.getUseYn())
 			.build();
+	}
+
+	private String normalizeUseYn(String useYn) {
+		return useYn == null || useYn.isBlank() ? "Y" : useYn;
 	}
 }

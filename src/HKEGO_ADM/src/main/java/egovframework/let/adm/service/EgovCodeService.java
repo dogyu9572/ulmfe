@@ -11,8 +11,8 @@ public interface EgovCodeService {
 	List<CodeDtVO> getCodeDtList(String codeId, String useYn);
 	void createCodeMa(CodeMaVO codeMa);
 	void createCodeDt(CodeDtVO codeDt);
-	void updateCodeMa(CodeMaVO codeMa);
-	void updateCodeDt(CodeDtVO codeDt);
+	int updateCodeMa(CodeMaVO codeMa);
+	int updateCodeDt(CodeDtVO codeDt);
 	void deleteCodeMa(String codeId);
 	void deleteCodeDt(String codeId, String code);
 }
