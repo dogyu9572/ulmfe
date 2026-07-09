@@ -2,6 +2,7 @@ package egovframework.tablet.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import egovframework.tablet.service.mapper.TabletMapper;
 import egovframework.tablet.service.vo.TabletAdminVO;
 import egovframework.tablet.service.vo.TabletContentQuestionVO;
@@ -9,6 +10,7 @@ import egovframework.tablet.service.vo.TabletContentVO;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletLoginRequest;
 import egovframework.tablet.service.vo.TabletLoginResponse;
+import egovframework.tablet.service.vo.TabletMakerAnswerRequest;
 import egovframework.tablet.service.vo.TabletMissionFinalSubmitRequest;
 import egovframework.tablet.service.vo.TabletMissionAnswerVO;
 import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
@@ -21,26 +23,42 @@ import egovframework.tablet.service.vo.TabletTeacherCallRequest;
 import egovframework.tablet.service.vo.TabletTeacherCallVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class TabletServiceImpl implements TabletService {
+	private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
+	private static final DateTimeFormatter HOUR_MINUTE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 	private final TabletMapper tabletMapper;
 	private final PasswordEncoder passwordEncoder;
 	private final ObjectMapper objectMapper;
+	@Value("${file.upload.path}")
+	private String uploadPath;
 
 	public TabletServiceImpl(TabletMapper tabletMapper, PasswordEncoder passwordEncoder, ObjectMapper objectMapper) {
 		this.tabletMapper = tabletMapper;
@@ -99,7 +117,8 @@ public class TabletServiceImpl implements TabletService {
 	@Override
 	public TabletSessionResponse getTodaySession(String rsvtYmd) {
 		String targetDate = normalizeDate(rsvtYmd);
-		TabletReservationVO reservation = tabletMapper.findReservationByDate(targetDate);
+		String currentHm = LocalTime.now(SERVICE_ZONE).format(HOUR_MINUTE_FORMATTER);
+		TabletReservationVO reservation = tabletMapper.findReservationByDate(targetDate, currentHm);
 		List<TabletStudentVO> students = reservation == null ? List.of() : tabletMapper.selectStudents(reservation.getRsvtSn());
 		List<TabletContentVO> contents = reservation == null ? List.of() : selectProgramContents(reservation.getStepJson());
 		List<TabletQuestionnaireQuestionVO> evaluationQuestions = reservation == null ? List.of() : selectQuestionnaireQuestions(reservation.getEvalJson(), "studentEvaluationSn", "studentEvaluation", "EVAL");
@@ -148,6 +167,16 @@ public class TabletServiceImpl implements TabletService {
 	@Override
 	@Transactional
 	public void submitMission(Integer rsvtSn, TabletMissionSubmitRequest request) {
+		submitMissionInternal(rsvtSn, request, Map.of());
+	}
+
+	@Override
+	@Transactional
+	public void submitMissionFiles(Integer rsvtSn, TabletMissionSubmitRequest request, Map<String, MultipartFile> filesByFieldName) {
+		submitMissionInternal(rsvtSn, request, filesByFieldName == null ? Map.of() : filesByFieldName);
+	}
+
+	private void submitMissionInternal(Integer rsvtSn, TabletMissionSubmitRequest request, Map<String, MultipartFile> filesByFieldName) {
 		if (rsvtSn == null || rsvtSn <= 0) {
 			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
 		}
@@ -172,13 +201,54 @@ public class TabletServiceImpl implements TabletService {
 			if (studentSn == null || studentSn <= 0) continue;
 			tabletMapper.deleteMissionAnswers(rsvtSn, studentSn, stepCd);
 			for (TabletMissionAnswerVO answer : answers) {
-				if (answer == null || isBlank(answer.getAnsCn())) continue;
+				if (answer == null || (isBlank(answer.getAnsCn()) && (answer.getFiles() == null || answer.getFiles().isEmpty()))) continue;
+				answer.setAnsCn(buildWorksheetAnswerValue(answer, filesByFieldName));
 				tabletMapper.insertMissionAnswer(rsvtSn, studentSn, stepCd, answer);
 			}
 			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, stepCd, activityName) == 0) {
 				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, stepCd, activityName);
 			}
 			tabletMapper.updateStudentProgress(rsvtSn, studentSn, progressRate, learningStatus);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void submitMaker(Integer rsvtSn, List<TabletMakerAnswerRequest> answers, Map<Integer, MultipartFile> filesByStudentSn) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
+		}
+		if (answers == null || answers.isEmpty()) {
+			throw new IllegalArgumentException("저장할 학생 활동지가 없습니다.");
+		}
+		Map<Integer, TabletMakerAnswerRequest> answerMap = new HashMap<>();
+		for (TabletMakerAnswerRequest answer : answers) {
+			if (answer == null || answer.getStudentSn() == null || answer.getStudentSn() <= 0) continue;
+			answerMap.put(answer.getStudentSn(), answer);
+		}
+		if (answerMap.isEmpty()) {
+			throw new IllegalArgumentException("저장할 학생 정보가 없습니다.");
+		}
+
+		for (Map.Entry<Integer, TabletMakerAnswerRequest> entry : answerMap.entrySet()) {
+			Integer studentSn = entry.getKey();
+			TabletMakerAnswerRequest makerAnswer = entry.getValue();
+			MultipartFile file = filesByStudentSn == null ? null : filesByStudentSn.get(studentSn);
+			String description = normalizeText(makerAnswer.getDescription());
+
+			tabletMapper.deleteMissionAnswers(rsvtSn, studentSn, "STEP3");
+			if (!isBlank(description) || (file != null && !file.isEmpty())) {
+				TabletMissionAnswerVO answer = new TabletMissionAnswerVO();
+				answer.setCntnSn(0);
+				answer.setQstnSn(0);
+				answer.setQstnCn("내가 만든 울산을 알리는 나만의 연필꽂이는?");
+				answer.setCardClsfCd("MEDIA");
+				answer.setAnsCn(buildMakerAnswerJson(description, file));
+				tabletMapper.insertMissionAnswer(rsvtSn, studentSn, "STEP3", answer);
+			}
+			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, "STEP3", "사건해결") == 0) {
+				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, "STEP3", "사건해결");
+			}
 		}
 	}
 
@@ -310,7 +380,7 @@ public class TabletServiceImpl implements TabletService {
 
 	private String normalizeDate(String value) {
 		if (value == null || value.trim().isEmpty()) {
-			return LocalDate.now().toString();
+			return LocalDate.now(SERVICE_ZONE).toString();
 		}
 		return value.trim();
 	}
@@ -424,6 +494,94 @@ public class TabletServiceImpl implements TabletService {
 		if (node.isArray()) {
 			node.forEach(item -> collectContentRefs(item, contentIds, contentNames));
 		}
+	}
+
+	private String buildWorksheetAnswerValue(TabletMissionAnswerVO answer, Map<String, MultipartFile> filesByFieldName) {
+		if (answer.getFiles() == null || answer.getFiles().isEmpty()) {
+			return answer.getAnsCn();
+		}
+		ObjectNode payload = objectMapper.createObjectNode();
+		payload.put("type", "WORKSHEET_FILES");
+		payload.put("answer", answer.getAnsCn() == null ? "" : answer.getAnsCn());
+		var fileArray = payload.putArray("files");
+		answer.getFiles().forEach(fileInfo -> {
+			if (fileInfo == null || isBlank(fileInfo.getFieldName())) return;
+			MultipartFile file = filesByFieldName == null ? null : filesByFieldName.get(fileInfo.getFieldName());
+			if (file == null || file.isEmpty()) return;
+			StoredMakerFile storedFile = storeMakerFile(file);
+			ObjectNode fileNode = objectMapper.createObjectNode();
+			fileNode.put("label", fileInfo.getLabel() == null ? "" : fileInfo.getLabel());
+			fileNode.put("fileName", storedFile.originalFileName());
+			fileNode.put("fileUrl", storedFile.fileUrl());
+			fileArray.add(fileNode);
+		});
+		try {
+			return objectMapper.writeValueAsString(payload);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("활동지 저장값 생성 중 오류가 발생했습니다.");
+		}
+	}
+
+	private String buildMakerAnswerJson(String description, MultipartFile file) {
+		ObjectNode payload = objectMapper.createObjectNode();
+		payload.put("type", "MAKER_PENCIL_HOLDER");
+		payload.put("description", description == null ? "" : description);
+		if (file != null && !file.isEmpty()) {
+			StoredMakerFile storedFile = storeMakerFile(file);
+			payload.put("fileName", storedFile.originalFileName());
+			payload.put("fileUrl", storedFile.fileUrl());
+		}
+		try {
+			return objectMapper.writeValueAsString(payload);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("활동지 저장값 생성 중 오류가 발생했습니다.");
+		}
+	}
+
+	private StoredMakerFile storeMakerFile(MultipartFile file) {
+		String originalFileName = sanitizeFileName(file.getOriginalFilename());
+		String extension = fileExtension(originalFileName);
+		if (!isAllowedMakerFileExtension(extension)) {
+			throw new IllegalArgumentException("연필꽂이 사진은 jpg, jpeg, png, gif, webp 파일만 첨부할 수 있습니다.");
+		}
+		String dateFolder = LocalDate.now(SERVICE_ZONE).format(DateTimeFormatter.BASIC_ISO_DATE);
+		String storedFileName = UUID.randomUUID() + "." + extension;
+		Path relativePath = Paths.get("tablet-results", dateFolder, storedFileName);
+		Path basePath = Paths.get(uploadPath).toAbsolutePath().normalize();
+		Path targetPath = basePath.resolve(relativePath).normalize();
+		if (!targetPath.startsWith(basePath)) {
+			throw new IllegalArgumentException("파일 저장 경로가 올바르지 않습니다.");
+		}
+		try {
+			Files.createDirectories(targetPath.getParent());
+			Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			throw new IllegalArgumentException("파일 저장 중 오류가 발생했습니다.");
+		}
+		String fileUrl = "/uploads/" + relativePath.toString().replace("\\", "/");
+		return new StoredMakerFile(originalFileName, fileUrl);
+	}
+
+	private String sanitizeFileName(String value) {
+		String fileName = value == null ? "attachment" : value.trim();
+		fileName = fileName.replace("\\", "/");
+		int slashIndex = fileName.lastIndexOf('/');
+		if (slashIndex >= 0) fileName = fileName.substring(slashIndex + 1);
+		fileName = fileName.replaceAll("[\\r\\n\\t]", "_").trim();
+		return fileName.isEmpty() ? "attachment" : fileName;
+	}
+
+	private String fileExtension(String fileName) {
+		int dotIndex = fileName.lastIndexOf('.');
+		if (dotIndex < 0 || dotIndex == fileName.length() - 1) return "";
+		return fileName.substring(dotIndex + 1).toLowerCase();
+	}
+
+	private boolean isAllowedMakerFileExtension(String extension) {
+		return Set.of("jpg", "jpeg", "png", "gif", "webp").contains(extension);
+	}
+
+	private record StoredMakerFile(String originalFileName, String fileUrl) {
 	}
 
 	private record ContentRefs(List<Integer> contentIds, List<String> contentNames) {

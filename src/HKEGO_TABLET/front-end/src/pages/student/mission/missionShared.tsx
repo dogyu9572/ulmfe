@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import {
+	studentFlowMissionBonusStickerCount,
 	studentFlowMissionQuestByRouteIndex,
+	studentFlowMissionRegularStickerCount,
 	studentFlowNextMissionLabelAfterRouteIndex,
 	studentFlowNextMissionPathAfterRouteIndex
 } from '../../../state/tabletStudentFlowSession'
@@ -69,14 +71,17 @@ export const MissionShell = ({ title, step, subtitle, location, children }: { ti
 	)
 }
 
-export const CheckboxList = ({ name, items, setClassName = '', checkedItems = [] }: { name: string; items: string[]; setClassName?: string; checkedItems?: string[] }) => (
-	<div className={`checkradio_select${setClassName ? ` ${setClassName}` : ''}`}>
-		{items.map((item, index) => {
-			const id = `${name}${String(index + 1).padStart(2, '0')}`
-			return <div className="box w100p" key={id}><input type="checkbox" name={name} id={id} defaultChecked={checkedItems.includes(item)} /><label htmlFor={id}><span><i></i>{item}</span></label></div>
-		})}
-	</div>
-)
+export const CheckboxList = ({ name, items, setClassName = '', checkedItems = [], mode = 'MULTI' }: { name: string; items: string[]; setClassName?: string; checkedItems?: string[]; mode?: 'SINGLE' | 'MULTI' }) => {
+	const visibleCheckedItems = mode === 'SINGLE' ? checkedItems.slice(0, 1) : checkedItems
+	return (
+		<div className={`checkradio_select${setClassName ? ` ${setClassName}` : ''}`}>
+			{items.map((item, index) => {
+				const id = `${name}${String(index + 1).padStart(2, '0')}`
+				return <div className="box w100p" key={id}><input type={mode === 'SINGLE' ? 'radio' : 'checkbox'} name={name} id={id} defaultChecked={visibleCheckedItems.includes(item)} /><label htmlFor={id}><span><i></i>{item}</span></label></div>
+			})}
+		</div>
+	)
+}
 
 export const RatingGroup = ({ name }: { name: string }) => (
 	<ul className="checkradio_select set5">
@@ -103,30 +108,40 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 		? '오늘의 미션을 정리하고 실천력을 부여받으세요.'
 		: `${dynamicNextQuest?.place || dynamicNextLabel}로 이동하세요.`
 	const dynamicNextButton = dynamicNextPath === '/student/mission_end' ? '실천력 부여로 이동하기' : `${dynamicNextLabel}으로 이동하기`
+	const regularStickerCount = hasDynamicNext ? studentFlowMissionRegularStickerCount(flowSession) : onClass.length
+	const bonusStickerCount = hasDynamicNext ? studentFlowMissionBonusStickerCount(flowSession) : 0
+	const regularStickerClasses = Array.from({ length: Math.min(3, regularStickerCount) }, (_, index) => `i${index + 1}`)
+	const bonusStickerClasses = Array.from({ length: Math.min(4, bonusStickerCount) }, (_, index) => `i${index + 1}`)
+	const largeStickerImages = regularStickerClasses.length > 0
+		? regularStickerClasses.map((className) => `/pub/images/icon_sticker_a${className.slice(1).padStart(2, '0')}_large.svg`)
+		: [image]
+	const endClassNumber = hasDynamicNext ? Math.max(1, Math.min(4, (routeIndex ?? 0) + 1)) : Math.max(1, Math.min(4, onClass.length))
 
 	return (
 		<main className="container flex_center" id="mainContent">
 			<h1 className="sound_only">{dynamicTitle}</h1>
 			<StudentMissionHeader />
 			<section className="basic_board">
-				<div className={`page_end quest_end0${onClass.length}`}>
+				<div className={`page_end quest_end0${endClassNumber}`}>
 					<div className="tit_area flex_center colm"><h2 className="end_tit">{dynamicTitle}</h2><p>{dynamicText}</p></div>
 					<div className="stamp_box">
 						<h3 className="tit">{hasDynamicNext ? '스티커 획득!' : onClass.length === 1 ? '과소비 퇴치장갑 획득!' : onClass.length === 2 ? '날씨 도사 스티커 획득!' : '편지 스티커 획득!'}</h3>
-						<p>{hasDynamicNext ? <>미션 완료 스티커를 획득했어요!</> : onClass.length === 1 ? <>재활용과 착한 소비를 실천하는<br />과소비 퇴치창갑 스티커를 획득했어요!</> : onClass.length === 2 ? <>세계와 연결된 나의 식생활을 생각하는<br />날씨 도사 스티커를 획득했어요!</> : <>공정한 소비를 실천하는<br />2025 편지 스티커를 획득했어요!</>}</p>
-						<div className="large" aria-hidden="true"><img src={image} alt="" /></div>
+						<p>{hasDynamicNext ? <>콘텐츠 스티커와 보너스 스티커를 획득했어요!</> : onClass.length === 1 ? <>재활용과 착한 소비를 실천하는<br />과소비 퇴치창갑 스티커를 획득했어요!</> : onClass.length === 2 ? <>세계와 연결된 나의 식생활을 생각하는<br />날씨 도사 스티커를 획득했어요!</> : <>공정한 소비를 실천하는<br />2025 편지 스티커를 획득했어요!</>}</p>
+						<div className={`large${largeStickerImages.length > 1 ? ' flex' : ''}`} aria-hidden="true">
+							{largeStickerImages.map((stickerImage) => <img src={stickerImage} alt="" key={stickerImage} />)}
+						</div>
 						<div className="stamp_area">
 							<ul className="flex type_sticker1">
-								<li className={`i1${onClass.includes('i1') ? ' on' : ''}`}>미션 스티커1 도장</li>
-								<li className={`i2${onClass.includes('i2') ? ' on' : ''}`}>미션 스티커2 도장</li>
-								<li className={`i3${onClass.includes('i3') ? ' on' : ''}`}>미션 스티커3 도장</li>
+								<li className={`i1${regularStickerClasses.includes('i1') ? ' on' : ''}`}>미션 스티커1 도장</li>
+								<li className={`i2${regularStickerClasses.includes('i2') ? ' on' : ''}`}>미션 스티커2 도장</li>
+								<li className={`i3${regularStickerClasses.includes('i3') ? ' on' : ''}`}>미션 스티커3 도장</li>
 							</ul>
 							<span className="plus"></span>
 							<ul className="flex type_sticker2">
-								<li className="i1">미션 보너스 스티커1 도장</li>
-								<li className="i2">미션 보너스 스티커2 도장</li>
-								<li className="i3">미션 보너스 스티커3 도장</li>
-								<li className="i4">미션 보너스 스티커3 도장</li>
+								<li className={`i1${bonusStickerClasses.includes('i1') ? ' on' : ''}`}>미션 보너스 스티커1 도장</li>
+								<li className={`i2${bonusStickerClasses.includes('i2') ? ' on' : ''}`}>미션 보너스 스티커2 도장</li>
+								<li className={`i3${bonusStickerClasses.includes('i3') ? ' on' : ''}`}>미션 보너스 스티커3 도장</li>
+								<li className={`i4${bonusStickerClasses.includes('i4') ? ' on' : ''}`}>미션 보너스 스티커4 도장</li>
 							</ul>
 						</div>
 					</div>

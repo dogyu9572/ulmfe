@@ -197,14 +197,39 @@
 		WHERE A.RSVT_SN = #{rsvtSn}
 		AND A.DEL_DT IS NULL
 		<if test="stdntSn != null">
-			AND A.STDNT_SN = #{stdntSn}
+			AND (
+				A.STDNT_SN = #{stdntSn}
+				OR A.STDNT_SN IN (
+					SELECT OLD_S.STDNT_SN
+					FROM EDU_RSVT_STDNT CUR_S
+					INNER JOIN EDU_RSVT_STDNT OLD_S ON OLD_S.RSVT_SN = CUR_S.RSVT_SN
+						AND OLD_S.STDNT_SN != CUR_S.STDNT_SN
+						AND OLD_S.STDNT_NO &lt;=&gt; CUR_S.STDNT_NO
+						AND OLD_S.CLAS_NM &lt;=&gt; CUR_S.CLAS_NM
+						AND OLD_S.CLAS_NO &lt;=&gt; CUR_S.CLAS_NO
+						AND OLD_S.STDNT_NM &lt;=&gt; CUR_S.STDNT_NM
+					WHERE CUR_S.RSVT_SN = #{rsvtSn}
+					AND CUR_S.STDNT_SN = #{stdntSn}
+					AND CUR_S.DEL_DT IS NULL
+					AND OLD_S.DEL_DT IS NOT NULL
+				)
+			)
 		</if>
 		<if test="ansTypeCd != null and ansTypeCd != ''">
 			AND A.ANS_TYPE_CD = #{ansTypeCd}
 		</if>
 		ORDER BY
 			FIELD(A.ANS_TYPE_CD, 'WORKSHEET', 'EVALUATION', 'SURVEY', 'TEACHER_EVALUATION'),
-			FIELD(A.STEP_CD, 'STEP1', 'STEP2', 'STEP3', 'STEP4'),
+			CASE
+				WHEN A.STEP_CD REGEXP '^QUEST[0-9]+$' THEN 1
+				WHEN A.STEP_CD REGEXP '^MISSION[0-9]+$' THEN 1
+				WHEN A.STEP_CD REGEXP '^STEP[0-9]+$' THEN 2
+				ELSE 9
+			END,
+			CASE
+				WHEN A.STEP_CD REGEXP '^(QUEST|MISSION|STEP)[0-9]+$' THEN CAST(REGEXP_REPLACE(A.STEP_CD, '^[A-Z]+', '') AS UNSIGNED)
+				ELSE 999
+			END,
 			A.LRN_ANS_SN
 	</select>
 </mapper>

@@ -1,11 +1,14 @@
 package egovframework.tablet.web;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import egovframework.tablet.common.ApiResponse;
 import egovframework.tablet.service.TabletService;
 import egovframework.tablet.service.vo.TabletAttendanceRequest;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletLoginRequest;
 import egovframework.tablet.service.vo.TabletLoginResponse;
+import egovframework.tablet.service.vo.TabletMakerAnswerRequest;
 import egovframework.tablet.service.vo.TabletMissionFinalSubmitRequest;
 import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
 import egovframework.tablet.service.vo.TabletSessionResponse;
@@ -15,8 +18,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,14 +34,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tablet")
 public class TabletApiController {
 	private final TabletService tabletService;
+	private final ObjectMapper objectMapper;
 
-	public TabletApiController(TabletService tabletService) {
+	public TabletApiController(TabletService tabletService, ObjectMapper objectMapper) {
 		this.tabletService = tabletService;
+		this.objectMapper = objectMapper;
 	}
 
 	@PostMapping("/auth/login")
@@ -97,6 +108,60 @@ public class TabletApiController {
 			return ResponseEntity.ok(ApiResponse.success("미션 응답 저장 성공", null));
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		}
+	}
+
+	@PostMapping(value = "/reservations/{rsvtSn}/mission-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponse<Void>> submitMissionFiles(
+		@PathVariable Integer rsvtSn,
+		@RequestParam String payload,
+		MultipartHttpServletRequest request
+	) {
+		try {
+			TabletMissionSubmitRequest parsedPayload = objectMapper.readValue(payload, TabletMissionSubmitRequest.class);
+			Map<String, MultipartFile> filesByFieldName = new HashMap<>();
+			Iterator<String> fileNames = request.getFileNames();
+			while (fileNames.hasNext()) {
+				String fieldName = fileNames.next();
+				MultipartFile file = request.getFile(fieldName);
+				if (file != null && !file.isEmpty()) filesByFieldName.put(fieldName, file);
+			}
+			tabletService.submitMissionFiles(rsvtSn, parsedPayload, filesByFieldName);
+			return ResponseEntity.ok(ApiResponse.success("미션 응답 저장 성공", null));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("미션 응답 저장 요청이 올바르지 않습니다."));
+		}
+	}
+
+	@PostMapping(value = "/reservations/{rsvtSn}/maker", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponse<Void>> submitMaker(
+		@PathVariable Integer rsvtSn,
+		@RequestParam String answers,
+		MultipartHttpServletRequest request
+	) {
+		try {
+			List<TabletMakerAnswerRequest> parsedAnswers = objectMapper.readValue(answers, new TypeReference<>() {});
+			Map<Integer, MultipartFile> filesByStudentSn = new HashMap<>();
+			Iterator<String> fileNames = request.getFileNames();
+			while (fileNames.hasNext()) {
+				String fieldName = fileNames.next();
+				if (!fieldName.startsWith("file_")) continue;
+				try {
+					Integer studentSn = Integer.parseInt(fieldName.substring("file_".length()));
+					MultipartFile file = request.getFile(fieldName);
+					if (file != null && !file.isEmpty()) filesByStudentSn.put(studentSn, file);
+				} catch (NumberFormatException ignored) {
+					// 파일 필드명 규칙에 맞지 않으면 무시합니다.
+				}
+			}
+			tabletService.submitMaker(rsvtSn, parsedAnswers, filesByStudentSn);
+			return ResponseEntity.ok(ApiResponse.success("메이커 활동지 저장 성공", null));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("메이커 활동지 저장 요청이 올바르지 않습니다."));
 		}
 	}
 

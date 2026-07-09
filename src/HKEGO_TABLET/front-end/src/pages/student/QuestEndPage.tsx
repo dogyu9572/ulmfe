@@ -138,7 +138,7 @@ export const QuestEndPage = () => {
 			<QuestionnairePopup id="pop_questionnaire" title="설문지 작성하기" questions={surveyQuestions} values={surveyValues} onChange={(values) => { setSurveyValues(values); setSurveySaved(false) }} open={popup === 'questionnaire'} onClose={() => setPopup(null)} onSave={() => { setSurveySaved(isComplete(surveyQuestions, surveyValues)); setPopup(null) }} />
 			<div className={`popup pop_completed${popup === 'completed' ? ' is-active' : ''}`} id="pop_completed">
 				<div className="dm" onClick={() => setPopup(null)}></div>
-				<div className="inbox"><button type="button" className="btn_close" onClick={() => setPopup(null)}>닫기</button><div className="tit">사건탐구 완료!</div><div className="con scroll_wrap"><div className="scroll"><div className="txt"><div className="tt">{studentFlowDisplayName(flowSession)} 학생, 사건탐구를 완료했습니다!</div><p>세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate('/student/resource_center')}>교육 완료 하기</button></div><p className="tac p_end">세션 종료 시, 자료실 화면으로 이동합니다.</p></div></div></div>
+				<div className="inbox"><button type="button" className="btn_close" onClick={() => setPopup(null)}>닫기</button><div className="tit">사건탐구 완료!</div><div className="con scroll_wrap"><div className="scroll"><div className="txt"><div className="tt">{studentFlowDisplayName(flowSession)} 학생, 사건탐구를 완료했습니다!</div><p>세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate('/select-user')}>교육 완료 하기</button></div><p className="tac p_end">세션 종료 시, 학생·선생님 선택 화면으로 이동합니다.</p></div></div></div>
 			</div>
 		</main>
 	)

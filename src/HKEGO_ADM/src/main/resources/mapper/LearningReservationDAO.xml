@@ -203,6 +203,20 @@
 		AND DEL_DT IS NULL
 	</update>
 
+	<update id="deleteStudentsExcept">
+		UPDATE EDU_RSVT_STDNT SET
+			DEL_DT = NOW(),
+			DELTR = 'admin'
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+		<if test="keepStudentSns != null and keepStudentSns.size() &gt; 0">
+			AND STDNT_SN NOT IN
+			<foreach collection="keepStudentSns" item="stdntSn" open="(" separator="," close=")">
+				#{stdntSn}
+			</foreach>
+		</if>
+	</update>
+
 	<insert id="insertStudent" parameterType="egovframework.let.adm.service.vo.LearningReservationStudentVO" useGeneratedKeys="true" keyProperty="stdntSn">
 		INSERT INTO EDU_RSVT_STDNT (
 			RSVT_SN, STDNT_NO, CLAS_NM, CLAS_NO, STDNT_NM, ATND_YN, TEAM_NM, ASGN_NM, ROUTE_CN,
@@ -212,6 +226,25 @@
 			#{lrnSttsCd}, #{prgrsRt}, #{rgtr}, NOW()
 		)
 	</insert>
+
+	<update id="updateStudent" parameterType="egovframework.let.adm.service.vo.LearningReservationStudentVO">
+		UPDATE EDU_RSVT_STDNT SET
+			STDNT_NO = #{stdntNo},
+			CLAS_NM = #{clasNm},
+			CLAS_NO = #{clasNo},
+			STDNT_NM = #{stdntNm},
+			ATND_YN = #{atndYn},
+			TEAM_NM = #{teamNm},
+			ASGN_NM = #{asgnNm},
+			ROUTE_CN = #{routeCn},
+			LRN_STTS_CD = #{lrnSttsCd},
+			PRGRS_RT = #{prgrsRt},
+			MDTR = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE RSVT_SN = #{rsvtSn}
+		AND STDNT_SN = #{stdntSn}
+		AND DEL_DT IS NULL
+	</update>
 
 	<update id="updateActualStudentCount">
 		UPDATE EDU_RSVT_MST SET

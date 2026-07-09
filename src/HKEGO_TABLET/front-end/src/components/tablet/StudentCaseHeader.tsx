@@ -22,14 +22,14 @@ const progressClassName = (progress: number) => {
 const getExploreHeaderProgress = (pathname: string, dynamicStepCount: number) => {
 	const totalSteps = 1 + dynamicStepCount + 2
 	const endStepIndex = totalSteps - 1
-	const match = pathname.match(/\/student\/quest(0[1-4])(_end)?$/)
+	const match = pathname.match(/\/student\/quest(0[1-4])(?:_[2-3]|_end)?$/)
 	let activeIndex = pathname.endsWith('/student/quest00') || pathname.endsWith('/student/quest_video') ? 0 : 0
 	let completedUntil = -1
 
 	if (match) {
 		const routeIndex = Number(match[1]) - 1
 		const currentStepIndex = 1 + routeIndex
-		if (match[2]) {
+		if (pathname.endsWith('_end')) {
 			completedUntil = currentStepIndex
 			activeIndex = Math.min(currentStepIndex + 1, endStepIndex)
 		} else {
@@ -81,6 +81,7 @@ export const StudentCaseHeader = () => {
 	const { activeIndex, completedUntil, progress: routeProgress } = getExploreHeaderProgress(location.pathname, routeItems.length)
 	const storedProgress = studentFlowStoredProgressRate(flowSession)
 	const progress = Math.max(routeProgress, storedProgress)
+	const earnedStampCount = routeItems.filter((_routeName, index) => completedExploreStepCodes.has(`QUEST${String(index + 1).padStart(2, '0')}`)).length
 
 	return (
 	<>
@@ -142,10 +143,10 @@ export const StudentCaseHeader = () => {
 				<div className="area">
 					<div className="tit"><h3>획득한 도장</h3></div>
 					<ul className="stamp_area type_stamp">
-						<li className="i1">퀘스트1 도장</li>
-						<li className="i2">퀘스트2 도장</li>
-						<li className="i3">퀘스트3 도장</li>
-						<li className="i4">퀘스트4 도장</li>
+						<li className={`i1${earnedStampCount >= 1 ? ' on' : ''}`}>퀘스트1 도장</li>
+						<li className={`i2${earnedStampCount >= 2 ? ' on' : ''}`}>퀘스트2 도장</li>
+						<li className={`i3${earnedStampCount >= 3 ? ' on' : ''}`}>퀘스트3 도장</li>
+						<li className={`i4${earnedStampCount >= 4 ? ' on' : ''}`}>퀘스트4 도장</li>
 					</ul>
 				</div>
 			</div>

@@ -1,8 +1,9 @@
 import { ChangeEvent, KeyboardEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { fetchTabletSession, submitTabletMaker } from '../../api/tabletApi'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
-import { studentFlowExploreStepByCode } from '../../state/tabletStudentFlowSession'
+import { saveTabletStudentFlowSession, studentFlowExploreStepByCode } from '../../state/tabletStudentFlowSession'
 
 const splitTextRows = (value: string) => value
 	.split(/\r?\n/)
@@ -15,6 +16,8 @@ export const Quest05Page = () => {
 	const [activeTab, setActiveTab] = useState(0)
 	const [previews, setPreviews] = useState<Record<number, string>>({})
 	const [descriptions, setDescriptions] = useState<Record<number, string>>({})
+	const [files, setFiles] = useState<Record<number, File>>({})
+	const [saving, setSaving] = useState(false)
 
 	const makerStep = studentFlowExploreStepByCode(flowSession ?? null, 'STEP3')
 	const students = flowSession?.selectedStudents.map((student) => student.stdntNm) ?? []
@@ -33,9 +36,15 @@ export const Quest05Page = () => {
 				delete next[index]
 				return next
 			})
+			setFiles((prev) => {
+				const next = { ...prev }
+				delete next[index]
+				return next
+			})
 			return
 		}
 
+		setFiles((prev) => ({ ...prev, [index]: file }))
 		const reader = new FileReader()
 		reader.onload = () => {
 			if (typeof reader.result === 'string') setPreviews((prev) => ({ ...prev, [index]: reader.result as string }))
@@ -52,6 +61,25 @@ export const Quest05Page = () => {
 		if (targetIndex === null) return
 		event.preventDefault()
 		setActiveTab(targetIndex)
+	}
+
+	const submitMaker = async () => {
+		if (!flowSession || saving) return
+		try {
+			setSaving(true)
+			await submitTabletMaker(flowSession.rsvtSn, flowSession.selectedStudents.map((student, index) => ({
+				studentSn: student.stdntSn,
+				description: descriptions[index] ?? '',
+				file: files[index] ?? null
+			})))
+			const nextSession = await fetchTabletSession()
+			saveTabletStudentFlowSession(nextSession, flowSession.selectedStudents.map((student) => student.stdntSn))
+			navigate('/student/quest_end')
+		} catch (error) {
+			alert(error instanceof Error ? error.message : '메이커 활동지 저장 중 오류가 발생했습니다.')
+		} finally {
+			setSaving(false)
+		}
 	}
 
 	return (
@@ -104,7 +132,7 @@ export const Quest05Page = () => {
 									<div className={`${activeTab === index ? 'cont on' : 'cont'}${isEnd ? ' end' : ''}`} id={`tab_panel_${index + 1}`} role="tabpanel" aria-labelledby={`tab_btn_${index + 1}`} key={student}>
 										<div className="flex">
 											<div className={`photo_inputs${previews[index] ? ' in_image in_file' : ''}`}>
-												<input type="file" name="photo" id={inputId} onChange={(event) => handlePhotoChange(event, index)} />
+												<input type="file" name="photo" id={inputId} accept="image/*" onChange={(event) => handlePhotoChange(event, index)} />
 												<label htmlFor={inputId}><span className="imgarea"><span className="imgfit">{previews[index] && <img src={previews[index]} alt="미리보기 이미지" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</span></span></label>
 											</div>
 											<div className="text_input"><textarea name="" id="" cols={30} rows={10} className="GangwonEdu" placeholder="내가 만든 연필꽂이의 설명을 입력해주세요." value={descriptions[index] ?? ''} onChange={(event) => setDescriptions((prev) => ({ ...prev, [index]: event.target.value }))}></textarea></div>
@@ -117,7 +145,7 @@ export const Quest05Page = () => {
 
 					<div className="btns_btm">
 						<button className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button>
-						<button className="btn btn_wbb" onClick={() => navigate('/student/quest_end')}>다음</button>
+						<button className="btn btn_wbb" onClick={submitMaker} disabled={saving}>{saving ? '저장 중' : '다음'}</button>
 					</div>
 				</div>
 			</section>

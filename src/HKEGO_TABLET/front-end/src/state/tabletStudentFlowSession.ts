@@ -305,6 +305,8 @@ export const studentFlowSavedAnswersByQuestion = (session: TabletStudentFlowSess
 		.forEach((answer) => {
 			const key = `${answer.cntnSn || 0}:${answer.qstnSn || 0}`
 			if (!map.has(key)) map.set(key, answer.ansCn || '')
+			const questionTextKey = `${answer.cntnSn || 0}:${answer.qstnCn || ''}`
+			if (answer.qstnCn && !map.has(questionTextKey)) map.set(questionTextKey, answer.ansCn || '')
 		})
 	return map
 }
@@ -353,6 +355,43 @@ export const studentFlowMissionQuestContents = (session: TabletStudentFlowSessio
 	return resolveLinkedProgramContents(linkedContents, contentDetails)
 }
 
+const selectedStudentIdSet = (session: TabletStudentFlowSession | null) => new Set((session?.selectedStudents ?? []).map((student) => student.stdntSn))
+
+const missionAnswerKeysByRouteIndex = (session: TabletStudentFlowSession | null, routeIndex: number) => {
+	const selectedStudentIds = selectedStudentIdSet(session)
+	const stepCd = studentFlowMissionStepCode(routeIndex)
+	return new Set((session?.savedAnswers ?? [])
+		.filter((answer) => selectedStudentIds.has(answer.stdntSn) && answer.stepCd === stepCd && (answer.ansCn || '').trim())
+		.map((answer) => `${answer.cntnSn || 0}:${answer.qstnSn || 0}`))
+}
+
+export const studentFlowMissionCompletedContentCountByRouteIndex = (session: TabletStudentFlowSession | null, routeIndex: number) => {
+	const contents = studentFlowMissionQuestContents(session, routeIndex)
+	if (contents.length === 0) return 0
+	const answerKeys = missionAnswerKeysByRouteIndex(session, routeIndex)
+	return contents.filter((content) => {
+		const contentId = content.cntnSn || 0
+		const questionIds = content.questions.length > 0
+			? content.questions.map((question) => question.cntnQstnSn || 0)
+			: [contentId]
+		return questionIds.length > 0 && questionIds.every((questionId) => answerKeys.has(`${contentId}:${questionId}`))
+	}).length
+}
+
+export const studentFlowMissionRegularStickerCount = (session: TabletStudentFlowSession | null) => {
+	const totalCompletedContents = studentFlowRouteItems(session)
+		.reduce((sum, _routeName, routeIndex) => sum + studentFlowMissionCompletedContentCountByRouteIndex(session, routeIndex), 0)
+	return Math.min(3, totalCompletedContents)
+}
+
+export const studentFlowMissionBonusStickerCount = (session: TabletStudentFlowSession | null) => {
+	const routes = studentFlowRouteItems(session)
+	const completedStepCodes = studentFlowCompletedMissionStepCodes(session)
+	const completedMissionCount = routes.filter((_routeName, routeIndex) => completedStepCodes.has(studentFlowMissionStepCode(routeIndex))).length
+	const allRouteMissionsCompleted = routes.length > 0 && completedMissionCount >= routes.length
+	return Math.min(4, completedMissionCount + (allRouteMissionsCompleted ? 1 : 0))
+}
+
 export const studentFlowExploreIntroStep = (session: TabletStudentFlowSession | null) => studentFlowProgramSteps(session).find((step) => step.step === 'STEP1') ?? null
 
 export const studentFlowExploreVideoRows = (session: TabletStudentFlowSession | null) => {
@@ -385,6 +424,8 @@ export const studentFlowExploreSavedAnswersByQuestion = (session: TabletStudentF
 		.forEach((answer) => {
 			const key = `${answer.cntnSn || 0}:${answer.qstnSn || 0}`
 			if (!map.has(key)) map.set(key, answer.ansCn || '')
+			const questionTextKey = `${answer.cntnSn || 0}:${answer.qstnCn || ''}`
+			if (answer.qstnCn && !map.has(questionTextKey)) map.set(questionTextKey, answer.ansCn || '')
 		})
 	return map
 }

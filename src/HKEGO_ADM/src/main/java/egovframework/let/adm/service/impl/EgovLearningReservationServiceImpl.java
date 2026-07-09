@@ -173,15 +173,30 @@ public class EgovLearningReservationServiceImpl extends EgovAbstractServiceImpl 
 	}
 
 	private void saveStudents(Integer rsvtSn, List<LearningReservationStudentDto> students, String adminId) {
-		learningReservationDAO.deleteStudents(rsvtSn);
+		Map<Integer, LearningReservationStudentVO> existingStudents = learningReservationDAO.selectStudents(rsvtSn)
+			.stream()
+			.collect(java.util.stream.Collectors.toMap(LearningReservationStudentVO::getStdntSn, student -> student));
+		List<Integer> retainedStudentSns = new ArrayList<>();
 		if (students != null) {
 			for (int i = 0; i < students.size(); i++) {
 				LearningReservationStudentDto dto = students.get(i);
 				if (isEmptyStudent(dto)) {
 					continue;
 				}
-				learningReservationDAO.insertStudent(toStudent(rsvtSn, i + 1, dto, adminId));
+				LearningReservationStudentVO student = toStudent(rsvtSn, i + 1, dto, adminId);
+				if (student.getStdntSn() != null && existingStudents.containsKey(student.getStdntSn())) {
+					learningReservationDAO.updateStudent(student);
+					retainedStudentSns.add(student.getStdntSn());
+				} else {
+					learningReservationDAO.insertStudent(student);
+					retainedStudentSns.add(student.getStdntSn());
+				}
 			}
+		}
+		if (retainedStudentSns.isEmpty()) {
+			learningReservationDAO.deleteStudents(rsvtSn);
+		} else {
+			learningReservationDAO.deleteStudentsExcept(rsvtSn, retainedStudentSns);
 		}
 		learningReservationDAO.updateActualStudentCount(rsvtSn);
 	}
@@ -314,6 +329,7 @@ public class EgovLearningReservationServiceImpl extends EgovAbstractServiceImpl 
 
 	private LearningReservationStudentVO toStudent(Integer rsvtSn, int index, LearningReservationStudentDto dto, String adminId) {
 		return LearningReservationStudentVO.builder()
+			.stdntSn(dto.getStdntSn())
 			.rsvtSn(rsvtSn)
 			.stdntNo(normalize(dto.getStdntNo()) == null ? String.valueOf(index) : normalize(dto.getStdntNo()))
 			.clasNm(normalize(dto.getClasNm()))

@@ -5,17 +5,17 @@ import { DynamicQuestContentSections, QuestPageShell, useQuestDynamicPage, useQu
 
 export const Quest01Page = () => {
 	const navigate = useNavigate()
-	const { contents, savedAnswers, title, location } = useQuestDynamicPage(0, 0)
+	const { contents, savedAnswers, title, location, stepLabel } = useQuestDynamicPage(0, 0)
 	const { pageRef, submit, saving, restoreSavedAnswers } = useQuestSubmit({ routeIndex: 0, nextPath: '/student/quest01_end' })
 
 	useEffect(() => restoreSavedAnswers(savedAnswers), [restoreSavedAnswers, savedAnswers])
 
 	return (
 		<main className="container" id="mainContent">
-			<h1 className="sound_only">{title || '퀘스트1'}</h1>
+			<h1 className="sound_only">{title || stepLabel}</h1>
 			<StudentCaseHeader />
 			<section className="basic_board">
-				<QuestPageShell title={title} step="STEP 1 사건탐색 - 퀘스트1" location={location} pageRef={pageRef}>
+				<QuestPageShell title={title} step={stepLabel} location={location} pageRef={pageRef}>
 					<DynamicQuestContentSections contents={contents} savedAnswers={savedAnswers} />
 					<div className="btns_btm">
 						<button className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button>

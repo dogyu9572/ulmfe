@@ -8,8 +8,11 @@ import jakarta.annotation.Resource;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service("egovLearningResultService")
 public class EgovLearningResultServiceImpl extends EgovAbstractServiceImpl implements EgovLearningResultService {
@@ -48,7 +51,46 @@ public class EgovLearningResultServiceImpl extends EgovAbstractServiceImpl imple
 	}
 
 	public List<LearningResultAnswerVO> getStudentAnswers(Integer rsvtSn, Integer stdntSn, String ansTypeCd) {
-		return learningResultDAO.selectStudentAnswers(rsvtSn, stdntSn, normalize(ansTypeCd));
+		return deduplicateFallbackAnswers(learningResultDAO.selectStudentAnswers(rsvtSn, stdntSn, normalize(ansTypeCd)), stdntSn);
+	}
+
+	private List<LearningResultAnswerVO> deduplicateFallbackAnswers(List<LearningResultAnswerVO> answers, Integer currentStudentSn) {
+		if (currentStudentSn == null || answers == null || answers.isEmpty()) {
+			return answers;
+		}
+		Set<String> currentAnswerKeys = new HashSet<>();
+		for (LearningResultAnswerVO answer : answers) {
+			if (answer != null && currentStudentSn.equals(answer.getStdntSn())) {
+				currentAnswerKeys.add(answerQuestionKey(answer));
+			}
+		}
+		Set<String> displayedKeys = new HashSet<>();
+		List<LearningResultAnswerVO> result = new ArrayList<>();
+		for (LearningResultAnswerVO answer : answers) {
+			if (answer == null) continue;
+			String questionKey = answerQuestionKey(answer);
+			boolean isFallback = !currentStudentSn.equals(answer.getStdntSn());
+			if (isFallback && currentAnswerKeys.contains(questionKey)) continue;
+			String displayKey = questionKey + "|" + normalizedText(answer.getAnsCn());
+			if (!displayedKeys.add(displayKey)) continue;
+			result.add(answer);
+		}
+		return result;
+	}
+
+	private String answerQuestionKey(LearningResultAnswerVO answer) {
+		return String.join("|",
+			normalizedText(answer.getAnsTypeCd()),
+			normalizedText(answer.getStepCd()),
+			normalizedText(answer.getCardClsfCd()),
+			String.valueOf(answer.getCntnSn()),
+			String.valueOf(answer.getQstnSn()),
+			normalizedText(answer.getQstnCn())
+		);
+	}
+
+	private String normalizedText(String value) {
+		return value == null ? "" : value.trim();
 	}
 
 	private String normalize(String value) {

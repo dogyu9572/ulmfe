@@ -58,6 +58,19 @@ type LearningResultAnswer = {
 	ansCn?: string
 }
 
+type MakerAnswerValue = {
+	type?: string
+	description?: string
+	fileName?: string
+	fileUrl?: string
+}
+
+type WorksheetFileAnswerValue = {
+	type?: string
+	answer?: string
+	files?: { label?: string; fileName?: string; fileUrl?: string }[]
+}
+
 const BACKEND = API_BASE_URL
 const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
@@ -75,6 +88,100 @@ function formatAttendance(row: LearningResult): string {
 
 function displayName(value: string | null | undefined): string {
 	return value && value.trim() ? value : '-'
+}
+
+function parseMakerAnswer(value: string | null | undefined): MakerAnswerValue | null {
+	if (!value) return null
+	try {
+		const parsed = JSON.parse(value) as MakerAnswerValue
+		if (parsed?.type === 'MAKER_PENCIL_HOLDER') return parsed
+		return null
+	} catch {
+		return null
+	}
+}
+
+function parseWorksheetFileAnswer(value: string | null | undefined): WorksheetFileAnswerValue | null {
+	if (!value) return null
+	try {
+		const parsed = JSON.parse(value) as WorksheetFileAnswerValue
+		if (parsed?.type === 'WORKSHEET_FILES') return parsed
+		return null
+	} catch {
+		return null
+	}
+}
+
+function resolveMakerFileUrl(value: string | null | undefined): string {
+	const url = value?.trim() ?? ''
+	if (!url) return ''
+	if (/^(https?:|blob:|data:)/i.test(url)) return url
+	const normalized = url.startsWith('/') ? url : `/${url}`
+	if (normalized.startsWith('/uploads/')) {
+		const currentUrl = new URL(window.location.href)
+		if (currentUrl.hostname.includes('ulmfe-adm')) {
+			currentUrl.hostname = currentUrl.hostname.replace('ulmfe-adm', 'ulmfe-tablet')
+			currentUrl.pathname = normalized
+			currentUrl.search = ''
+			currentUrl.hash = ''
+			return currentUrl.toString()
+		}
+		if (currentUrl.port === '9131') {
+			currentUrl.port = '9133'
+			currentUrl.pathname = normalized
+			currentUrl.search = ''
+			currentUrl.hash = ''
+			return currentUrl.toString()
+		}
+	}
+	return normalized
+}
+
+function renderAnswerContent(answer: LearningResultAnswer): React.ReactNode {
+	const makerAnswer = parseMakerAnswer(answer.ansCn)
+	if (makerAnswer) {
+		const fileUrl = resolveMakerFileUrl(makerAnswer.fileUrl)
+		return (
+			<div className="learning-result-answer">
+				{makerAnswer.description?.trim() && <p>{makerAnswer.description.trim()}</p>}
+				{makerAnswer.fileName?.trim() && fileUrl && (
+					<a href={fileUrl} target="_blank" rel="noreferrer" download={makerAnswer.fileName}>
+						{makerAnswer.fileName}
+					</a>
+				)}
+				{!makerAnswer.description?.trim() && !makerAnswer.fileName?.trim() && '-'}
+			</div>
+		)
+	}
+	const worksheetFileAnswer = parseWorksheetFileAnswer(answer.ansCn)
+	if (worksheetFileAnswer) {
+		const files = (worksheetFileAnswer.files ?? []).filter((file) => file.fileName?.trim() && file.fileUrl?.trim())
+		const fileTextSet = new Set(files.flatMap((file) => {
+			const fileName = file.fileName?.trim() ?? ''
+			const label = file.label?.trim() ?? ''
+			return [fileName, label ? `${label}: ${fileName}` : ''].filter(Boolean)
+		}))
+		const answerText = (worksheetFileAnswer.answer ?? '')
+			.split('\n')
+			.map((line) => line.trim())
+			.filter((line) => line && !fileTextSet.has(line))
+			.join('\n')
+		return (
+			<div className="learning-result-answer">
+				{answerText && <p>{answerText}</p>}
+				{files.map((file, index) => {
+					const fileUrl = resolveMakerFileUrl(file.fileUrl)
+					return (
+						<a key={`${file.fileUrl}_${index}`} href={fileUrl} target="_blank" rel="noreferrer" download={file.fileName}>
+							{file.label?.trim() ? `${file.label.trim()}: ${file.fileName}` : file.fileName}
+						</a>
+					)
+				})}
+				{!answerText && files.length === 0 && '-'}
+			</div>
+		)
+	}
+	return answer.ansCn || '-'
 }
 
 function formatGrade(value: string | null | undefined): string {
@@ -451,7 +558,7 @@ export const LearningResultPage: React.FC = () => {
 								<td>{answer.stepNm || '-'}</td>
 								<td>{answer.cardClsfNm || answer.ansTypeNm || '-'}</td>
 								<td style={{ textAlign: 'left' }}>{answer.qstnCn || '-'}</td>
-								<td style={{ textAlign: 'left' }}>{answer.ansCn || '-'}</td>
+								<td style={{ textAlign: 'left' }}>{renderAnswerContent(answer)}</td>
 							</tr>
 						))}
 						{answers.length === 0 && (

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import {
+	studentFlowCompletedExploreStepCodes,
 	studentFlowExploreQuestByRouteIndex,
 	studentFlowRouteItems
 } from '../../state/tabletStudentFlowSession'
@@ -21,6 +22,8 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 	const nextPath = nextRouteName ? `/student/quest${String(routeIndex + 2).padStart(2, '0')}` : '/student/quest05'
 	const nextQuest = nextRouteName ? studentFlowExploreQuestByRouteIndex(flowSession, routeIndex + 1) : null
 	const nextTitle = nextQuest?.place || nextQuest?.title || nextRouteName || '사건해결'
+	const completedStepCodes = studentFlowCompletedExploreStepCodes(flowSession)
+	const earnedStampCount = routeItems.filter((_item, index) => completedStepCodes.has(`QUEST${String(index + 1).padStart(2, '0')}`)).length
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -38,7 +41,7 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 						<div className="large" aria-hidden="true"><img src={stampImage(routeIndex)} alt="" /></div>
 						<ul className="stamp_area">
 							{routeItems.map((item, index) => (
-								<li key={`${item}-${index}`} className={`i${index + 1}${index <= routeIndex ? ' on' : ''}`}>{item} 도장</li>
+								<li key={`${item}-${index}`} className={`i${index + 1}${earnedStampCount >= index + 1 ? ' on' : ''}`}>{item} 도장</li>
 							))}
 						</ul>
 					</div>

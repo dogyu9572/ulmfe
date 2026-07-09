@@ -168,6 +168,11 @@ export type TabletMissionAnswer = {
 	qstnCn: string
 	ansCn: string
 	cardClsfCd?: string
+	files?: {
+		label: string
+		fileName: string
+		fieldName: string
+	}[]
 }
 
 export type TabletQuestionnaireAnswer = {
@@ -214,7 +219,7 @@ const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
 		const token = readCookie(CSRF_COOKIE) || csrfToken
 		if (token) headers.set(CSRF_HEADER, token)
 	}
-	if (init?.body && !headers.has('Content-Type')) {
+	if (init?.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json')
 	}
 
@@ -270,6 +275,39 @@ export const submitTabletMission = (rsvtSn: number, payload: {
 	method: 'POST',
 	body: JSON.stringify(payload)
 })
+
+export const submitTabletMissionFiles = (rsvtSn: number, payload: {
+	studentSns: number[]
+	routeIndex: number
+	routeName: string
+	stepCd?: string
+	totalRouteCount: number
+	answers: TabletMissionAnswer[]
+}, files: Record<string, File>) => {
+	const formData = new FormData()
+	formData.append('payload', JSON.stringify(payload))
+	Object.entries(files).forEach(([fieldName, file]) => formData.append(fieldName, file))
+	return request<void>(`/api/tablet/reservations/${rsvtSn}/mission-files`, {
+		method: 'POST',
+		body: formData
+	})
+}
+
+export const submitTabletMaker = (rsvtSn: number, answers: {
+	studentSn: number
+	description: string
+	file?: File | null
+}[]) => {
+	const formData = new FormData()
+	formData.append('answers', JSON.stringify(answers.map(({ studentSn, description }) => ({ studentSn, description }))))
+	answers.forEach((answer) => {
+		if (answer.file) formData.append(`file_${answer.studentSn}`, answer.file)
+	})
+	return request<void>(`/api/tablet/reservations/${rsvtSn}/maker`, {
+		method: 'POST',
+		body: formData
+	})
+}
 
 export const submitTabletMissionFinal = (rsvtSn: number, payload: {
 	studentSns: number[]

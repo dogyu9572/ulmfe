@@ -1,7 +1,7 @@
 import { Fragment, ReactNode, RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
-import { fetchTabletSession, submitTabletMission, TabletContent, TabletContentQuestion, TabletMissionAnswer } from '../../api/tabletApi'
+import { fetchTabletSession, submitTabletMission, submitTabletMissionFiles, TabletContent, TabletContentQuestion, TabletMissionAnswer } from '../../api/tabletApi'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import {
 	saveTabletStudentFlowSession,
@@ -39,8 +39,26 @@ const savedValueForLabel = (answer: string | undefined, label: string) => {
 	return matchedLine ? matchedLine.slice(label.length + 1).trim() : ''
 }
 
-const collectCardAnswer = (card: HTMLElement) => {
+const savedAnswerForQuestion = (savedAnswers: Map<string, string>, content: TabletContent, question: TabletContentQuestion) => {
+	const contentId = content.cntnSn || 0
+	const keys = [
+		`${contentId}:${question.cntnQstnSn || 0}`,
+		`${contentId}:${question.qstnNm || ''}`,
+		`${contentId}:0`
+	]
+	return keys.map((key) => savedAnswers.get(key)).find((value) => typeof value === 'string')
+}
+
+type CollectedCardAnswer = {
+	ansCn: string
+	files: NonNullable<TabletMissionAnswer['files']>
+	fileMap: Record<string, File>
+}
+
+const collectCardAnswer = (card: HTMLElement, answerIndex = 0): CollectedCardAnswer => {
 	const values: string[] = []
+	const answerFiles: NonNullable<TabletMissionAnswer['files']> = []
+	const fileMap: Record<string, File> = {}
 	card.querySelectorAll<HTMLInputElement>('input[type="checkbox"], input[type="radio"]').forEach((input) => {
 		if (!input.checked) return
 		const label = input.closest('.box')?.textContent?.trim() || input.value
@@ -52,13 +70,18 @@ const collectCardAnswer = (card: HTMLElement) => {
 		const label = input.closest('li')?.querySelector('label')?.textContent?.trim()
 		values.push(label ? `${label}: ${value}` : value)
 	})
-	card.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((input) => {
-		const files = Array.from(input.files ?? []).map((file) => file.name)
+	card.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((input, fileInputIndex) => {
+		const files = Array.from(input.files ?? [])
 		if (files.length === 0) return
 		const label = input.closest('li')?.querySelector('label')?.textContent?.trim()
-		values.push(label ? `${label}: ${files.join(', ')}` : files.join(', '))
+		files.forEach((file, fileIndex) => {
+			const fieldName = `answer_${answerIndex}_file_${fileInputIndex}_${fileIndex}`
+			fileMap[fieldName] = file
+			answerFiles.push({ label: label || '', fileName: file.name, fieldName })
+			values.push(label ? `${label}: ${file.name}` : file.name)
+		})
 	})
-	return values.join('\n')
+	return { ansCn: values.join('\n'), files: answerFiles, fileMap }
 }
 
 const restoreCardAnswer = (card: HTMLElement, answer: string) => {
@@ -95,7 +118,8 @@ export const useQuestDynamicPage = (routeIndex: number, contentIndex: number) =>
 		questions,
 		savedAnswers,
 		title: quest?.title || content?.cntnTtl || '',
-		location: quest?.place || ''
+		location: quest?.place || '',
+		stepLabel: `STEP ${routeIndex === 0 ? '1' : '2'} 사건탐색 - ${quest?.name || `퀘스트${routeIndex + 1}`}`
 	}
 }
 
@@ -118,15 +142,18 @@ export const useQuestSubmit = ({ routeIndex, nextPath }: { routeIndex: number; n
 	const submit = async () => {
 		if (!flowSession || !quest || saving) return
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-cntn-sn][data-qstn-sn]') ?? [])
-		const answers = cards.reduce<TabletMissionAnswer[]>((acc, card) => {
-			const ansCn = collectCardAnswer(card)
-			if (!ansCn.trim()) return acc
+		const filesByFieldName: Record<string, File> = {}
+		const answers = cards.reduce<TabletMissionAnswer[]>((acc, card, cardIndex) => {
+			const collected = collectCardAnswer(card, cardIndex)
+			if (!collected.ansCn.trim() && collected.files.length === 0) return acc
+			Object.assign(filesByFieldName, collected.fileMap)
 			acc.push({
 				cntnSn: Number(card.dataset.cntnSn) || undefined,
 				qstnSn: Number(card.dataset.qstnSn) || undefined,
 				qstnCn: card.dataset.qstnCn || '',
 				cardClsfCd: card.dataset.cardClsfCd || undefined,
-				ansCn
+				ansCn: collected.ansCn,
+				files: collected.files
 			})
 			return acc
 		}, [])
@@ -136,14 +163,19 @@ export const useQuestSubmit = ({ routeIndex, nextPath }: { routeIndex: number; n
 		}
 		try {
 			setSaving(true)
-			await submitTabletMission(flowSession.rsvtSn, {
+			const payload = {
 				studentSns: flowSession.selectedStudents.map((student) => student.stdntSn),
 				routeIndex,
 				routeName: quest.name,
 				stepCd: studentFlowExploreStepCode(routeIndex),
 				totalRouteCount: routeItems.length,
 				answers
-			})
+			}
+			if (Object.keys(filesByFieldName).length > 0) {
+				await submitTabletMissionFiles(flowSession.rsvtSn, payload, filesByFieldName)
+			} else {
+				await submitTabletMission(flowSession.rsvtSn, payload)
+			}
 			const nextSession = await fetchTabletSession()
 			saveTabletStudentFlowSession(nextSession, flowSession.selectedStudents.map((student) => student.stdntSn))
 			navigate(nextPath)
@@ -188,7 +220,7 @@ const DynamicQuestionControl = ({ question, baseId, savedAnswer }: { question: T
 	const photoLabels = options.photo?.labels?.filter(Boolean) ?? []
 	const checkedItems = parseAnswerLines(savedAnswer)
 
-	if (types.includes('SELECT') && selectItems.length > 0) return <CheckboxList name={`${baseId}_select`} items={selectItems} checkedItems={checkedItems} />
+	if (types.includes('SELECT') && selectItems.length > 0) return <CheckboxList name={`${baseId}_select`} items={selectItems} checkedItems={checkedItems} mode={options.select?.choiceMode === 'SINGLE' ? 'SINGLE' : 'MULTI'} />
 	if (types.includes('DATA')) return <DataInputs question={question} options={options} baseId={baseId} savedAnswer={savedAnswer} />
 	if (types.includes('SENTENCE')) {
 		return <ul className="input_list">{(sentenceItems.length > 0 ? sentenceItems : ['']).map((item, index) => {
@@ -218,11 +250,12 @@ export const DynamicQuestionCards = ({ content, questions, savedAnswers, emptyMe
 	return <>
 		{questions.map((question, index) => {
 			const answerKey = `${content.cntnSn || 0}:${question.cntnQstnSn || 0}`
+			const savedAnswer = savedAnswerForQuestion(savedAnswers, content, question)
 			return (
 				<div className="wbox a_card_box" key={answerKey} data-cntn-sn={content.cntnSn} data-qstn-sn={question.cntnQstnSn} data-qstn-cn={question.qstnNm} data-card-clsf-cd={content.cardClsfCd || ''}>
 					<div className="card_top">문항풀이 #{startIndex + index + 1}</div>
 					<h3 className="tit">{question.qstnNm}</h3>
-					<div className="con"><DynamicQuestionControl key={`${answerKey}:${savedAnswers.get(answerKey) || ''}`} question={question} baseId={`quest_${content.cntnSn}_${question.cntnQstnSn}`} savedAnswer={savedAnswers.get(answerKey)} /></div>
+					<div className="con"><DynamicQuestionControl key={`${answerKey}:${savedAnswer || ''}`} question={question} baseId={`quest_${content.cntnSn}_${question.cntnQstnSn || 0}`} savedAnswer={savedAnswer} /></div>
 				</div>
 			)
 		})}
@@ -272,19 +305,17 @@ const questContentPath = (routeIndex: number, contentIndex: number) => {
 
 export const QuestDynamicContentPage = ({ routeIndex, contentIndex }: { routeIndex: number; contentIndex: number }) => {
 	const navigate = useNavigate()
-	const { contents, content, questions, savedAnswers, title, location } = useQuestDynamicPage(routeIndex, contentIndex)
+	const { contents, content, questions, savedAnswers, title, location, stepLabel } = useQuestDynamicPage(routeIndex, contentIndex)
 	const nextPath = contentIndex + 1 < contents.length
 		? questContentPath(routeIndex, contentIndex + 1)
 		: `/student/quest${String(routeIndex + 1).padStart(2, '0')}_end`
 	const { pageRef, submit, saving, restoreSavedAnswers } = useQuestSubmit({ routeIndex, nextPath })
-	const questLabel = `퀘스트${routeIndex + 1}`
-	const stepLabel = `STEP ${routeIndex === 0 ? '1' : '2'} 사건탐색 - ${questLabel}`
 
 	useEffect(() => restoreSavedAnswers(savedAnswers), [restoreSavedAnswers, savedAnswers])
 
 	return (
 		<main className="container" id="mainContent">
-			<h1 className="sound_only">{title || questLabel}</h1>
+			<h1 className="sound_only">{title || stepLabel}</h1>
 			<StudentCaseHeader />
 			<section className="basic_board">
 				<QuestPageShell title={title} step={stepLabel} location={location} pageRef={pageRef}>

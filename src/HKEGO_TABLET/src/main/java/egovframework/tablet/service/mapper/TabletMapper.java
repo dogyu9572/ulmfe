@@ -23,7 +23,7 @@ public interface TabletMapper {
 
 	void updateAdminLastLogin(String id);
 
-	TabletReservationVO findReservationByDate(String rsvtYmd);
+	TabletReservationVO findReservationByDate(@Param("rsvtYmd") String rsvtYmd, @Param("currentHm") String currentHm);
 
 	List<TabletStudentVO> selectStudents(Integer rsvtSn);
 

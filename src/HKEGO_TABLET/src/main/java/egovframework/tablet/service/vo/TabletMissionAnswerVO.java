@@ -2,6 +2,8 @@ package egovframework.tablet.service.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class TabletMissionAnswerVO {
 	private Integer cntnSn;
@@ -9,4 +11,5 @@ public class TabletMissionAnswerVO {
 	private String qstnCn;
 	private String ansCn;
 	private String cardClsfCd;
+	private List<TabletMissionAnswerFileVO> files;
 }

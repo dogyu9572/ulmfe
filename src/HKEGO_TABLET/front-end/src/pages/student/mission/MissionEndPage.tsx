@@ -152,17 +152,17 @@ export const MissionEndPage = () => {
 	const submitFinal = async () => {
 		if (saving) return
 		if (!heroName.trim()) {
-			alert('입력되지 않은 부분을 마저 입력해주세요.')
+			alert('SDGs 히어로즈 이름을 입력해주세요.')
 			document.querySelector<HTMLInputElement>('.hero_name .inputs input[type="text"]')?.focus()
 			return
 		}
 		if (evaluationQuestions.length > 0 && !evaluationComplete) {
-			alert('평가지를 작성해주세요.')
+			alert('평가지를 입력해주세요.')
 			setPopup('evaluation')
 			return
 		}
 		if (surveyQuestions.length > 0 && !surveyComplete) {
-			alert('설문지를 작성해주세요.')
+			alert('설문지를 입력해주세요.')
 			setPopup('questionnaire')
 			return
 		}
@@ -237,7 +237,7 @@ export const MissionEndPage = () => {
 				<div className="inbox">
 					<button type="button" className="btn_close" onClick={() => setPopup(null)}>닫기</button>
 					<div className="tit">미션 수행 완료!</div>
-					<div className="con scroll_wrap"><div className="scroll"><div className="flex_center"><div className="imgbox"><img src="/pub/images/img_hero_completed.webp" alt="" /><p>{completedHeroName}</p></div></div><div className="txt"><div className="tt">{displayName}님은 이제 <strong>'울산 SDGs 히어로즈'</strong>입니다!</div><p>{missionAreaText}을 모두 돌며 지속가능한 소비의 의미를 탐구했어요.<br />세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate('/student/mission_resource_center')}>미션 완료 하기</button></div><p className="tac p_end">세션 종료 시, 키오스크 화면으로 이동합니다.</p></div></div>
+					<div className="con scroll_wrap"><div className="scroll"><div className="flex_center"><div className="imgbox"><img src="/pub/images/img_hero_completed.webp" alt="" /><p>{completedHeroName}</p></div></div><div className="txt"><div className="tt">{displayName}님은 이제 <strong>'울산 SDGs 히어로즈'</strong>입니다!</div><p>{missionAreaText}을 모두 돌며 지속가능한 소비의 의미를 탐구했어요.<br />세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate('/select-user')}>미션 완료 하기</button></div><p className="tac p_end">세션 종료 시, 키오스크 화면으로 이동합니다.</p></div></div>
 				</div>
 			</div>
 		</main>

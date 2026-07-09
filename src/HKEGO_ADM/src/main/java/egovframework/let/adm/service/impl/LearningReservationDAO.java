@@ -76,8 +76,19 @@ public class LearningReservationDAO extends EgovAbstractMapper {
 		return update(NS + "deleteStudents", rsvtSn);
 	}
 
+	public int deleteStudentsExcept(Integer rsvtSn, List<Integer> keepStudentSns) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("rsvtSn", rsvtSn);
+		param.put("keepStudentSns", keepStudentSns);
+		return update(NS + "deleteStudentsExcept", param);
+	}
+
 	public int insertStudent(LearningReservationStudentVO student) {
 		return insert(NS + "insertStudent", student);
+	}
+
+	public int updateStudent(LearningReservationStudentVO student) {
+		return update(NS + "updateStudent", student);
 	}
 
 	public int updateActualStudentCount(Integer rsvtSn) {

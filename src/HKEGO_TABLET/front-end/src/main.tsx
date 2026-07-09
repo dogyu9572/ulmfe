@@ -7,22 +7,19 @@ import { StudentAboutPage } from './pages/student/StudentAboutPage'
 import { StudentAttendancePage } from './pages/student/StudentAttendancePage'
 import { StudentWelcomePage } from './pages/student/StudentWelcomePage'
 import { QuestIntroPage } from './pages/student/QuestIntroPage'
-import { Quest01EndPage } from './pages/student/Quest01EndPage'
 import { Quest01Page } from './pages/student/Quest01Page'
 import { Quest01SecondPage } from './pages/student/Quest01SecondPage'
 import { Quest01ThirdPage } from './pages/student/Quest01ThirdPage'
-import { Quest02EndPage } from './pages/student/Quest02EndPage'
 import { Quest02Page } from './pages/student/Quest02Page'
 import { Quest02SecondPage } from './pages/student/Quest02SecondPage'
 import { Quest02ThirdPage } from './pages/student/Quest02ThirdPage'
-import { Quest03EndPage } from './pages/student/Quest03EndPage'
 import { Quest03Page } from './pages/student/Quest03Page'
 import { Quest03SecondPage } from './pages/student/Quest03SecondPage'
-import { Quest04EndPage } from './pages/student/Quest04EndPage'
 import { Quest04Page } from './pages/student/Quest04Page'
 import { Quest04SecondPage } from './pages/student/Quest04SecondPage'
 import { Quest05Page } from './pages/student/Quest05Page'
 import { QuestEndPage } from './pages/student/QuestEndPage'
+import { QuestStepEndPage } from './pages/student/QuestStepEndPage'
 import { QuestVideoPage } from './pages/student/QuestVideoPage'
 import { ResourceCenterPage } from './pages/student/ResourceCenterPage'
 import { QuestDynamicContentPage } from './pages/student/questDynamicShared'
@@ -158,17 +155,17 @@ const PageRoute = () => {
 	if (page === 'student/quest01') return <Quest01Page />
 	if (page === 'student/quest01_2') return <Quest01SecondPage />
 	if (page === 'student/quest01_3') return <Quest01ThirdPage />
-	if (page === 'student/quest01_end') return <Quest01EndPage />
+	if (page === 'student/quest01_end') return <QuestStepEndPage routeIndex={0} />
 	if (page === 'student/quest02') return <Quest02Page />
 	if (page === 'student/quest02_2') return <Quest02SecondPage />
 	if (page === 'student/quest02_3') return <Quest02ThirdPage />
-	if (page === 'student/quest02_end') return <Quest02EndPage />
+	if (page === 'student/quest02_end') return <QuestStepEndPage routeIndex={1} />
 	if (page === 'student/quest03') return <Quest03Page />
 	if (page === 'student/quest03_2') return <Quest03SecondPage />
-	if (page === 'student/quest03_end') return <Quest03EndPage />
+	if (page === 'student/quest03_end') return <QuestStepEndPage routeIndex={2} />
 	if (page === 'student/quest04') return <Quest04Page />
 	if (page === 'student/quest04_2') return <Quest04SecondPage />
-	if (page === 'student/quest04_end') return <Quest04EndPage />
+	if (page === 'student/quest04_end') return <QuestStepEndPage routeIndex={3} />
 	if (page === 'student/quest05') return <Quest05Page />
 	if (page === 'student/quest_end') return <QuestEndPage />
 	if (page === 'student/quest_video') return <QuestVideoPage />

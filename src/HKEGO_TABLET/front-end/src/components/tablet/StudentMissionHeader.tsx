@@ -6,7 +6,9 @@ import {
 	studentFlowClassName,
 	studentFlowCompletedMissionStepCodes,
 	studentFlowExploreIntroStep,
+	studentFlowMissionBonusStickerCount,
 	studentFlowMissionQuestByRouteIndex,
+	studentFlowMissionRegularStickerCount,
 	studentFlowRouteItems,
 	studentFlowStoredProgressRate,
 	studentFlowTeamName
@@ -100,6 +102,8 @@ export const StudentMissionHeader = () => {
 	const { activeIndex, completedUntil, progress: routeProgress } = getMissionHeaderProgress(location.pathname, routeItems.length)
 	const storedProgress = studentFlowStoredProgressRate(flowSession)
 	const progress = Math.max(routeProgress, storedProgress)
+	const regularStickerCount = studentFlowMissionRegularStickerCount(flowSession)
+	const bonusStickerCount = studentFlowMissionBonusStickerCount(flowSession)
 
 	return (
 	<>
@@ -156,18 +160,18 @@ export const StudentMissionHeader = () => {
 				<div className="area">
 					<div className="tit"><h3>획득한 스티커</h3></div>
 					<ul className="stamp_area type_sticker1">
-						<li className="i1">미션1 스티커</li>
-						<li className="i2">미션2 스티커</li>
-						<li className="i3">미션3 스티커</li>
+						<li className={`i1${regularStickerCount >= 1 ? ' on' : ''}`}>미션1 스티커</li>
+						<li className={`i2${regularStickerCount >= 2 ? ' on' : ''}`}>미션2 스티커</li>
+						<li className={`i3${regularStickerCount >= 3 ? ' on' : ''}`}>미션3 스티커</li>
 					</ul>
 				</div>
 				<div className="area">
 					<div className="tit"><h3>보너스 스티커</h3></div>
 					<ul className="stamp_area type_sticker2">
-						<li className="i1">보너스1 스티커</li>
-						<li className="i2">보너스2 스티커</li>
-						<li className="i3">보너스3 스티커</li>
-						<li className="i4">보너스4 스티커</li>
+						<li className={`i1${bonusStickerCount >= 1 ? ' on' : ''}`}>보너스1 스티커</li>
+						<li className={`i2${bonusStickerCount >= 2 ? ' on' : ''}`}>보너스2 스티커</li>
+						<li className={`i3${bonusStickerCount >= 3 ? ' on' : ''}`}>보너스3 스티커</li>
+						<li className={`i4${bonusStickerCount >= 4 ? ' on' : ''}`}>보너스4 스티커</li>
 					</ul>
 				</div>
 			</div>
