@@ -7,6 +7,7 @@ import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
 import { API_BASE_URL } from '../config'
+import { timestampedExcelFileName } from '../utils/downloadFileName'
 
 type ApiResponse<T> = {
 	success: boolean
@@ -287,6 +288,7 @@ export const EvaluationFormPage: React.FC = () => {
 				evlSeCd: form.evlSeCd,
 				qstnrNm: form.qstnrNm,
 				questions: form.questions.map((question, index) => ({
+					qstnSn: question.qstnSn,
 					qstnNo: question.qstnNo,
 					ansTypeCd: question.ansTypeCd,
 					qstnCn: question.qstnCn,
@@ -394,6 +396,29 @@ export const EvaluationFormPage: React.FC = () => {
 		})
 	}
 
+	const downloadResults = async (row: EvaluationForm) => {
+		if (!row.qstnrSn) return
+		setLoading(true)
+		setError(null)
+		try {
+			const res = await fetch(`${BACKEND}/api/admin/evaluation-forms/${row.qstnrSn}/results.xlsx`, { credentials: 'include' })
+			if (!res.ok) throw new Error('결과 다운로드에 실패했습니다.')
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = timestampedExcelFileName('평가지', row.qstnrNm)
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			window.URL.revokeObjectURL(url)
+		} catch (e) {
+			setError(e instanceof Error ? e.message : '결과 다운로드 중 오류가 발생했습니다.')
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	return (
 		<AdminLayout title="평가지 관리">
 			<CrudPageCard title="평가지 관리" error={popupOpen ? null : error} message={message}>
@@ -493,6 +518,7 @@ export const EvaluationFormPage: React.FC = () => {
 							<th>평가지 이름</th>
 							<th style={{ width: 120 }}>작성자</th>
 							<th style={{ width: 120 }}>등록일</th>
+							<th style={{ width: 130 }}>결과 다운로드</th>
 							<th style={{ width: 120 }}>관리</th>
 						</tr>
 					</thead>
@@ -512,6 +538,9 @@ export const EvaluationFormPage: React.FC = () => {
 								<td style={{ textAlign: 'left' }}>{row.qstnrNm}</td>
 								<td>{row.rgtr || '-'}</td>
 								<td>{formatDate(row.regDt)}</td>
+								<td onClick={(e) => e.stopPropagation()}>
+									<button type="button" className="admin-filter-btn-reset" onClick={() => void downloadResults(row)} disabled={loading}>결과 다운로드</button>
+								</td>
 								<td className="table-actions admin-list-manage-td" onClick={(e) => e.stopPropagation()}>
 									<RowActionButtons
 										onEdit={() => void openEditPopup(row.qstnrSn)}
@@ -523,7 +552,7 @@ export const EvaluationFormPage: React.FC = () => {
 						))}
 						{list.length === 0 && (
 							<tr>
-								<td colSpan={7} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
+								<td colSpan={8} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
 							</tr>
 						)}
 					</tbody>

@@ -15,7 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -44,6 +49,17 @@ public class EgovSurveyFormManageApiController {
 		return ApiResponse.success("설문지 상세 조회 성공", surveyFormService.getSurveyFormById(qstnrSn));
 	}
 
+	@GetMapping("/{qstnrSn}/results.xlsx")
+	public ResponseEntity<byte[]> downloadSurveyResults(@PathVariable Integer qstnrSn) throws Exception {
+		EvaluationFormVO form = surveyFormService.getSurveyFormById(qstnrSn);
+		byte[] body = QuestionnaireResultExcelWriter.create(
+			form,
+			surveyFormService.getSurveyResponses(qstnrSn),
+			true
+		);
+		return excelResponse("survey-" + qstnrSn + "-results.xlsx", body);
+	}
+
 	@PostMapping
 	public ApiResponse<EvaluationFormVO> createSurveyForm(@RequestBody EvaluationFormDto dto) {
 		return ApiResponse.success("설문지 등록 성공", surveyFormService.createSurveyForm(dto));
@@ -61,5 +77,15 @@ public class EgovSurveyFormManageApiController {
 	public ApiResponse<Void> deleteSurveyForm(@PathVariable Integer qstnrSn) {
 		surveyFormService.deleteSurveyForm(qstnrSn);
 		return ApiResponse.success("설문지 삭제 성공", null);
+	}
+
+	private ResponseEntity<byte[]> excelResponse(String fileName, byte[] body) {
+		ContentDisposition disposition = ContentDisposition.attachment()
+			.filename(fileName, StandardCharsets.UTF_8)
+			.build();
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+			.contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+			.body(body);
 	}
 }

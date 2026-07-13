@@ -26,6 +26,8 @@ public interface TabletMapper {
 
 	TabletReservationVO findReservationByDate(@Param("rsvtYmd") String rsvtYmd, @Param("currentHm") String currentHm);
 
+	String selectReservationStepJson(Integer rsvtSn);
+
 	List<TabletStudentVO> selectStudents(Integer rsvtSn);
 
 	List<TabletContentVO> selectContentsByIds(@Param("contentIds") List<Integer> contentIds);

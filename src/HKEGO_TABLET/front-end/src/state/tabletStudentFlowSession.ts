@@ -281,10 +281,31 @@ export const studentFlowNextMissionLabelAfterRouteIndex = (session: TabletStuden
 }
 
 export const studentFlowCompletedMissionStepCodes = (session: TabletStudentFlowSession | null) => {
-	const selectedStudentIds = new Set((session?.selectedStudents ?? []).map((student) => student.stdntSn))
-	return new Set((session?.progressLogs ?? [])
-		.filter((log) => selectedStudentIds.has(log.stdntSn) && log.stepSttsCd === 'DONE')
-		.map((log) => log.stepCd))
+	const selectedStudentIds = (session?.selectedStudents ?? []).map((student) => student.stdntSn)
+	const routes = studentFlowRouteItems(session)
+	return new Set(routes.flatMap((_routeName, routeIndex) => {
+		const stepCd = studentFlowMissionStepCode(routeIndex)
+		const contents = studentFlowMissionQuestContents(session, routeIndex)
+		const requiredAnswerKeys = contents.flatMap((content) => {
+			const contentId = content.cntnSn || 0
+			const questionIds = content.questions.length > 0
+				? content.questions.map((question) => question.cntnQstnSn || 0)
+				: [contentId]
+			return questionIds.map((questionId) => `${contentId}:${questionId}`)
+		})
+		if (selectedStudentIds.length === 0 || requiredAnswerKeys.length === 0) return []
+
+		const completedByEveryStudent = selectedStudentIds.every((studentSn) => {
+			const hasDoneLog = (session?.progressLogs ?? []).some((log) =>
+				log.stdntSn === studentSn && log.stepCd === stepCd && log.stepSttsCd === 'DONE')
+			if (!hasDoneLog) return false
+			const answerKeys = new Set((session?.savedAnswers ?? [])
+				.filter((answer) => answer.stdntSn === studentSn && answer.stepCd === stepCd && (answer.ansCn || '').trim())
+				.map((answer) => `${answer.cntnSn || 0}:${answer.qstnSn || 0}`))
+			return requiredAnswerKeys.every((key) => answerKeys.has(key))
+		})
+		return completedByEveryStudent ? [stepCd] : []
+	}))
 }
 
 export const studentFlowStoredProgressRate = (session: TabletStudentFlowSession | null) => {
@@ -379,9 +400,11 @@ export const studentFlowMissionCompletedContentCountByRouteIndex = (session: Tab
 }
 
 export const studentFlowMissionRegularStickerCount = (session: TabletStudentFlowSession | null) => {
-	const totalCompletedContents = studentFlowRouteItems(session)
-		.reduce((sum, _routeName, routeIndex) => sum + studentFlowMissionCompletedContentCountByRouteIndex(session, routeIndex), 0)
-	return Math.min(3, totalCompletedContents)
+	const completedStepCodes = studentFlowCompletedMissionStepCodes(session)
+	return studentFlowRouteItems(session)
+		.slice(0, 3)
+		.filter((_routeName, routeIndex) => completedStepCodes.has(studentFlowMissionStepCode(routeIndex)))
+		.length
 }
 
 export const studentFlowMissionBonusStickerCount = (session: TabletStudentFlowSession | null) => {
@@ -389,7 +412,7 @@ export const studentFlowMissionBonusStickerCount = (session: TabletStudentFlowSe
 	const completedStepCodes = studentFlowCompletedMissionStepCodes(session)
 	const completedMissionCount = routes.filter((_routeName, routeIndex) => completedStepCodes.has(studentFlowMissionStepCode(routeIndex))).length
 	const allRouteMissionsCompleted = routes.length > 0 && completedMissionCount >= routes.length
-	return Math.min(4, completedMissionCount + (allRouteMissionsCompleted ? 1 : 0))
+	return allRouteMissionsCompleted ? 4 : 0
 }
 
 export const studentFlowExploreIntroStep = (session: TabletStudentFlowSession | null) => studentFlowProgramSteps(session).find((step) => step.step === 'STEP1') ?? null

@@ -15,7 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -45,6 +50,17 @@ public class EgovEvaluationFormManageApiController {
 		return ApiResponse.success("평가지 상세 조회 성공", evaluationFormService.getEvaluationFormById(qstnrSn));
 	}
 
+	@GetMapping("/{qstnrSn}/results.xlsx")
+	public ResponseEntity<byte[]> downloadEvaluationResults(@PathVariable Integer qstnrSn) throws Exception {
+		EvaluationFormVO form = evaluationFormService.getEvaluationFormById(qstnrSn);
+		byte[] body = QuestionnaireResultExcelWriter.create(
+			form,
+			evaluationFormService.getEvaluationResponses(qstnrSn),
+			false
+		);
+		return excelResponse("evaluation-" + qstnrSn + "-results.xlsx", body);
+	}
+
 	@PostMapping
 	public ApiResponse<EvaluationFormVO> createEvaluationForm(@RequestBody EvaluationFormDto dto) {
 		return ApiResponse.success("평가지 등록 성공", evaluationFormService.createEvaluationForm(dto));
@@ -62,5 +78,15 @@ public class EgovEvaluationFormManageApiController {
 	public ApiResponse<Void> deleteEvaluationForm(@PathVariable Integer qstnrSn) {
 		evaluationFormService.deleteEvaluationForm(qstnrSn);
 		return ApiResponse.success("평가지 삭제 성공", null);
+	}
+
+	private ResponseEntity<byte[]> excelResponse(String fileName, byte[] body) {
+		ContentDisposition disposition = ContentDisposition.attachment()
+			.filename(fileName, StandardCharsets.UTF_8)
+			.build();
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+			.contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+			.body(body);
 	}
 }

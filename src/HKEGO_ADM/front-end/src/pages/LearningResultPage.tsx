@@ -478,9 +478,6 @@ export const LearningResultPage: React.FC = () => {
 							<td colSpan={3}>
 								<div className="admin-inline-actions learning-result-actions learning-result-download-actions">
 									<button type="button" className="admin-filter-btn-reset" onClick={() => void downloadDetailExcel()} disabled={loading}>활동지</button>
-									<button type="button" className="admin-filter-btn-reset" onClick={() => void downloadDetailExcel()} disabled={loading}>학생 평가지</button>
-									<button type="button" className="admin-filter-btn-reset" onClick={() => void downloadDetailExcel()} disabled={loading}>학생 설문지</button>
-									<button type="button" className="admin-filter-btn-reset" onClick={() => void downloadDetailExcel()} disabled={loading}>선생님 운영 평가지</button>
 								</div>
 							</td>
 						</tr>
@@ -497,7 +494,7 @@ export const LearningResultPage: React.FC = () => {
 							<th style={{ width: 90 }}>팀</th>
 							<th>미션</th>
 							<th style={{ width: 90 }}>완료</th>
-							<th style={{ width: 360 }}>개별 결과 보기</th>
+							<th style={{ width: 140 }}>개별 결과 보기</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -513,8 +510,6 @@ export const LearningResultPage: React.FC = () => {
 								<td>
 									<div className="admin-inline-actions learning-result-actions">
 										<button type="button" className="admin-list-btn-edit" onClick={() => void openAnswers(student, 'WORKSHEET', '활동지')} disabled={loading}>활동지</button>
-										<button type="button" className="admin-list-btn-edit" onClick={() => void openAnswers(student, 'EVALUATION', '학생 평가지')} disabled={loading}>학생 평가지</button>
-										<button type="button" className="admin-list-btn-edit" onClick={() => void openAnswers(student, 'SURVEY', '학생 설문지')} disabled={loading}>학생 설문지</button>
 									</div>
 								</td>
 							</tr>

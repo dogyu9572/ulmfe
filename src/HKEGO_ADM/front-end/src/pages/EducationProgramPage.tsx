@@ -332,7 +332,10 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 	const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [totalCount, pageSize])
 	const allSelected = list.length > 0 && list.every((row) => row.prgrmSn != null && selectedIds.has(row.prgrmSn))
 	const routeRows = normalizeRouteRows(form.routeJson, programType)
-		const stepRows = normalizeStepRows(form.stepJson, programType)
+	const stepRows = normalizeStepRows(form.stepJson, programType)
+	const visibleStepRows = stepRows
+		.map((row, index) => ({ row, index }))
+		.filter(({ row }) => programType === 'EXPLORE' ? row.step !== 'STEP3' && row.step !== 'STEP4' : row.step !== 'STEP4')
 	const evalInfo = parseJsonObject(form.evalJson, { studentEvaluation: '', teacherEvaluation: '', survey: '', [PROGRAM_IMAGE_KEY]: '' })
 	const routeStepOptions = programType === 'MISSION' ? ['지구존', '미래존', '사회존', '도서관존'] : ['퀘스트1', '퀘스트2', '퀘스트3', '퀘스트4']
 
@@ -1188,7 +1191,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 							</tr>
 							<tr>
 								<th>상세 설정</th>
-								<td colSpan={3}>{stepRows.map((row, index) => renderStepDetail(row, index))}</td>
+								<td colSpan={3}>{visibleStepRows.map(({ row, index }) => renderStepDetail(row, index))}</td>
 							</tr>
 					</tbody>
 				</table>

@@ -5,6 +5,7 @@ import egovframework.let.adm.service.vo.EvaluationFormDto;
 import egovframework.let.adm.service.vo.EvaluationFormVO;
 import egovframework.let.adm.service.vo.EvaluationQuestionVO;
 import egovframework.let.adm.service.vo.PageListResult;
+import egovframework.let.adm.service.vo.QuestionnaireResponseVO;
 import jakarta.annotation.Resource;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service("egovEvaluationFormService")
 public class EgovEvaluationFormServiceImpl extends EgovAbstractServiceImpl implements EgovEvaluationFormService {
@@ -45,6 +48,11 @@ public class EgovEvaluationFormServiceImpl extends EgovAbstractServiceImpl imple
 		}
 		form.setQuestions(evaluationFormDAO.selectQuestions(qstnrSn));
 		return form;
+	}
+
+	public List<QuestionnaireResponseVO> getEvaluationResponses(Integer qstnrSn) {
+		getEvaluationFormById(qstnrSn);
+		return evaluationFormDAO.selectResponses(qstnrSn);
 	}
 
 	@Transactional
@@ -85,16 +93,19 @@ public class EgovEvaluationFormServiceImpl extends EgovAbstractServiceImpl imple
 	}
 
 	private void saveQuestions(Integer qstnrSn, List<EvaluationFormDto.QuestionDto> questions, String adminId) {
-		evaluationFormDAO.deleteQuestions(qstnrSn);
-		if (questions == null) {
-			return;
+		Set<Integer> existingIds = new HashSet<>();
+		for (EvaluationQuestionVO existing : evaluationFormDAO.selectQuestions(qstnrSn)) {
+			existingIds.add(existing.getQstnSn());
 		}
+		Set<Integer> keptIds = new HashSet<>();
+		if (questions == null) questions = List.of();
 		for (int i = 0; i < questions.size(); i++) {
 			EvaluationFormDto.QuestionDto dto = questions.get(i);
 			if (dto == null || isBlank(dto.getQstnNo()) && isBlank(dto.getQstnCn())) {
 				continue;
 			}
 			EvaluationQuestionVO question = EvaluationQuestionVO.builder()
+				.qstnSn(dto.getQstnSn() != null && existingIds.contains(dto.getQstnSn()) ? dto.getQstnSn() : null)
 				.qstnrSn(qstnrSn)
 				.qstnNo(normalizeRequired(dto.getQstnNo(), "문항 번호"))
 				.ansTypeCd(normalizeAnswerType(dto.getAnsTypeCd()))
@@ -103,7 +114,12 @@ public class EgovEvaluationFormServiceImpl extends EgovAbstractServiceImpl imple
 				.rgtr(adminId)
 				.mdtr(adminId)
 				.build();
-			evaluationFormDAO.insertQuestion(question);
+			if (question.getQstnSn() == null) evaluationFormDAO.insertQuestion(question);
+			else evaluationFormDAO.updateQuestion(question);
+			keptIds.add(question.getQstnSn());
+		}
+		for (Integer existingId : existingIds) {
+			if (!keptIds.contains(existingId)) evaluationFormDAO.deleteQuestion(qstnrSn, existingId);
 		}
 	}
 

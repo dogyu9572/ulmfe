@@ -137,4 +137,43 @@
 			NOW()
 		)
 	</insert>
+
+	<update id="updateQuestion" parameterType="egovframework.let.adm.service.vo.EvaluationQuestionVO">
+		UPDATE EDU_QSTNR_QSTN SET
+			QSTN_NO = #{qstnNo},
+			ANS_TYPE_CD = #{ansTypeCd},
+			QSTN_CN = #{qstnCn},
+			SORT_SEQ = #{sortSeq},
+			MDFR_NM = #{mdtr},
+			MDFCN_DT = NOW()
+		WHERE QSTNR_SN = #{qstnrSn}
+		AND QSTN_SN = #{qstnSn}
+	</update>
+
+	<delete id="deleteQuestion">
+		DELETE FROM EDU_QSTNR_QSTN
+		WHERE QSTNR_SN = #{qstnrSn}
+		AND QSTN_SN = #{qstnSn}
+	</delete>
+
+	<select id="selectResponses" resultType="egovframework.let.adm.service.vo.QuestionnaireResponseVO">
+		SELECT
+			CONCAT(A.RSVT_SN, '-', COALESCE(A.STDNT_SN, 0)) AS RESPONSE_KEY,
+			A.REG_DT AS SUBMITTED_DT,
+			CASE WHEN A.STDNT_SN IS NULL THEN '교사' ELSE '학생' END AS PARTICIPATION_TYPE,
+			R.SCYR_NM AS SCHOOL_LEVEL,
+			NULL AS GENDER,
+			NULL AS RESIDENCE,
+			A.QSTN_SN,
+			Q.QSTN_NO,
+			COALESCE(A.QSTN_CN, Q.QSTN_CN) AS QSTN_CN,
+			A.ANS_CN
+		FROM EDU_LRN_ANS A
+		LEFT JOIN EDU_RSVT_MST R ON R.RSVT_SN = A.RSVT_SN
+		LEFT JOIN EDU_QSTNR_QSTN Q ON Q.QSTN_SN = A.QSTN_SN AND Q.QSTNR_SN = A.QSTNR_SN
+		WHERE A.QSTNR_SN = #{qstnrSn}
+		AND A.ANS_TYPE_CD = 'SURVEY'
+		AND A.DEL_DT IS NULL
+		ORDER BY A.REG_DT, A.RSVT_SN, COALESCE(A.STDNT_SN, 0), Q.SORT_SEQ, A.LRN_ANS_SN
+	</select>
 </mapper>

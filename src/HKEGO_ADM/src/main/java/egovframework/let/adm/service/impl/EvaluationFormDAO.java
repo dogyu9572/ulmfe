@@ -2,6 +2,7 @@ package egovframework.let.adm.service.impl;
 
 import egovframework.let.adm.service.vo.EvaluationFormVO;
 import egovframework.let.adm.service.vo.EvaluationQuestionVO;
+import egovframework.let.adm.service.vo.QuestionnaireResponseVO;
 import org.egovframe.rte.psl.dataaccess.EgovAbstractMapper;
 import org.springframework.stereotype.Repository;
 
@@ -73,6 +74,23 @@ public class EvaluationFormDAO extends EgovAbstractMapper {
 
 	public int insertQuestion(EvaluationQuestionVO question) {
 		return insert(NS + "insertQuestion", question);
+	}
+
+	public int updateQuestion(EvaluationQuestionVO question) {
+		return update(NS + "updateQuestion", question);
+	}
+
+	public int deleteQuestion(Integer qstnrSn, Integer qstnSn) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("qstnrSn", qstnrSn);
+		param.put("qstnSn", qstnSn);
+		return delete(NS + "deleteQuestion", param);
+	}
+
+	public List<QuestionnaireResponseVO> selectResponses(Integer qstnrSn) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("qstnrSn", qstnrSn);
+		return selectList(NS + "selectResponses", param);
 	}
 
 	private Map<String, Object> searchParam(

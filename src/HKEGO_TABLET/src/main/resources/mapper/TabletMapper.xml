@@ -71,6 +71,14 @@
 		LIMIT 1
 	</select>
 
+	<select id="selectReservationStepJson" resultType="string">
+		SELECT P.STEP_JSON
+		FROM EDU_RSVT_MST R
+		INNER JOIN EDU_PRGRM_MST P ON P.PRGRM_SN = R.PRGRM_SN AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		WHERE R.RSVT_SN = #{rsvtSn}
+		AND R.DEL_DT IS NULL
+	</select>
+
 	<select id="selectStudents" resultType="TabletStudentVO">
 		SELECT
 			STDNT_SN,

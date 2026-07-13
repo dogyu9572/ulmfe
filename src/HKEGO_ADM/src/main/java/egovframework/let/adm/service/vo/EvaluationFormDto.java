@@ -13,6 +13,7 @@ public class EvaluationFormDto {
 
 	@Data
 	public static class QuestionDto {
+		private Integer qstnSn;
 		private String qstnNo;
 		private String ansTypeCd;
 		private String qstnCn;
