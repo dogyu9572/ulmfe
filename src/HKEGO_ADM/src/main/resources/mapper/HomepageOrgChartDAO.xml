@@ -16,16 +16,16 @@
 		<result column="USE_YN" property="useYn"/>
 		<result column="DEL_YN" property="delYn"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 		<result column="DEL_DT" property="delDt"/>
-		<result column="DELTR" property="deltr"/>
+		<result column="DLTR_NM" property="deltr"/>
 	</resultMap>
 
 	<select id="selectMemberList" resultMap="HomepageOrgChartMap">
 		SELECT ORG_MBR_SN, FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
-			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_ORG_MEMBER
 		WHERE DEL_YN = 'N'
 			AND FRST_CLSF_CD = #{frstClsfCd}
@@ -35,7 +35,7 @@
 
 	<select id="selectMember" parameterType="int" resultMap="HomepageOrgChartMap">
 		SELECT ORG_MBR_SN, FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
-			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_ORG_MEMBER
 		WHERE ORG_MBR_SN = #{value}
 			AND DEL_YN = 'N'
@@ -45,7 +45,7 @@
 		useGeneratedKeys="true" keyProperty="orgMbrSn">
 		INSERT INTO HMPG_ORG_MEMBER (
 			FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
-			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{frstClsfCd}, #{frstClsfNm}, #{scndClsfCd}, #{scndClsfNm},
 			#{taskCn}, #{telno}, #{sortSeq}, #{useYn}, 'N', NOW(), #{rgtr}, NOW(), #{mdtr}
@@ -64,7 +64,7 @@
 			SORT_SEQ = #{sortSeq},
 			USE_YN = #{useYn},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE ORG_MBR_SN = #{orgMbrSn}
 			AND DEL_YN = 'N'
 	</update>
@@ -73,7 +73,7 @@
 		UPDATE HMPG_ORG_MEMBER
 		SET DEL_YN = 'Y',
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE ORG_MBR_SN = #{orgMbrSn}
 			AND DEL_YN = 'N'
 	</update>

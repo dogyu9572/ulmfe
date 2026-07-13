@@ -24,11 +24,11 @@
 		B.WRTR_NM,
 		B.INQ_CNT,
 		B.REG_DT,
-		B.RGTR,
+		B.RGTR_NM,
 		B.MDFCN_DT,
-		B.MDTR,
+		B.MDFR_NM,
 		B.DEL_DT,
-		B.DELTR
+		B.DLTR_NM
 	</sql>
 
 	<sql id="libraryBookFrom">
@@ -145,7 +145,7 @@
 			REG_YMD,
 			WRTR_NM,
 			INQ_CNT,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{bookMngNo},
@@ -191,7 +191,7 @@
 			REG_YMD = #{regYmd},
 			WRTR_NM = #{wrtrNm},
 			INQ_CNT = #{inqCnt},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE BOOK_SN = #{bookSn}
 		AND DEL_DT IS NULL
@@ -200,7 +200,7 @@
 	<update id="delete">
 		UPDATE LIB_BOOK SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE BOOK_SN = #{bookSn}
 		AND DEL_DT IS NULL
 	</update>
@@ -228,7 +228,7 @@
 			BOOK_SN,
 			REL_BOOK_SN,
 			SORT_SEQ,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{bookSn},

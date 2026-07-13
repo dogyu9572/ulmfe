@@ -1,8 +1,9 @@
-import { Fragment, ReactNode, RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, ReactNode, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { fetchTabletSession, submitTabletMission, submitTabletMissionFiles, TabletContent, TabletContentQuestion, TabletMissionAnswer } from '../../api/tabletApi'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
+import { useQuestTimeLimit } from '../../hooks/useQuestTimeLimit'
 import {
 	saveTabletStudentFlowSession,
 	studentFlowExploreQuestByRouteIndex,
@@ -123,7 +124,7 @@ export const useQuestDynamicPage = (routeIndex: number, contentIndex: number) =>
 	}
 }
 
-export const useQuestSubmit = ({ routeIndex, nextPath }: { routeIndex: number; nextPath: string }) => {
+export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blockedMessage = '' }: { routeIndex: number; nextPath: string; canSubmit?: boolean; blockedMessage?: string }) => {
 	const navigate = useNavigate()
 	const pageRef = useRef<HTMLDivElement>(null)
 	const [saving, setSaving] = useState(false)
@@ -131,16 +132,20 @@ export const useQuestSubmit = ({ routeIndex, nextPath }: { routeIndex: number; n
 	const quest = flowSession ? studentFlowExploreQuestByRouteIndex(flowSession, routeIndex) : null
 	const routeItems = flowSession ? studentFlowRouteItems(flowSession) : []
 
-	const restoreSavedAnswers = (savedAnswers: Map<string, string>) => {
+	const restoreSavedAnswers = useCallback((savedAnswers: Map<string, string>) => {
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-cntn-sn][data-qstn-sn]') ?? [])
 		cards.forEach((card) => {
 			const answer = savedAnswers.get(`${card.dataset.cntnSn || 0}:${card.dataset.qstnSn || 0}`)
 			if (answer) restoreCardAnswer(card, answer)
 		})
-	}
+	}, [])
 
 	const submit = async () => {
 		if (!flowSession || !quest || saving) return
+		if (!canSubmit) {
+			if (blockedMessage) alert(blockedMessage)
+			return
+		}
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-cntn-sn][data-qstn-sn]') ?? [])
 		const filesByFieldName: Record<string, File> = {}
 		const answers = cards.reduce<TabletMissionAnswer[]>((acc, card, cardIndex) => {
@@ -157,10 +162,6 @@ export const useQuestSubmit = ({ routeIndex, nextPath }: { routeIndex: number; n
 			})
 			return acc
 		}, [])
-		if (answers.length === 0 && cards.length > 0) {
-			alert('답을 입력하거나 선택해주세요.')
-			return
-		}
 		try {
 			setSaving(true)
 			const payload = {
@@ -305,11 +306,22 @@ const questContentPath = (routeIndex: number, contentIndex: number) => {
 
 export const QuestDynamicContentPage = ({ routeIndex, contentIndex }: { routeIndex: number; contentIndex: number }) => {
 	const navigate = useNavigate()
-	const { contents, content, questions, savedAnswers, title, location, stepLabel } = useQuestDynamicPage(routeIndex, contentIndex)
+	const { flowSession, quest, contents, content, questions, savedAnswers, title, location, stepLabel } = useQuestDynamicPage(routeIndex, contentIndex)
 	const nextPath = contentIndex + 1 < contents.length
 		? questContentPath(routeIndex, contentIndex + 1)
 		: `/student/quest${String(routeIndex + 1).padStart(2, '0')}_end`
-	const { pageRef, submit, saving, restoreSavedAnswers } = useQuestSubmit({ routeIndex, nextPath })
+	const selectedStudentKey = useMemo(
+		() => (flowSession?.selectedStudents ?? []).map((student) => student.stdntSn).sort((a, b) => a - b).join(','),
+		[flowSession]
+	)
+	const timerStorageKey = flowSession ? `hkegoTabletQuestTimer:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}` : ''
+	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
+	const { pageRef, submit, saving, restoreSavedAnswers } = useQuestSubmit({
+		routeIndex,
+		nextPath,
+		canSubmit: isTimeLimitMet,
+		blockedMessage: `${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`
+	})
 
 	useEffect(() => restoreSavedAnswers(savedAnswers), [restoreSavedAnswers, savedAnswers])
 

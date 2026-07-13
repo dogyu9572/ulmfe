@@ -36,11 +36,11 @@
 			WHERE S.RSVT_SN = R.RSVT_SN
 			AND S.DEL_DT IS NULL
 		) AS STDNT_CNT,
-		R.RGTR,
+		R.RGTR_NM,
 		R.REG_DT,
-		R.MDTR,
+		R.MDFR_NM,
 		R.MDFCN_DT,
-		R.DELTR,
+		R.DLTR_NM,
 		R.DEL_DT
 	</sql>
 
@@ -132,7 +132,7 @@
 	<insert id="insert" parameterType="egovframework.let.adm.service.vo.LearningReservationVO" useGeneratedKeys="true" keyProperty="rsvtSn">
 		INSERT INTO EDU_RSVT_MST (
 			RSVT_NO, SCHL_NM, SCYR_NM, PIC_NM, PIC_TELNO, PIC_EML_ADDR, RSVT_YMD, VST_HM,
-			RSVT_NOPE, ACTL_NOPE, PRGRM_TYPE_CD, PRGRM_SN, LRN_STTS_CD, STDNT_LIST_YN, RGTR, REG_DT
+			RSVT_NOPE, ACTL_NOPE, PRGRM_TYPE_CD, PRGRM_SN, LRN_STTS_CD, STDNT_LIST_YN, RGTR_NM, REG_DT
 		) VALUES (
 			#{rsvtNo}, #{schlNm}, #{scyrNm}, #{picNm}, #{picTelno}, #{picEmlAddr}, #{rsvtYmd}, #{vstHm},
 			#{rsvtNope}, #{actlNope}, #{prgrmTypeCd}, #{prgrmSn}, #{lrnSttsCd}, #{stdntListYn}, #{rgtr}, NOW()
@@ -154,7 +154,7 @@
 			PRGRM_SN = #{prgrmSn},
 			LRN_STTS_CD = #{lrnSttsCd},
 			STDNT_LIST_YN = #{stdntListYn},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
@@ -163,7 +163,7 @@
 	<update id="delete">
 		UPDATE EDU_RSVT_MST SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
 	</update>
@@ -183,11 +183,11 @@
 			LRN_STTS_CD,
 			PRGRS_RT,
 			STDNT_NM_DEL_DT,
-			RGTR,
+			RGTR_NM,
 			REG_DT,
-			MDTR,
+			MDFR_NM,
 			MDFCN_DT,
-			DELTR,
+			DLTR_NM,
 			DEL_DT
 		FROM EDU_RSVT_STDNT
 		WHERE RSVT_SN = #{rsvtSn}
@@ -198,7 +198,7 @@
 	<update id="deleteStudents">
 		UPDATE EDU_RSVT_STDNT SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
 	</update>
@@ -206,7 +206,7 @@
 	<update id="deleteStudentsExcept">
 		UPDATE EDU_RSVT_STDNT SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
 		<if test="keepStudentSns != null and keepStudentSns.size() &gt; 0">
@@ -220,7 +220,7 @@
 	<insert id="insertStudent" parameterType="egovframework.let.adm.service.vo.LearningReservationStudentVO" useGeneratedKeys="true" keyProperty="stdntSn">
 		INSERT INTO EDU_RSVT_STDNT (
 			RSVT_SN, STDNT_NO, CLAS_NM, CLAS_NO, STDNT_NM, ATND_YN, TEAM_NM, ASGN_NM, ROUTE_CN,
-			LRN_STTS_CD, PRGRS_RT, RGTR, REG_DT
+			LRN_STTS_CD, PRGRS_RT, RGTR_NM, REG_DT
 		) VALUES (
 			#{rsvtSn}, #{stdntNo}, #{clasNm}, #{clasNo}, #{stdntNm}, #{atndYn}, #{teamNm}, #{asgnNm}, #{routeCn},
 			#{lrnSttsCd}, #{prgrsRt}, #{rgtr}, NOW()
@@ -239,7 +239,7 @@
 			ROUTE_CN = #{routeCn},
 			LRN_STTS_CD = #{lrnSttsCd},
 			PRGRS_RT = #{prgrsRt},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE RSVT_SN = #{rsvtSn}
 		AND STDNT_SN = #{stdntSn}

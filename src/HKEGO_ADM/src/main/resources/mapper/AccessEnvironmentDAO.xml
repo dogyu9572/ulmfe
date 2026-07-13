@@ -8,9 +8,9 @@
 		<result column="STNG_ID" property="stngId"/>
 		<result column="SESSION_TIMEOUT_MIN" property="sessionTimeoutMin"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 	</resultMap>
 
 	<resultMap id="AdminAllowedIpMap" type="egovframework.let.adm.service.vo.AdminAllowedIpVO">
@@ -18,31 +18,31 @@
 		<result column="PRM_IP_ADDR" property="prmIpAddr"/>
 		<result column="IP_EXPLN" property="ipExpln"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 	</resultMap>
 
 	<select id="selectSetting" resultMap="AccessEnvironmentSettingMap">
-		SELECT STNG_ID, SESSION_TIMEOUT_MIN, REG_DT, RGTR, MDFCN_DT, MDTR
+		SELECT STNG_ID, SESSION_TIMEOUT_MIN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM ADMIN_ACCESS_ENV_STNG
 		WHERE STNG_ID = 'DEFAULT'
 	</select>
 
 	<insert id="upsertSetting" parameterType="egovframework.let.adm.service.vo.AccessEnvironmentSettingVO">
 		INSERT INTO ADMIN_ACCESS_ENV_STNG (
-			STNG_ID, SESSION_TIMEOUT_MIN, REG_DT, RGTR, MDFCN_DT, MDTR
+			STNG_ID, SESSION_TIMEOUT_MIN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{stngId}, #{sessionTimeoutMin}, NOW(), #{rgtr}, NOW(), #{mdtr}
 		)
 		ON DUPLICATE KEY UPDATE
 			SESSION_TIMEOUT_MIN = VALUES(SESSION_TIMEOUT_MIN),
 			MDFCN_DT = NOW(),
-			MDTR = VALUES(MDTR)
+			MDFR_NM = VALUES(MDFR_NM)
 	</insert>
 
 	<select id="selectAllowedIpList" resultMap="AdminAllowedIpMap">
-		SELECT PRM_IP_SN, PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR, MDFCN_DT, MDTR
+		SELECT PRM_IP_SN, PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM ADMIN_PRM_IP
 		WHERE 1=1
 		<if test="prmIpAddr != null and prmIpAddr != ''">
@@ -74,7 +74,7 @@
 	</select>
 
 	<select id="selectAllowedIp" parameterType="int" resultMap="AdminAllowedIpMap">
-		SELECT PRM_IP_SN, PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR, MDFCN_DT, MDTR
+		SELECT PRM_IP_SN, PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM ADMIN_PRM_IP
 		WHERE PRM_IP_SN = #{value}
 	</select>
@@ -82,7 +82,7 @@
 	<insert id="insertAllowedIp" parameterType="egovframework.let.adm.service.vo.AdminAllowedIpVO"
 		useGeneratedKeys="true" keyProperty="prmIpSn">
 		INSERT INTO ADMIN_PRM_IP (
-			PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR, MDFCN_DT, MDTR
+			PRM_IP_ADDR, IP_EXPLN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{prmIpAddr}, #{ipExpln}, NOW(), #{rgtr}, NOW(), #{mdtr}
 		)
@@ -94,7 +94,7 @@
 			PRM_IP_ADDR = #{prmIpAddr},
 			IP_EXPLN = #{ipExpln},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE PRM_IP_SN = #{prmIpSn}
 	</update>
 

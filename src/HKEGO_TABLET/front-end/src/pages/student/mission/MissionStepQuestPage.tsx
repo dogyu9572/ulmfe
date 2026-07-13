@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchTabletSession, submitTabletMission, submitTabletMissionFiles, TabletContentQuestion, TabletMissionAnswer } from '../../../api/tabletApi'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
+import { useQuestTimeLimit } from '../../../hooks/useQuestTimeLimit'
 import { saveTabletStudentFlowSession, studentFlowMissionQuestByRouteIndex, studentFlowMissionQuestContents, studentFlowRouteItems, studentFlowSavedAnswersByQuestion } from '../../../state/tabletStudentFlowSession'
 import { CheckboxList, MissionShell } from './missionShared'
 
@@ -194,6 +195,8 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 	const zoneName = quest?.name || ''
 	const title = quest?.title || ''
 	const location = quest?.place || ''
+	const timerStorageKey = flowSession ? `hkegoTabletMissionTimer:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}` : ''
+	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
 	useEffect(() => {
 		if (!draftStorageKey) return
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-question-index]') ?? [])
@@ -237,6 +240,10 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 
 	const handleSubmit = async () => {
 		if (saving) return
+		if (!isTimeLimitMet) {
+			alert(`${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`)
+			return
+		}
 		if (!quest) {
 			alert('저장할 미션 정보가 없습니다.')
 			return
@@ -260,15 +267,6 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 			})
 			return acc
 		}, [])
-		if (dynamicQuestions.length > 0 && answers.length < dynamicQuestions.length) {
-			alert('모든 콘텐츠 문항을 완료해주세요.')
-			return
-		}
-		if (answers.length === 0) {
-			alert('답을 입력해주세요.')
-			return
-		}
-
 		try {
 			setSaving(true)
 			const payload = {

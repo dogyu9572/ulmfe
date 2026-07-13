@@ -123,6 +123,16 @@ export type TabletTeacherCall = {
 	readDt?: string
 }
 
+export type TabletTeacherMessage = {
+	msgSn: number
+	rsvtSn: number
+	targetNm?: string
+	studentCount: number
+	messageCn: string
+	readCount?: number
+	regDt?: string
+}
+
 export type TabletContentQuestion = {
 	cntnQstnSn: number
 	cntnSn: number
@@ -255,6 +265,10 @@ export const loginTablet = (userId: string, password: string) => request<TabletL
 	body: JSON.stringify({ userId, password })
 })
 
+export const fetchTabletAuthSession = () => request<TabletLoginResponse>('/api/tablet/auth/session', {
+	cache: 'no-store'
+})
+
 export const fetchTabletSession = () => request<TabletSession>('/api/tablet/session', {
 	cache: 'no-store'
 })
@@ -351,4 +365,29 @@ export const markTabletTeacherCallRead = (callSn: number) => request<void>(`/api
 
 export const markAllTabletTeacherCallsRead = (rsvtSn: number) => request<void>(`/api/tablet/reservations/${rsvtSn}/teacher-calls/read-all`, {
 	method: 'POST'
+})
+
+export const fetchTabletTeacherMessages = (rsvtSn: number) => request<TabletTeacherMessage[]>(`/api/tablet/reservations/${rsvtSn}/teacher-messages`, {
+	cache: 'no-store'
+})
+
+export const fetchUnreadTabletTeacherMessages = (rsvtSn: number, studentSns: number[]) => {
+	const params = new URLSearchParams()
+	studentSns.forEach((studentSn) => params.append('studentSns', String(studentSn)))
+	return request<TabletTeacherMessage[]>(`/api/tablet/reservations/${rsvtSn}/teacher-messages/unread?${params.toString()}`, {
+		cache: 'no-store'
+	})
+}
+
+export const createTabletTeacherMessage = (rsvtSn: number, payload: {
+	studentSns: number[]
+	messageCn: string
+}) => request<void>(`/api/tablet/reservations/${rsvtSn}/teacher-messages`, {
+	method: 'POST',
+	body: JSON.stringify(payload)
+})
+
+export const markTabletTeacherMessageRead = (msgSn: number, studentSns: number[]) => request<void>(`/api/tablet/teacher-messages/${msgSn}/read`, {
+	method: 'POST',
+	body: JSON.stringify({ studentSns })
 })

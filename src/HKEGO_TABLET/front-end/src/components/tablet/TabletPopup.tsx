@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createTabletTeacherCall } from '../../api/tabletApi'
+import { createTabletTeacherCall, fetchUnreadTabletTeacherMessages, markTabletTeacherMessageRead, TabletTeacherMessage } from '../../api/tabletApi'
 import { readTabletStudentFlowSession, studentFlowMissionQuestByRouteIndex } from '../../state/tabletStudentFlowSession'
 
 const currentPlaceName = () => {
@@ -78,25 +78,72 @@ export const TeacherCallPopup = () => {
 	)
 }
 
-export const TeacherMessagePopup = () => (
-	<div className="popup pop_teacher_maseage" id="pop_teacher_maseage">
-		<div className="dm"></div>
-		<div className="inbox">
-			<button type="button" className="btn_close">닫기</button>
-			<div className="tit">선생님 메시지</div>
-			<div className="con scroll_wrap">
-				<div className="scroll">
-					<div className="textarea">
-						<textarea name="" id="" cols={30} rows={10} className="text w100p" placeholder="다음 존으로 이동해주세요. 5분 남았습니다!"></textarea>
-					</div>
-					<div className="btns_btm">
-						<button type="button" className="btn btn_wbb">확인했어요</button>
+export const TeacherMessagePopup = () => {
+	const [messages, setMessages] = useState<TabletTeacherMessage[]>([])
+	const [dismissedMessageSn, setDismissedMessageSn] = useState<number | null>(null)
+	const [saving, setSaving] = useState(false)
+	const currentMessage = messages[0] ?? null
+	const open = Boolean(currentMessage && currentMessage.msgSn !== dismissedMessageSn)
+
+	const loadMessages = async () => {
+		const session = readTabletStudentFlowSession()
+		if (!session) return
+		const studentSns = session.selectedStudents.map((student) => student.stdntSn)
+		if (studentSns.length === 0) return
+		try {
+			const items = await fetchUnreadTabletTeacherMessages(session.rsvtSn, studentSns)
+			setMessages(items)
+			if (items.length > 0 && items[0].msgSn !== dismissedMessageSn) setDismissedMessageSn(null)
+		} catch {
+			// 학생 활동을 방해하지 않도록 다음 조회 주기에 다시 시도합니다.
+		}
+	}
+
+	useEffect(() => {
+		void loadMessages()
+		const timer = window.setInterval(() => void loadMessages(), 10000)
+		return () => window.clearInterval(timer)
+	}, [])
+
+	const close = () => {
+		if (!saving && currentMessage) setDismissedMessageSn(currentMessage.msgSn)
+	}
+
+	const confirm = async () => {
+		const session = readTabletStudentFlowSession()
+		if (!session || !currentMessage) return
+		try {
+			setSaving(true)
+			await markTabletTeacherMessageRead(currentMessage.msgSn, session.selectedStudents.map((student) => student.stdntSn))
+			setMessages((prev) => prev.filter((item) => item.msgSn !== currentMessage.msgSn))
+			setDismissedMessageSn(null)
+		} catch (error) {
+			window.alert(error instanceof Error ? error.message : '메시지 확인 처리에 실패했습니다.')
+		} finally {
+			setSaving(false)
+		}
+	}
+
+	return (
+		<div className={`popup pop_teacher_maseage${open ? ' is-active' : ''}`} id="pop_teacher_maseage">
+			<div className="dm" onClick={close}></div>
+			<div className="inbox">
+				<button type="button" className="btn_close" onClick={close}>닫기</button>
+				<div className="tit">선생님 메시지</div>
+				<div className="con scroll_wrap">
+					<div className="scroll">
+						<div className="textarea">
+							<textarea name="" id="" cols={30} rows={10} className="text w100p" value={currentMessage?.messageCn ?? ''} readOnly></textarea>
+						</div>
+						<div className="btns_btm">
+							<button type="button" className="btn btn_wbb" onClick={confirm} disabled={saving}>{saving ? '처리 중' : '확인했어요'}</button>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-)
+	)
+}
 
 export const StudentPopups = () => (
 	<>

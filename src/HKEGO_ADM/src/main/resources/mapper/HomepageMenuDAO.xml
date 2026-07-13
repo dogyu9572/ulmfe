@@ -14,14 +14,14 @@
 		<result column="USE_YN" property="useYn"/>
 		<result column="DEL_YN" property="delYn"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 	</resultMap>
 
 	<select id="selectMenuList" resultMap="HomepageMenuMap">
 		SELECT MENU_CD, PARENT_MENU_CD, MENU_DEPTH, MENU_NM, ORIGINAL_MENU_NM,
-			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM HMPG_MENU
 		WHERE DEL_YN = 'N'
 		ORDER BY MENU_DEPTH, PARENT_MENU_CD, SORT_SEQ, MENU_CD
@@ -29,7 +29,7 @@
 
 	<select id="selectMenu" parameterType="string" resultMap="HomepageMenuMap">
 		SELECT MENU_CD, PARENT_MENU_CD, MENU_DEPTH, MENU_NM, ORIGINAL_MENU_NM,
-			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM HMPG_MENU
 		WHERE MENU_CD = #{value}
 			AND DEL_YN = 'N'
@@ -37,7 +37,7 @@
 
 	<select id="selectSiblingMenus" parameterType="map" resultMap="HomepageMenuMap">
 		SELECT MENU_CD, PARENT_MENU_CD, MENU_DEPTH, MENU_NM, ORIGINAL_MENU_NM,
-			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR, MDFCN_DT, MDTR
+			SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM HMPG_MENU
 		WHERE DEL_YN = 'N'
 			AND MENU_DEPTH = #{menuDepth}
@@ -57,7 +57,7 @@
 		SET MENU_NM = #{menuNm},
 			USE_YN = #{useYn},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE MENU_CD = #{menuCd}
 			AND DEL_YN = 'N'
 	</update>
@@ -66,7 +66,7 @@
 		UPDATE HMPG_MENU
 		SET SORT_SEQ = #{sortSeq},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE MENU_CD = #{menuCd}
 			AND DEL_YN = 'N'
 	</update>

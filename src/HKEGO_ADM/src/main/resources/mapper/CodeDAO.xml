@@ -21,7 +21,7 @@
 		<result property="etc3" column="ETC3"/>
 		<result property="atchFileMngNo" column="ATCH_FILE_MNG_NO"/>
 		<result property="regDt" column="REG_DT"/>
-		<result property="rgtr" column="RGTR"/>
+		<result property="rgtr" column="RGTR_NM"/>
 	</resultMap>
 
 	<select id="selectCodeMaList" resultMap="CodeMaResultMap">
@@ -42,7 +42,7 @@
 	</select>
 
 	<select id="selectCodeDtList" resultMap="CodeDtResultMap">
-		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
+		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR_NM
 		FROM CMMN_CD_DTL
 		<where>
 			<if test="cdId != null and cdId != ''">
@@ -56,7 +56,7 @@
 	</select>
 
 	<select id="selectCodeDt" resultMap="CodeDtResultMap">
-		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR
+		SELECT CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR_NM
 		FROM CMMN_CD_DTL
 		WHERE CD_ID = #{cdId} AND CD_DTL_ID = #{cdDtlId}
 	</select>
@@ -67,7 +67,7 @@
 	</insert>
 
 	<insert id="insertCodeDt">
-		INSERT INTO CMMN_CD_DTL (CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR)
+		INSERT INTO CMMN_CD_DTL (CD_ID, CD_DTL_ID, CD_DTL_NM, CD_DTL_CN, SORT_SEQ, USE_YN, ETC1, ETC2, ETC3, ATCH_FILE_MNG_NO, REG_DT, RGTR_NM)
 		VALUES (#{cdId}, #{cdDtlId}, #{cdDtlNm}, #{cdDtlCn}, #{seq}, #{useYn}, #{etc1}, #{etc2}, #{etc3}, COALESCE(#{atchFileMngNo}, ''), NOW(), #{rgtr})
 	</insert>
 

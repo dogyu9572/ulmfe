@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { fetchTabletSession, submitTabletMission, submitTabletMissionFiles, TabletContentQuestion, TabletMissionAnswer } from '../../api/tabletApi'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
+import { useQuestTimeLimit } from '../../hooks/useQuestTimeLimit'
 import {
 	saveTabletStudentFlowSession,
 	studentFlowExploreQuestByRouteIndex,
@@ -184,6 +185,8 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 	const questName = quest?.name || ''
 	const title = quest?.title || questName || '퀘스트'
 	const location = quest?.place || ''
+	const timerStorageKey = flowSession ? `hkegoTabletQuestTimer:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}` : ''
+	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
 
 	useEffect(() => {
 		if (!draftStorageKey) return
@@ -226,6 +229,10 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 
 	const handleSubmit = async () => {
 		if (saving) return
+		if (!isTimeLimitMet) {
+			alert(`${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`)
+			return
+		}
 		if (!quest) {
 			alert('저장할 퀘스트 정보가 없습니다.')
 			return
@@ -249,10 +256,6 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 			})
 			return acc
 		}, [])
-		if (answers.length === 0) {
-			alert('답을 입력하거나 선택해주세요.')
-			return
-		}
 		try {
 			setSaving(true)
 			const payload = {

@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
+import { useQuestTimeLimit } from '../../hooks/useQuestTimeLimit'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { studentFlowExploreIntroStep, studentFlowExploreThoughtRows, studentFlowExploreVideoRows } from '../../state/tabletStudentFlowSession'
 import { videoThumbnailUrls } from '../../utils/youtube'
@@ -8,10 +10,16 @@ const fallbackVideoImages = ['/pub/images/img_start_video01.webp', '/pub/images/
 
 export const QuestIntroPage = () => {
 	const navigate = useNavigate()
-	const flowSession = useRequiredTabletStudentFlowSession()
+	const flowSession = useRequiredTabletStudentFlowSession() ?? null
+	const introStep = studentFlowExploreIntroStep(flowSession)
+	const selectedStudentKey = useMemo(
+		() => (flowSession?.selectedStudents ?? []).map((student) => student.stdntSn).sort((a, b) => a - b).join(','),
+		[flowSession]
+	)
+	const timerStorageKey = flowSession ? `hkegoTabletQuestTimer:${flowSession.rsvtSn}:${selectedStudentKey}:intro` : ''
+	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, introStep?.limitMin)
 	if (!flowSession) return null
 
-	const introStep = studentFlowExploreIntroStep(flowSession)
 	const videos = studentFlowExploreVideoRows(flowSession)
 	const thoughts = studentFlowExploreThoughtRows(flowSession)
 	const firstQuestPath = '/student/quest01'
@@ -80,6 +88,10 @@ export const QuestIntroPage = () => {
 					</div>
 					<a href={firstQuestPath} className="btn btn_wbb flex_center btn_next_page" onClick={(event) => {
 						event.preventDefault()
+						if (!isTimeLimitMet) {
+							alert(`${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`)
+							return
+						}
 						navigate(firstQuestPath)
 					}}>사건 탐구 시작하기</a>
 				</div>

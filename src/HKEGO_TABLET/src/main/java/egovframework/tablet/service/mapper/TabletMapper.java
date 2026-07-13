@@ -12,6 +12,7 @@ import egovframework.tablet.service.vo.TabletReservationVO;
 import egovframework.tablet.service.vo.TabletSavedAnswerVO;
 import egovframework.tablet.service.vo.TabletStudentVO;
 import egovframework.tablet.service.vo.TabletTeacherCallVO;
+import egovframework.tablet.service.vo.TabletTeacherMessageVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -50,6 +51,16 @@ public interface TabletMapper {
 	int updateTeacherCallRead(Long callSn);
 
 	int updateAllTeacherCallsRead(Integer rsvtSn);
+
+	List<TabletTeacherMessageVO> selectTeacherMessages(Integer rsvtSn);
+
+	List<TabletTeacherMessageVO> selectUnreadTeacherMessages(@Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
+
+	void insertTeacherMessage(TabletTeacherMessageVO teacherMessage);
+
+	void insertTeacherMessageRecipients(@Param("msgSn") Long msgSn, @Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
+
+	int updateTeacherMessageRead(@Param("msgSn") Long msgSn, @Param("studentSns") List<Integer> studentSns);
 
 	void syncAttendance(@Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
 

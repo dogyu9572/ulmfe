@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { fetchTabletSession, TabletReservation } from '../../api/tabletApi'
 
 const teacherMenus = [
 	{ className: 'menu i1', path: '/teacher/attendance', label: '출석부' },
@@ -12,6 +14,26 @@ const teacherMenus = [
 export const TeacherHeader = () => {
 	const location = useLocation()
 	const currentPath = location.pathname.replace(/\.html$/, '')
+	const [reservation, setReservation] = useState<TabletReservation | null>(null)
+
+	useEffect(() => {
+		let alive = true
+		void fetchTabletSession()
+			.then((session) => {
+				if (alive) setReservation(session.reservation)
+			})
+			.catch(() => {
+				if (alive) setReservation(null)
+			})
+		return () => {
+			alive = false
+		}
+	}, [])
+
+	const programType = reservation?.prgrmTypeNm || '-'
+	const programName = reservation?.prgrmNm || '-'
+	const studentCount = reservation?.stdntCnt ?? reservation?.actlNope ?? reservation?.rsvtNope ?? 0
+	const totalMinutes = reservation?.totalTmMnt
 
 	return (
 		<header className="header">
@@ -20,9 +42,9 @@ export const TeacherHeader = () => {
 			<div className="head_info">
 				<h3 className="tit">현재 프로그램</h3>
 				<div className="program">
-					<div className="tt">사건탐구</div>
-					<div className="cn">살고 싶은 곳, 울산</div>
-					<ul className="count"><li className="human">22명</li><li className="time">190분</li></ul>
+					<div className="tt">{programType}</div>
+					<div className="cn">{programName}</div>
+					<ul className="count"><li className="human">{studentCount}명</li><li className="time">{totalMinutes ?? '-'}분</li></ul>
 				</div>
 			</div>
 			<div className="gnb">

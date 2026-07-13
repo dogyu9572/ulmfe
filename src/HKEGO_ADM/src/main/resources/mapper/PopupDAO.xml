@@ -56,11 +56,11 @@
 			ATCH_FILE_MNG_NO,
 			POPUP_URL_ADDR,
 			LNKG_SE_CD,
-			RGTR,
+			RGTR_NM,
 			REG_DT,
-			MDTR,
+			MDFR_NM,
 			MDFCN_DT,
-			DELTR,
+			DLTR_NM,
 			DEL_DT
 		<include refid="popupListWhere"/>
 		ORDER BY REG_DT DESC
@@ -82,11 +82,11 @@
 			ATCH_FILE_MNG_NO,
 			POPUP_URL_ADDR,
 			LNKG_SE_CD,
-			RGTR,
+			RGTR_NM,
 			REG_DT,
-			MDTR,
+			MDFR_NM,
 			MDFCN_DT,
-			DELTR,
+			DLTR_NM,
 			DEL_DT
 		FROM POPUP_MST
 		WHERE POPUP_SN = #{popupSn}
@@ -107,7 +107,7 @@
 			ATCH_FILE_MNG_NO,
 			POPUP_URL_ADDR,
 			LNKG_SE_CD,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{popupNm},
@@ -141,7 +141,7 @@
 			ATCH_FILE_MNG_NO = COALESCE(#{atchFileMngNo}, ''),
 			POPUP_URL_ADDR = #{popupUrlAddr},
 			LNKG_SE_CD = #{lnkgSeCd},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE POPUP_SN = #{popupSn}
 		AND DEL_DT IS NULL
@@ -150,7 +150,7 @@
 	<update id="deletePopup">
 		UPDATE POPUP_MST SET
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE POPUP_SN = #{popupSn}
 		AND DEL_DT IS NULL
 	</update>

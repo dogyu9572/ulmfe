@@ -23,11 +23,11 @@
 			MMPL_STTS_CD,
 			LAST_CNTN_DT,
 			REG_DT,
-			RGTR,
+			RGTR_NM,
 			MDFCN_DT,
-			MDTR,
+			MDFR_NM,
 			DEL_DT,
-			DELTR
+			DLTR_NM
 		FROM USER_MST
 		WHERE DEL_DT IS NULL
 		<if test="userSeCd != null and userSeCd != ''">
@@ -143,11 +143,11 @@
 			MMPL_STTS_CD,
 			LAST_CNTN_DT,
 			REG_DT,
-			RGTR,
+			RGTR_NM,
 			MDFCN_DT,
-			MDTR,
+			MDFR_NM,
 			DEL_DT,
-			DELTR
+			DLTR_NM
 		FROM USER_MST
 		WHERE USER_SN = #{userSn}
 	</select>
@@ -171,11 +171,11 @@
 			MMPL_STTS_CD,
 			LAST_CNTN_DT,
 			REG_DT,
-			RGTR,
+			RGTR_NM,
 			MDFCN_DT,
-			MDTR,
+			MDFR_NM,
 			DEL_DT,
-			DELTR
+			DLTR_NM
 		FROM USER_MST
 		WHERE USER_ID = #{userId}
 			AND DEL_DT IS NULL
@@ -197,7 +197,7 @@
 			DEPT_NM,
 			JBGD_NM,
 			MMPL_STTS_CD,
-			RGTR
+			RGTR_NM
 		) VALUES (
 			#{userSeCd},
 			#{authrtCd},
@@ -234,21 +234,21 @@
 			DEPT_NM = #{deptNm},
 			JBGD_NM = #{jbgdNm},
 			MMPL_STTS_CD = #{mmplSttsCd},
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE USER_SN = #{userSn}
 	</update>
 
 	<update id="updateUserStatus">
 		UPDATE USER_MST SET
 			MMPL_STTS_CD = #{mmplSttsCd},
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE USER_SN = #{userSn}
 	</update>
 
 	<update id="updatePassword">
 		UPDATE USER_MST SET
 			ENPSWD = #{enpswd},
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE USER_SN = #{userSn}
 	</update>
 
@@ -267,7 +267,7 @@
 			JBGD_NM = NULL,
 			MMPL_STTS_CD = 'N',
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE USER_SN = #{userSn}
 			AND DEL_DT IS NULL
 	</update>

@@ -52,9 +52,9 @@
 		<result column="LIST_AUTHRT_CD" property="listAuthrtCd"/>
 		<result column="DTL_AUTHRT_CD" property="dtlAuthrtCd"/>
 		<result column="WRT_AUTHRT_CD" property="wrtAuthrtCd"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
 	</resultMap>
 
@@ -66,7 +66,7 @@
 		ETC1_USE_YN, ETC1_NM, ETC1_TYPE_CD, ETC1_CD_ID, ETC2_USE_YN, ETC2_NM, ETC2_TYPE_CD, ETC2_CD_ID,
 		ETC3_USE_YN, ETC3_NM, ETC3_TYPE_CD, ETC3_CD_ID, ETC4_USE_YN, ETC4_NM, ETC4_TYPE_CD, ETC4_CD_ID,
 		ETC5_USE_YN, ETC5_NM, ETC5_TYPE_CD, ETC5_CD_ID,
-		LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR, REG_DT, MDTR, MDFCN_DT
+		LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR_NM, REG_DT, MDFR_NM, MDFCN_DT
 	</sql>
 
 	<sql id="bbsMasterListWhere">
@@ -94,7 +94,7 @@
 			ETC1_USE_YN, ETC1_NM, ETC1_TYPE_CD, ETC1_CD_ID, ETC2_USE_YN, ETC2_NM, ETC2_TYPE_CD, ETC2_CD_ID,
 			ETC3_USE_YN, ETC3_NM, ETC3_TYPE_CD, ETC3_CD_ID, ETC4_USE_YN, ETC4_NM, ETC4_TYPE_CD, ETC4_CD_ID,
 			ETC5_USE_YN, ETC5_NM, ETC5_TYPE_CD, ETC5_CD_ID,
-			LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR, REG_DT, MDTR, MDFCN_DT
+			LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR_NM, REG_DT, MDFR_NM, MDFCN_DT
 		FROM BBS_MST
 		WHERE BBS_ID = #{bbsId}
 	</select>
@@ -108,7 +108,7 @@
 			ETC1_USE_YN, ETC1_NM, ETC1_TYPE_CD, ETC1_CD_ID, ETC2_USE_YN, ETC2_NM, ETC2_TYPE_CD, ETC2_CD_ID,
 			ETC3_USE_YN, ETC3_NM, ETC3_TYPE_CD, ETC3_CD_ID, ETC4_USE_YN, ETC4_NM, ETC4_TYPE_CD, ETC4_CD_ID,
 			ETC5_USE_YN, ETC5_NM, ETC5_TYPE_CD, ETC5_CD_ID,
-			LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR, REG_DT, MDTR, MDFCN_DT
+			LIST_AUTHRT_CD, DTL_AUTHRT_CD, WRT_AUTHRT_CD, RGTR_NM, REG_DT, MDFR_NM, MDFCN_DT
 		) VALUES (
 			#{bbsId}, #{bbsNm}, #{bbsCn}, #{bbsSkinCd}, #{bbsImgFileId}, #{pageArtclCnt},
 			#{atchFileYn}, #{atchFileCnt}, #{atchFileSz}, #{useYn}, #{ansYn}, #{cmntYn}, #{sortYn},
@@ -135,7 +135,7 @@
 			ETC4_USE_YN = #{etc4UseYn}, ETC4_NM = #{etc4Nm}, ETC4_TYPE_CD = #{etc4TypeCd}, ETC4_CD_ID = #{etc4CdId},
 			ETC5_USE_YN = #{etc5UseYn}, ETC5_NM = #{etc5Nm}, ETC5_TYPE_CD = #{etc5TypeCd}, ETC5_CD_ID = #{etc5CdId},
 			LIST_AUTHRT_CD = #{listAuthrtCd}, DTL_AUTHRT_CD = #{dtlAuthrtCd}, WRT_AUTHRT_CD = #{wrtAuthrtCd},
-			MDTR = #{mdtr}, MDFCN_DT = NOW()
+			MDFR_NM = #{mdtr}, MDFCN_DT = NOW()
 		WHERE BBS_ID = #{bbsId}
 	</update>
 

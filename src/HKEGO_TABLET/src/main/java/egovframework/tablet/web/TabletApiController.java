@@ -14,6 +14,9 @@ import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
 import egovframework.tablet.service.vo.TabletSessionResponse;
 import egovframework.tablet.service.vo.TabletTeacherCallRequest;
 import egovframework.tablet.service.vo.TabletTeacherCallVO;
+import egovframework.tablet.service.vo.TabletTeacherMessageReadRequest;
+import egovframework.tablet.service.vo.TabletTeacherMessageRequest;
+import egovframework.tablet.service.vo.TabletTeacherMessageVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -89,6 +92,19 @@ public class TabletApiController {
 	@GetMapping("/reservations/{rsvtSn}/teacher-calls")
 	public ApiResponse<List<TabletTeacherCallVO>> getTeacherCalls(@PathVariable Integer rsvtSn) {
 		return ApiResponse.success("선생님 호출 내역 조회 성공", tabletService.getTeacherCalls(rsvtSn));
+	}
+
+	@GetMapping("/reservations/{rsvtSn}/teacher-messages")
+	public ApiResponse<List<TabletTeacherMessageVO>> getTeacherMessages(@PathVariable Integer rsvtSn) {
+		return ApiResponse.success("선생님 메시지 발송 내역 조회 성공", tabletService.getTeacherMessages(rsvtSn));
+	}
+
+	@GetMapping("/reservations/{rsvtSn}/teacher-messages/unread")
+	public ApiResponse<List<TabletTeacherMessageVO>> getUnreadTeacherMessages(
+		@PathVariable Integer rsvtSn,
+		@RequestParam List<Integer> studentSns
+	) {
+		return ApiResponse.success("선생님 메시지 수신 내역 조회 성공", tabletService.getUnreadTeacherMessages(rsvtSn, studentSns));
 	}
 
 	@PostMapping("/reservations/{rsvtSn}/attendance")
@@ -200,6 +216,26 @@ public class TabletApiController {
 		try {
 			tabletService.markAllTeacherCallsRead(rsvtSn);
 			return ResponseEntity.ok(ApiResponse.success("선생님 호출 전체 읽음 처리 성공", null));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		}
+	}
+
+	@PostMapping("/reservations/{rsvtSn}/teacher-messages")
+	public ResponseEntity<ApiResponse<Void>> createTeacherMessage(@PathVariable Integer rsvtSn, @RequestBody TabletTeacherMessageRequest request) {
+		try {
+			tabletService.createTeacherMessage(rsvtSn, request);
+			return ResponseEntity.ok(ApiResponse.success("메시지를 발송했습니다.", null));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		}
+	}
+
+	@PostMapping("/teacher-messages/{msgSn}/read")
+	public ResponseEntity<ApiResponse<Void>> markTeacherMessageRead(@PathVariable Long msgSn, @RequestBody TabletTeacherMessageReadRequest request) {
+		try {
+			tabletService.markTeacherMessageRead(msgSn, request.getStudentSns());
+			return ResponseEntity.ok(ApiResponse.success("메시지 확인 처리 성공", null));
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
 		}

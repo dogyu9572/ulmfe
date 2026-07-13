@@ -37,11 +37,11 @@
 		C.VIDEO_TTL,
 		C.USE_YN,
 		C.REG_DT,
-		C.RGTR,
+		C.RGTR_NM,
 		C.MDFCN_DT,
-		C.MDTR,
+		C.MDFR_NM,
 		C.DEL_DT,
-		C.DELTR
+		C.DLTR_NM
 	</sql>
 
 	<sql id="educationContentWhere">
@@ -97,7 +97,7 @@
 			VIDEO_THMB_ATCH_FILE_ID,
 			VIDEO_TTL,
 			USE_YN,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{cntnTypeCd},
@@ -127,7 +127,7 @@
 			VIDEO_THMB_ATCH_FILE_ID = #{videoThmbAtchFileId},
 			VIDEO_TTL = #{videoTtl},
 			USE_YN = #{useYn},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE CNTN_SN = #{cntnSn}
 		AND DEL_DT IS NULL
@@ -136,7 +136,7 @@
 	<update id="delete">
 		UPDATE EDU_CNTN_MST SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE CNTN_SN = #{cntnSn}
 		AND DEL_DT IS NULL
 	</update>
@@ -158,9 +158,9 @@
 			Q.OPTN_CN,
 			Q.SORT_SEQ,
 			Q.REG_DT,
-			Q.RGTR,
+			Q.RGTR_NM,
 			Q.MDFCN_DT,
-			Q.MDTR
+			Q.MDFR_NM
 		FROM EDU_CNTN_QSTN Q
 		WHERE Q.CNTN_SN = #{cntnSn}
 		ORDER BY Q.SORT_SEQ ASC, Q.CNTN_QSTN_SN ASC
@@ -179,7 +179,7 @@
 			QSTN_IMG_ATCH_FILE_ID,
 			OPTN_CN,
 			SORT_SEQ,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{cntnSn},

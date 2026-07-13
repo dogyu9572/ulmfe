@@ -20,7 +20,7 @@ const progressClassName = (progress: number) => {
 }
 
 const getExploreHeaderProgress = (pathname: string, dynamicStepCount: number) => {
-	const totalSteps = 1 + dynamicStepCount + 2
+	const totalSteps = 1 + dynamicStepCount
 	const endStepIndex = totalSteps - 1
 	const match = pathname.match(/\/student\/quest(0[1-4])(?:_[2-3]|_end)?$/)
 	let activeIndex = pathname.endsWith('/student/quest00') || pathname.endsWith('/student/quest_video') ? 0 : 0
@@ -37,11 +37,11 @@ const getExploreHeaderProgress = (pathname: string, dynamicStepCount: number) =>
 			completedUntil = currentStepIndex - 1
 		}
 	} else if (pathname.endsWith('/student/quest05')) {
-		activeIndex = 1 + dynamicStepCount
-		completedUntil = activeIndex - 1
-	} else if (pathname.endsWith('/student/quest_end')) {
 		activeIndex = endStepIndex
-		completedUntil = endStepIndex - 1
+		completedUntil = endStepIndex
+	} else if (pathname.endsWith('/student/quest_end') || pathname.endsWith('/student/quest_survey')) {
+		activeIndex = endStepIndex
+		completedUntil = endStepIndex
 	} else if (pathname.endsWith('/student/resource_center')) {
 		activeIndex = -1
 		completedUntil = -1
@@ -73,9 +73,7 @@ export const StudentCaseHeader = () => {
 	})
 	const steps = [
 		{ title: '사건제시', description: introStep?.title || '', time: introStep?.limitMin ? `${introStep.limitMin}분` : '', icon: '/pub/images/icon_activity_order01.webp' },
-		...dynamicSteps,
-		{ title: '메이커 활동', description: '메이커 활동', time: '', icon: '/pub/images/icon_activity_order_make.webp' },
-		{ title: '정리 및 일반화', description: '마무리', time: '', icon: '/pub/images/icon_activity_order06.webp' }
+		...dynamicSteps
 	]
 	const completedExploreStepCodes = studentFlowCompletedExploreStepCodes(flowSession)
 	const { activeIndex, completedUntil, progress: routeProgress } = getExploreHeaderProgress(location.pathname, routeItems.length)

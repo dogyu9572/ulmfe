@@ -20,6 +20,7 @@ import { Quest04SecondPage } from './pages/student/Quest04SecondPage'
 import { Quest05Page } from './pages/student/Quest05Page'
 import { QuestEndPage } from './pages/student/QuestEndPage'
 import { QuestStepEndPage } from './pages/student/QuestStepEndPage'
+import { QuestSurveyPage } from './pages/student/QuestSurveyPage'
 import { QuestVideoPage } from './pages/student/QuestVideoPage'
 import { ResourceCenterPage } from './pages/student/ResourceCenterPage'
 import { QuestDynamicContentPage } from './pages/student/questDynamicShared'
@@ -86,6 +87,7 @@ const plannedPages = [
 	'student/quest04_end',
 	'student/quest05',
 	'student/quest_end',
+	'student/quest_survey',
 	'student/quest_video',
 	'student/resource_center',
 	'student/welcome',
@@ -168,6 +170,7 @@ const PageRoute = () => {
 	if (page === 'student/quest04_end') return <QuestStepEndPage routeIndex={3} />
 	if (page === 'student/quest05') return <Quest05Page />
 	if (page === 'student/quest_end') return <QuestEndPage />
+	if (page === 'student/quest_survey') return <QuestSurveyPage />
 	if (page === 'student/quest_video') return <QuestVideoPage />
 	if (page === 'student/resource_center') return <ResourceCenterPage />
 	if (page === 'student/mission_welcome') return <MissionWelcomePage />

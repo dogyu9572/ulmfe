@@ -16,9 +16,9 @@
 		<result column="RGTR" property="rgtr"/>
 		<result column="RGTR_NM" property="rgtrNm"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 		<result column="DEL_DT" property="delDt"/>
-		<result column="DELTR" property="deltr"/>
+		<result column="DLTR_NM" property="deltr"/>
 	</resultMap>
 
 	<sql id="termsWhere">
@@ -53,7 +53,7 @@
 
 	<select id="selectTermsList" resultMap="HomepageTermsMap">
 		SELECT TRMS_SN, TRMS_TYPE_CD, TRMS_TYPE_NM, TRMS_TTL, TRMS_CN, CURRENT_YN, DEL_YN,
-			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR, DEL_DT, DELTR
+			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_TERMS
 		<include refid="termsWhere"/>
 		ORDER BY REG_DT DESC, TRMS_SN DESC
@@ -68,7 +68,7 @@
 
 	<select id="selectTerms" parameterType="int" resultMap="HomepageTermsMap">
 		SELECT TRMS_SN, TRMS_TYPE_CD, TRMS_TYPE_NM, TRMS_TTL, TRMS_CN, CURRENT_YN, DEL_YN,
-			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR, DEL_DT, DELTR
+			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_TERMS
 		WHERE TRMS_SN = #{value}
 			AND DEL_YN = 'N'
@@ -78,7 +78,7 @@
 		useGeneratedKeys="true" keyProperty="trmsSn">
 		INSERT INTO HMPG_TERMS (
 			TRMS_TYPE_CD, TRMS_TYPE_NM, TRMS_TTL, TRMS_CN, CURRENT_YN, DEL_YN,
-			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDTR
+			REG_DT, RGTR, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{trmsTypeCd}, #{trmsTypeNm}, #{trmsTtl}, #{trmsCn}, #{currentYn}, 'N',
 			NOW(), #{rgtr}, #{rgtrNm}, NOW(), #{mdtr}
@@ -94,7 +94,7 @@
 			TRMS_CN = #{trmsCn},
 			CURRENT_YN = #{currentYn},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE TRMS_SN = #{trmsSn}
 			AND DEL_YN = 'N'
 	</update>
@@ -114,7 +114,7 @@
 		UPDATE HMPG_TERMS
 		SET DEL_YN = 'Y',
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE TRMS_SN = #{trmsSn}
 			AND DEL_YN = 'N'
 	</update>
@@ -123,7 +123,7 @@
 		UPDATE HMPG_TERMS
 		SET DEL_YN = 'Y',
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE DEL_YN = 'N'
 			AND TRMS_SN IN
 			<foreach collection="trmsSns" item="trmsSn" open="(" separator="," close=")">

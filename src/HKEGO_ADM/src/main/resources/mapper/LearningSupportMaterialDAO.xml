@@ -41,9 +41,9 @@
 		B.USE_YN,
 		B.INQ_CNT,
 		B.REG_DT,
-		B.RGTR,
+		B.RGTR_NM,
 		B.MDFCN_DT,
-		B.MDTR
+		B.MDFR_NM
 	</sql>
 
 	<sql id="searchWhere">
@@ -121,7 +121,7 @@
 			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, LNKG_URL_ADDR, PSTG_YMD,
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
-			ANS_STTS_CD, REG_DT, RGTR, MDFCN_DT, MDTR
+			ANS_STTS_CD, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			'LRNSUP', #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, 0,
 			NULL, 'N', 'N', 'N', #{linkUrl}, #{pstgYmd},
@@ -145,7 +145,7 @@
 			ETC4 = #{prgrmSn},
 			ETC5 = #{videoEmbedUrl},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE BBS_ID = 'LRNSUP'
 		AND PST_SN = #{pstSn}
 	</update>

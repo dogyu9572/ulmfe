@@ -334,7 +334,7 @@
 			PLACE_NM,
 			CALL_CN,
 			CALL_STTS_CD,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{rsvtSn},
@@ -353,7 +353,7 @@
 		UPDATE EDU_TCHR_CALL
 		SET CALL_STTS_CD = 'READ',
 			READ_DT = COALESCE(READ_DT, NOW()),
-			MDTR = 'tablet',
+			MDFR_NM = 'tablet',
 			MDFCN_DT = NOW()
 		WHERE CALL_SN = #{callSn}
 		AND DEL_DT IS NULL
@@ -363,11 +363,80 @@
 		UPDATE EDU_TCHR_CALL
 		SET CALL_STTS_CD = 'READ',
 			READ_DT = COALESCE(READ_DT, NOW()),
-			MDTR = 'tablet',
+			MDFR_NM = 'tablet',
 			MDFCN_DT = NOW()
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
 		AND CALL_STTS_CD != 'READ'
+	</update>
+
+	<select id="selectTeacherMessages" resultType="TabletTeacherMessageVO">
+		SELECT
+			M.MSG_SN,
+			M.RSVT_SN,
+			M.TRGT_NM AS TARGET_NM,
+			M.STDNT_CNT AS STUDENT_COUNT,
+			M.MSG_CN AS MESSAGE_CN,
+			COALESCE(SUM(CASE WHEN R.READ_YN = 'Y' THEN 1 ELSE 0 END), 0) AS READ_COUNT,
+			DATE_FORMAT(M.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT
+		FROM EDU_TCHR_MSG M
+		LEFT JOIN EDU_TCHR_MSG_RCPT R ON R.MSG_SN = M.MSG_SN AND R.DEL_DT IS NULL
+		WHERE M.RSVT_SN = #{rsvtSn}
+		AND M.DEL_DT IS NULL
+		GROUP BY M.MSG_SN, M.RSVT_SN, M.TRGT_NM, M.STDNT_CNT, M.MSG_CN, M.REG_DT
+		ORDER BY M.REG_DT DESC, M.MSG_SN DESC
+	</select>
+
+	<select id="selectUnreadTeacherMessages" resultType="TabletTeacherMessageVO">
+		SELECT DISTINCT
+			M.MSG_SN,
+			M.RSVT_SN,
+			M.TRGT_NM AS TARGET_NM,
+			M.STDNT_CNT AS STUDENT_COUNT,
+			M.MSG_CN AS MESSAGE_CN,
+			DATE_FORMAT(M.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT
+		FROM EDU_TCHR_MSG M
+		INNER JOIN EDU_TCHR_MSG_RCPT R ON R.MSG_SN = M.MSG_SN
+		WHERE M.RSVT_SN = #{rsvtSn}
+		AND R.STDNT_SN IN
+		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+			#{studentSn}
+		</foreach>
+		AND R.READ_YN = 'N'
+		AND M.DEL_DT IS NULL
+		AND R.DEL_DT IS NULL
+		ORDER BY M.REG_DT ASC, M.MSG_SN ASC
+	</select>
+
+	<insert id="insertTeacherMessage" useGeneratedKeys="true" keyProperty="msgSn">
+		INSERT INTO EDU_TCHR_MSG (
+			RSVT_SN, TRGT_NM, STDNT_CNT, MSG_CN, RGTR_NM, REG_DT
+		) VALUES (
+			#{rsvtSn}, #{targetNm}, #{studentCount}, #{messageCn}, 'tablet', NOW()
+		)
+	</insert>
+
+	<insert id="insertTeacherMessageRecipients">
+		INSERT INTO EDU_TCHR_MSG_RCPT (
+			MSG_SN, RSVT_SN, STDNT_SN, READ_YN, RGTR_NM, REG_DT
+		) VALUES
+		<foreach collection="studentSns" item="studentSn" separator=",">
+			(#{msgSn}, #{rsvtSn}, #{studentSn}, 'N', 'tablet', NOW())
+		</foreach>
+	</insert>
+
+	<update id="updateTeacherMessageRead">
+		UPDATE EDU_TCHR_MSG_RCPT
+		SET READ_YN = 'Y',
+			READ_DT = COALESCE(READ_DT, NOW()),
+			MDFR_NM = 'tablet',
+			MDFCN_DT = NOW()
+		WHERE MSG_SN = #{msgSn}
+		AND STDNT_SN IN
+		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+			#{studentSn}
+		</foreach>
+		AND DEL_DT IS NULL
 	</update>
 
 	<update id="syncAttendance">
@@ -381,7 +450,7 @@
 				ELSE 'N'
 			END,
 			MDFCN_DT = NOW(),
-			MDTR = 'tablet'
+			MDFR_NM = 'tablet'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
 	</update>
@@ -389,7 +458,7 @@
 	<update id="deleteMissionAnswers">
 		UPDATE EDU_LRN_ANS
 		SET DEL_DT = NOW(),
-			DELTR = 'tablet'
+			DLTR_NM = 'tablet'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND STDNT_SN = #{stdntSn}
 		AND ANS_TYPE_CD = 'WORKSHEET'
@@ -408,7 +477,7 @@
 			QSTN_SN,
 			QSTN_CN,
 			ANS_CN,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{rsvtSn},
@@ -428,7 +497,7 @@
 	<update id="deleteTypedAnswers">
 		UPDATE EDU_LRN_ANS
 		SET DEL_DT = NOW(),
-			DELTR = 'tablet'
+			DLTR_NM = 'tablet'
 		WHERE RSVT_SN = #{rsvtSn}
 		AND STDNT_SN = #{stdntSn}
 		AND ANS_TYPE_CD = #{ansTypeCd}
@@ -445,7 +514,7 @@
 			QSTN_SN,
 			QSTN_CN,
 			ANS_CN,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{rsvtSn},
@@ -466,7 +535,7 @@
 		SET ACTVT_NM = #{actvtNm},
 			STEP_STTS_CD = 'DONE',
 			CMPTN_DT = NOW(),
-			MDTR = 'tablet',
+			MDFR_NM = 'tablet',
 			MDFCN_DT = NOW()
 		WHERE RSVT_SN = #{rsvtSn}
 		AND STDNT_SN = #{stdntSn}
@@ -482,7 +551,7 @@
 			STEP_STTS_CD,
 			BGNG_DT,
 			CMPTN_DT,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{rsvtSn},
@@ -501,7 +570,7 @@
 		UPDATE EDU_RSVT_STDNT
 		SET PRGRS_RT = #{progressRate},
 			LRN_STTS_CD = #{learningStatus},
-			MDTR = 'tablet',
+			MDFR_NM = 'tablet',
 			MDFCN_DT = NOW()
 		WHERE RSVT_SN = #{rsvtSn}
 		AND STDNT_SN = #{stdntSn}

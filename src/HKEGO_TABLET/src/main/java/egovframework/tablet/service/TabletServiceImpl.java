@@ -21,6 +21,8 @@ import egovframework.tablet.service.vo.TabletSessionResponse;
 import egovframework.tablet.service.vo.TabletStudentVO;
 import egovframework.tablet.service.vo.TabletTeacherCallRequest;
 import egovframework.tablet.service.vo.TabletTeacherCallVO;
+import egovframework.tablet.service.vo.TabletTeacherMessageRequest;
+import egovframework.tablet.service.vo.TabletTeacherMessageVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
@@ -150,6 +152,23 @@ public class TabletServiceImpl implements TabletService {
 			return List.of();
 		}
 		return tabletMapper.selectTeacherCalls(rsvtSn);
+	}
+
+	@Override
+	public List<TabletTeacherMessageVO> getTeacherMessages(Integer rsvtSn) {
+		if (rsvtSn == null || rsvtSn <= 0) return List.of();
+		return tabletMapper.selectTeacherMessages(rsvtSn);
+	}
+
+	@Override
+	public List<TabletTeacherMessageVO> getUnreadTeacherMessages(Integer rsvtSn, List<Integer> studentSns) {
+		if (rsvtSn == null || rsvtSn <= 0 || studentSns == null || studentSns.isEmpty()) return List.of();
+		List<Integer> normalizedStudentSns = studentSns.stream()
+			.filter(studentSn -> studentSn != null && studentSn > 0)
+			.distinct()
+			.toList();
+		if (normalizedStudentSns.isEmpty()) return List.of();
+		return tabletMapper.selectUnreadTeacherMessages(rsvtSn, normalizedStudentSns);
 	}
 
 	@Override
@@ -341,6 +360,70 @@ public class TabletServiceImpl implements TabletService {
 		tabletMapper.updateAllTeacherCallsRead(rsvtSn);
 	}
 
+	@Override
+	@Transactional
+	public void createTeacherMessage(Integer rsvtSn, TabletTeacherMessageRequest request) {
+		if (rsvtSn == null || rsvtSn <= 0) {
+			throw new IllegalArgumentException("예약 정보가 올바르지 않습니다.");
+		}
+		String messageCn = request == null ? "" : normalizeText(request.getMessageCn());
+		if (isBlank(messageCn)) {
+			throw new IllegalArgumentException("메시지를 입력해주세요.");
+		}
+		if (messageCn.length() > 1000) {
+			throw new IllegalArgumentException("메시지는 1,000자 이내로 입력해주세요.");
+		}
+		if (request.getStudentSns() == null || request.getStudentSns().isEmpty()) {
+			throw new IllegalArgumentException("메시지를 받을 학생을 선택해주세요.");
+		}
+		Set<Integer> requestedStudentIds = request.getStudentSns().stream()
+			.filter(studentSn -> studentSn != null && studentSn > 0)
+			.collect(Collectors.toCollection(LinkedHashSet::new));
+		if (requestedStudentIds.isEmpty()) {
+			throw new IllegalArgumentException("메시지를 받을 학생을 선택해주세요.");
+		}
+
+		List<TabletStudentVO> reservationStudents = tabletMapper.selectStudents(rsvtSn);
+		List<TabletStudentVO> selectedStudents = reservationStudents.stream()
+			.filter(student -> requestedStudentIds.contains(student.getStdntSn()))
+			.toList();
+		if (selectedStudents.size() != requestedStudentIds.size()) {
+			throw new IllegalArgumentException("예약에 포함되지 않은 학생이 선택되었습니다.");
+		}
+
+		TabletTeacherMessageVO teacherMessage = new TabletTeacherMessageVO();
+		teacherMessage.setRsvtSn(rsvtSn);
+		teacherMessage.setTargetNm(selectedStudents.size() == reservationStudents.size()
+			? "전체(" + selectedStudents.size() + "명)"
+			: messageTargetName(selectedStudents));
+		teacherMessage.setStudentCount(selectedStudents.size());
+		teacherMessage.setMessageCn(messageCn);
+		tabletMapper.insertTeacherMessage(teacherMessage);
+		tabletMapper.insertTeacherMessageRecipients(
+			teacherMessage.getMsgSn(),
+			rsvtSn,
+			selectedStudents.stream().map(TabletStudentVO::getStdntSn).toList());
+	}
+
+	@Override
+	@Transactional
+	public void markTeacherMessageRead(Long msgSn, List<Integer> studentSns) {
+		if (msgSn == null || msgSn <= 0) {
+			throw new IllegalArgumentException("메시지 정보가 올바르지 않습니다.");
+		}
+		if (studentSns == null || studentSns.isEmpty()) {
+			throw new IllegalArgumentException("학생 선택 정보가 없습니다.");
+		}
+		List<Integer> normalizedStudentSns = studentSns.stream()
+			.filter(studentSn -> studentSn != null && studentSn > 0)
+			.distinct()
+			.toList();
+		if (normalizedStudentSns.isEmpty()) {
+			throw new IllegalArgumentException("학생 선택 정보가 없습니다.");
+		}
+		tabletMapper.updateTeacherMessageRead(msgSn, normalizedStudentSns);
+	}
+
 	private String missionStepCode(int routeIndex) {
 		return "MISSION" + String.format("%02d", routeIndex + 1);
 	}
@@ -363,6 +446,11 @@ public class TabletServiceImpl implements TabletService {
 		String firstName = normalizeText(students.get(0).getStdntNm());
 		if (students.size() == 1) return firstName;
 		return firstName + " 외 " + (students.size() - 1) + "명";
+	}
+
+	private String messageTargetName(List<TabletStudentVO> students) {
+		String teamNames = joinUnique(students.stream().map(TabletStudentVO::getTeamNm).toList());
+		return isBlank(teamNames) ? displayStudentNames(students) : teamNames + "(" + students.size() + "명)";
 	}
 
 	private boolean isBlank(String value) {

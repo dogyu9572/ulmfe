@@ -13,11 +13,11 @@
 		<result column="USE_YN" property="useYn"/>
 		<result column="DEL_YN" property="delYn"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 		<result column="DEL_DT" property="delDt"/>
-		<result column="DELTR" property="deltr"/>
+		<result column="DLTR_NM" property="deltr"/>
 	</resultMap>
 
 	<sql id="historyWhere">
@@ -32,7 +32,7 @@
 
 	<select id="selectHistoryList" resultMap="HomepageHistoryMap">
 		SELECT HSTRY_SN, HSTRY_YR, HSTRY_MM, HSTRY_CN, IMG_FILE_ID, USE_YN, DEL_YN,
-			REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_HSTRY
 		<include refid="historyWhere"/>
 		ORDER BY HSTRY_YR DESC, HSTRY_MM DESC, HSTRY_SN DESC
@@ -47,7 +47,7 @@
 
 	<select id="selectHistory" parameterType="int" resultMap="HomepageHistoryMap">
 		SELECT HSTRY_SN, HSTRY_YR, HSTRY_MM, HSTRY_CN, IMG_FILE_ID, USE_YN, DEL_YN,
-			REG_DT, RGTR, MDFCN_DT, MDTR, DEL_DT, DELTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_HSTRY
 		WHERE HSTRY_SN = #{value}
 			AND DEL_YN = 'N'
@@ -57,7 +57,7 @@
 		useGeneratedKeys="true" keyProperty="hstrySn">
 		INSERT INTO HMPG_HSTRY (
 			HSTRY_YR, HSTRY_MM, HSTRY_CN, IMG_FILE_ID, USE_YN, DEL_YN,
-			REG_DT, RGTR, MDFCN_DT, MDTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{hstryYr}, #{hstryMm}, #{hstryCn}, #{imgFileId}, #{useYn}, 'N',
 			NOW(), #{rgtr}, NOW(), #{mdtr}
@@ -73,7 +73,7 @@
 			IMG_FILE_ID = #{imgFileId},
 			USE_YN = #{useYn},
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE HSTRY_SN = #{hstrySn}
 			AND DEL_YN = 'N'
 	</update>
@@ -82,7 +82,7 @@
 		UPDATE HMPG_HSTRY
 		SET DEL_YN = 'Y',
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE HSTRY_SN = #{hstrySn}
 			AND DEL_YN = 'N'
 	</update>
@@ -91,7 +91,7 @@
 		UPDATE HMPG_HSTRY
 		SET DEL_YN = 'Y',
 			DEL_DT = NOW(),
-			DELTR = #{deltr}
+			DLTR_NM = #{deltr}
 		WHERE DEL_YN = 'N'
 			AND HSTRY_SN IN
 			<foreach collection="hstrySns" item="hstrySn" open="(" separator="," close=")">

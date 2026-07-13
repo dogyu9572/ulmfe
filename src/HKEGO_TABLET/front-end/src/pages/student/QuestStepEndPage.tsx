@@ -19,7 +19,7 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 	const questLabel = quest?.name || routeItems[routeIndex] || `퀘스트${routeIndex + 1}`
 	const currentTitle = `${questLabel} 수행 완료!`
 	const nextRouteName = routeItems[routeIndex + 1] || ''
-	const nextPath = nextRouteName ? `/student/quest${String(routeIndex + 2).padStart(2, '0')}` : '/student/quest05'
+	const nextPath = nextRouteName ? `/student/quest${String(routeIndex + 2).padStart(2, '0')}` : '/student/quest_survey'
 	const nextQuest = nextRouteName ? studentFlowExploreQuestByRouteIndex(flowSession, routeIndex + 1) : null
 	const nextTitle = nextQuest?.place || nextQuest?.title || nextRouteName || '사건해결'
 	const completedStepCodes = studentFlowCompletedExploreStepCodes(flowSession)

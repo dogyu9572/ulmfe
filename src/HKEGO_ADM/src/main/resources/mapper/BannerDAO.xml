@@ -20,11 +20,11 @@
 		SORT_SEQ,
 		USE_YN,
 		REG_DT,
-		RGTR,
+		RGTR_NM,
 		MDFCN_DT,
-		MDTR,
+		MDFR_NM,
 		DEL_DT,
-		DELTR
+		DLTR_NM
 	</sql>
 
 	<sql id="bannerListWhere">
@@ -97,7 +97,7 @@
 			MOBL_ATCH_FILE_ID,
 			SORT_SEQ,
 			USE_YN,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{bnrNm},
@@ -135,7 +135,7 @@
 			MOBL_ATCH_FILE_ID = #{moblAtchFileId},
 			SORT_SEQ = #{sortSeq},
 			USE_YN = #{useYn},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE BNR_SN = #{bnrSn}
 		AND DEL_DT IS NULL
@@ -144,7 +144,7 @@
 	<update id="delete">
 		UPDATE BANNER_MST SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE BNR_SN = #{bnrSn}
 		AND DEL_DT IS NULL
 	</update>
@@ -152,7 +152,7 @@
 	<update id="updateSeq">
 		UPDATE BANNER_MST SET
 			SORT_SEQ = #{sortSeq},
-			MDTR = 'admin',
+			MDFR_NM = 'admin',
 			MDFCN_DT = NOW()
 		WHERE BNR_SN = #{bnrSn}
 		AND DEL_DT IS NULL

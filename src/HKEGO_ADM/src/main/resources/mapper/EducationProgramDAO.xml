@@ -22,11 +22,11 @@
 		P.STEP_JSON,
 		P.EVAL_JSON,
 		P.REG_DT,
-		P.RGTR,
+		P.RGTR_NM,
 		P.MDFCN_DT,
-		P.MDTR,
+		P.MDFR_NM,
 		P.DEL_DT,
-		P.DELTR
+		P.DLTR_NM
 	</sql>
 
 	<sql id="educationProgramWhere">
@@ -69,7 +69,7 @@
 	<insert id="insert" parameterType="egovframework.let.adm.service.vo.EducationProgramVO" useGeneratedKeys="true" keyProperty="prgrmSn">
 		INSERT INTO EDU_PRGRM_MST (
 			PRGRM_TYPE_CD, PRGRM_NM, TRGT_CN, TOTAL_TM_MNT, MAX_NOPE, SIMPLE_EXPLN,
-			START_EXPLN, USE_YN, TEAM_CNT, ROUTE_JSON, STEP_JSON, EVAL_JSON, RGTR, REG_DT
+			START_EXPLN, USE_YN, TEAM_CNT, ROUTE_JSON, STEP_JSON, EVAL_JSON, RGTR_NM, REG_DT
 		) VALUES (
 			#{prgrmTypeCd}, #{prgrmNm}, #{trgtCn}, #{totalTmMnt}, #{maxNope}, #{simpleExpln},
 			#{startExpln}, #{useYn}, #{teamCnt}, #{routeJson}, #{stepJson}, #{evalJson}, #{rgtr}, NOW()
@@ -89,7 +89,7 @@
 			ROUTE_JSON = #{routeJson},
 			STEP_JSON = #{stepJson},
 			EVAL_JSON = #{evalJson},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE PRGRM_SN = #{prgrmSn}
 		AND PRGRM_TYPE_CD = #{prgrmTypeCd}
@@ -99,7 +99,7 @@
 	<update id="delete">
 		UPDATE EDU_PRGRM_MST SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE PRGRM_SN = #{prgrmSn}
 		AND PRGRM_TYPE_CD = #{prgrmTypeCd}
 		AND DEL_DT IS NULL

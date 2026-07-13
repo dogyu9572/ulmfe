@@ -14,7 +14,7 @@
 	<resultMap id="AuthInfoMap" type="egovframework.let.adm.service.vo.AuthInfoVO">
 		<result property="authrtCd" column="AUTHRT_CD"/>
 		<result property="menuCd" column="MENU_CD"/>
-		<result property="rgtr" column="RGTR"/>
+		<result property="rgtr" column="RGTR_NM"/>
 		<result property="regDt" column="REG_DT"/>
 	</resultMap>
 
@@ -65,14 +65,14 @@
 	</select>
 
 	<select id="selectAuthInfoList" resultMap="AuthInfoMap">
-		SELECT AUTHRT_CD, MENU_CD, RGTR, REG_DT
+		SELECT AUTHRT_CD, MENU_CD, RGTR_NM, REG_DT
 		FROM AUTH_MENU_MAP
 		WHERE AUTHRT_CD = #{authrtCd}
 		ORDER BY MENU_CD
 	</select>
 
 	<insert id="insertAuthInfo" parameterType="egovframework.let.adm.service.vo.AuthInfoVO">
-		INSERT INTO AUTH_MENU_MAP (AUTHRT_CD, MENU_CD, RGTR, REG_DT)
+		INSERT INTO AUTH_MENU_MAP (AUTHRT_CD, MENU_CD, RGTR_NM, REG_DT)
 		VALUES (#{authrtCd}, #{menuCd}, #{rgtr}, NOW())
 	</insert>
 

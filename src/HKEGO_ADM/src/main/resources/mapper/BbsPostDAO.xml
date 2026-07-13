@@ -34,9 +34,9 @@
 		<result column="ANS_YMD" property="ansYmd"/>
 		<result column="ANS_DT" property="ansDt"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 	</resultMap>
 
 	<select id="selectBbsPostListForAdmin" resultMap="BbsPostResult">
@@ -45,7 +45,7 @@
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
 			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
-			REG_DT, RGTR, MDFCN_DT, MDTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM BBS_ARTICLE
 		WHERE BBS_ID = #{bbsId}
 		ORDER BY
@@ -93,7 +93,7 @@
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
 			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
-			REG_DT, RGTR, MDFCN_DT, MDTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM BBS_ARTICLE
 		<include refid="searchWhere"/>
 		ORDER BY
@@ -114,7 +114,7 @@
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
 			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
-			REG_DT, RGTR, MDFCN_DT, MDTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		FROM BBS_ARTICLE
 		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
 	</select>
@@ -126,7 +126,7 @@
 			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
 			ETC1, ETC2, ETC3, ETC4, ETC5,
 			ANS_STTS_CD, ANS_CN, ANSWR_NM, ANSWR_ID, ANS_YMD, ANS_DT,
-			REG_DT, RGTR, MDFCN_DT, MDTR
+			REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{bbsId}, #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, #{sortSeq},
 			#{ctgrCd}, #{ntcYn}, #{upendFixYn}, #{lckYn}, #{lnkgUrlAddr}, #{pstgYmd},
@@ -150,7 +150,7 @@
 			ANS_STTS_CD = #{ansSttsCd}, ANS_CN = #{ansCn}, ANSWR_NM = #{answrNm}, ANSWR_ID = #{answrId},
 			ANS_YMD = #{ansYmd},
 			ANS_DT = CASE WHEN #{ansSttsCd} = 'DONE' THEN IFNULL(ANS_DT, NOW()) ELSE NULL END,
-			MDFCN_DT = NOW(), MDTR = #{mdtr}
+			MDFCN_DT = NOW(), MDFR_NM = #{mdtr}
 		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
 	</update>
 
@@ -163,7 +163,7 @@
 			ANS_YMD = #{ansYmd},
 			ANS_DT = CASE WHEN #{ansSttsCd} = 'DONE' THEN NOW() ELSE NULL END,
 			MDFCN_DT = NOW(),
-			MDTR = #{mdtr}
+			MDFR_NM = #{mdtr}
 		WHERE BBS_ID = #{bbsId} AND PST_SN = #{pstSn}
 	</update>
 

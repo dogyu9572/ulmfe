@@ -19,6 +19,7 @@ export const StudentAttendancePage = () => {
 					setSession(nextSession)
 					setCheckedIds(nextSession.students
 						.filter((student) => student.atndYn === 'Y')
+						.slice(0, 1)
 						.map((student) => String(student.stdntSn)))
 				})
 				.catch((error) => window.alert(error instanceof Error ? error.message : '예약 정보를 조회하지 못했습니다.'))
@@ -28,7 +29,7 @@ export const StudentAttendancePage = () => {
 	const students = useMemo(() => session?.students ?? [], [session])
 
 	const handleCheck = (id: string, checked: boolean) => {
-		setCheckedIds((current) => checked ? [...current, id] : current.filter((currentId) => currentId !== id))
+		setCheckedIds(checked ? [id] : [])
 	}
 
 	const handleNext = async () => {
@@ -78,7 +79,8 @@ export const StudentAttendancePage = () => {
 								return (
 									<li key={id}>
 										<input
-											type="checkbox"
+											type="radio"
+											name="studentNumber"
 											id={id}
 											checked={checkedIds.includes(id)}
 											onChange={(event) => handleCheck(id, event.currentTarget.checked)}

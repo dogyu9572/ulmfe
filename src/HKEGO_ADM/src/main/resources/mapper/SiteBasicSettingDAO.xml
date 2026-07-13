@@ -15,14 +15,14 @@
 		<result column="FAVICON_FILE_ID" property="faviconFileId"/>
 		<result column="FTR_CN" property="ftrCn"/>
 		<result column="REG_DT" property="regDt"/>
-		<result column="RGTR" property="rgtr"/>
+		<result column="RGTR_NM" property="rgtr"/>
 		<result column="MDFCN_DT" property="mdfcnDt"/>
-		<result column="MDTR" property="mdtr"/>
+		<result column="MDFR_NM" property="mdtr"/>
 	</resultMap>
 
 	<sql id="siteBasicSettingColumns">
 		STNG_ID, SITE_TTL, HMPG_ADDR, MNGR_EML_ADDR, EDNST_NM, EDNST_ADDR, EDNST_TELNO,
-		LOGO_FILE_ID, FAVICON_FILE_ID, FTR_CN, REG_DT, RGTR, MDFCN_DT, MDTR
+		LOGO_FILE_ID, FAVICON_FILE_ID, FTR_CN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 	</sql>
 
 	<select id="selectDefaultSetting" resultMap="SiteBasicSettingResult">
@@ -35,7 +35,7 @@
 	<insert id="upsertDefaultSetting" parameterType="egovframework.let.adm.service.vo.SiteBasicSettingVO">
 		INSERT INTO SITE_BASIC_STNG (
 			STNG_ID, SITE_TTL, HMPG_ADDR, MNGR_EML_ADDR, EDNST_NM, EDNST_ADDR, EDNST_TELNO,
-			LOGO_FILE_ID, FAVICON_FILE_ID, FTR_CN, REG_DT, RGTR, MDFCN_DT, MDTR
+			LOGO_FILE_ID, FAVICON_FILE_ID, FTR_CN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{stngId}, #{siteTtl}, #{hmpgAddr}, #{mngrEmlAddr}, #{ednstNm}, #{ednstAddr}, #{ednstTelno},
 			#{logoFileId}, #{faviconFileId}, #{ftrCn}, NOW(), #{rgtr}, NOW(), #{mdtr}
@@ -51,6 +51,6 @@
 			FAVICON_FILE_ID = VALUES(FAVICON_FILE_ID),
 			FTR_CN = VALUES(FTR_CN),
 			MDFCN_DT = NOW(),
-			MDTR = VALUES(MDTR)
+			MDFR_NM = VALUES(MDFR_NM)
 	</insert>
 </mapper>

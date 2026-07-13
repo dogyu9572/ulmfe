@@ -8,11 +8,11 @@
 		F.EVL_SE_CD,
 		F.QSTNR_NM,
 		F.REG_DT,
-		F.RGTR,
+		F.RGTR_NM,
 		F.MDFCN_DT,
-		F.MDTR,
+		F.MDFR_NM,
 		F.DEL_DT,
-		F.DELTR
+		F.DLTR_NM
 	</sql>
 
 	<sql id="surveyFormWhere">
@@ -60,7 +60,7 @@
 			QSTNR_TYPE_CD,
 			EVL_SE_CD,
 			QSTNR_NM,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{qstnrTypeCd},
@@ -74,7 +74,7 @@
 	<update id="update" parameterType="egovframework.let.adm.service.vo.EvaluationFormVO">
 		UPDATE EDU_QSTNR_MST SET
 			QSTNR_NM = #{qstnrNm},
-			MDTR = #{mdtr},
+			MDFR_NM = #{mdtr},
 			MDFCN_DT = NOW()
 		WHERE QSTNR_SN = #{qstnrSn}
 		AND QSTNR_TYPE_CD = #{qstnrTypeCd}
@@ -84,7 +84,7 @@
 	<update id="delete">
 		UPDATE EDU_QSTNR_MST SET
 			DEL_DT = NOW(),
-			DELTR = 'admin'
+			DLTR_NM = 'admin'
 		WHERE QSTNR_SN = #{qstnrSn}
 		AND QSTNR_TYPE_CD = 'SURVEY'
 		AND DEL_DT IS NULL
@@ -105,9 +105,9 @@
 			Q.QSTN_CN,
 			Q.SORT_SEQ,
 			Q.REG_DT,
-			Q.RGTR,
+			Q.RGTR_NM,
 			Q.MDFCN_DT,
-			Q.MDTR
+			Q.MDFR_NM
 		FROM EDU_QSTNR_QSTN Q
 		WHERE Q.QSTNR_SN = #{qstnrSn}
 		ORDER BY Q.SORT_SEQ ASC, Q.QSTN_SN ASC
@@ -125,7 +125,7 @@
 			ANS_TYPE_CD,
 			QSTN_CN,
 			SORT_SEQ,
-			RGTR,
+			RGTR_NM,
 			REG_DT
 		) VALUES (
 			#{qstnrSn},
