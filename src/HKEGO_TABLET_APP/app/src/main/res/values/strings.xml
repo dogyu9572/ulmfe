@@ -2,4 +2,13 @@
 <resources>
     <string name="app_name">울산미래교육관 학습지원</string>
     <string name="tablet_web_url">https://ulmfe-tablet.hk-test.co.kr/</string>
+    <string name="exit_dialog_title">앱 종료</string>
+    <string name="exit_dialog_message">앱을 종료하시겠습니까?</string>
+    <string name="exit_dialog_confirm">종료</string>
+    <string name="image_chooser_title">사진 첨부</string>
+    <string name="notification_permission_denied">알림 권한이 꺼져 있어 푸시 알림을 표시할 수 없습니다.</string>
+    <string name="teacher_call_channel_name">선생님 호출</string>
+    <string name="teacher_call_channel_description">학생이 선생님을 호출할 때 표시되는 알림</string>
+    <string name="teacher_message_channel_name">선생님 메시지</string>
+    <string name="teacher_message_channel_description">선생님이 학생에게 보내는 메시지 알림</string>
 </resources>

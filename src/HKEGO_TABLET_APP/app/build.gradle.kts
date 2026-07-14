@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+if (file("google-services.json").exists()) {
+    pluginManager.apply("com.google.gms.google-services")
+} else {
+    logger.warn("FCM is disabled: place google-services.json in the app module.")
+}
+
 android {
     namespace = "kr.co.ulmfe.tablet"
     compileSdk = 36
@@ -38,4 +44,6 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(platform(libs.firebase.bom))
+    implementation("com.google.firebase:firebase-messaging")
 }
