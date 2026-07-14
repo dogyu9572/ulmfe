@@ -1,3 +1,5 @@
+import { unregisterAndroidPushContext } from '../push/androidPush'
+
 export type ApiResponse<T> = {
 	success: boolean
 	message: string
@@ -213,6 +215,7 @@ const redirectToLoginOnAuthExpired = (url: string, response: Response) => {
 	if (authRedirecting) return true
 
 	authRedirecting = true
+	unregisterAndroidPushContext()
 	window.sessionStorage.removeItem('hkegoTabletStudentFlowSession')
 	window.sessionStorage.removeItem('hkegoTabletAdminId')
 	if (window.location.pathname !== '/') {

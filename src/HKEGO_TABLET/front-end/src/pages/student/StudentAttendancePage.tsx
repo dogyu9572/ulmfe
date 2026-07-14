@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AttendanceHeader } from '../../components/tablet/AttendanceHeader'
 import { fetchTabletSession, markTabletAttendance, TabletSession } from '../../api/tabletApi'
 import { saveTabletStudentFlowSession } from '../../state/tabletStudentFlowSession'
+import { registerAndroidPushContext } from '../../push/androidPush'
 
 export const StudentAttendancePage = () => {
 	const navigate = useNavigate()
@@ -49,6 +50,7 @@ export const StudentAttendancePage = () => {
 			return
 		}
 		if (session) saveTabletStudentFlowSession(session, selectedStudentSns)
+		if (rsvtSn) registerAndroidPushContext('STUDENT', rsvtSn, selectedStudentSns)
 
 		if (session?.reservation?.prgrmTypeCd === 'MISSION') navigate('/student/mission_welcome')
 		else if (session?.reservation?.prgrmTypeCd === 'EXPLORE') navigate('/student/welcome')

@@ -1,5 +1,7 @@
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { fetchTabletSession } from '../../api/tabletApi'
+import { registerAndroidPushContext } from '../../push/androidPush'
 
 type UserMode = 'student' | 'teacher'
 
@@ -10,6 +12,11 @@ export const SelectUserPage = () => {
 	const handleSelect = (event: MouseEvent<HTMLAnchorElement>, mode: UserMode, targetUrl: string) => {
 		event.preventDefault()
 		setSelectedMode(mode)
+		if (mode === 'teacher') {
+			void fetchTabletSession().then((session) => {
+				if (session.reservation) registerAndroidPushContext('TEACHER', session.reservation.rsvtSn)
+			}).catch(() => undefined)
+		}
 		window.setTimeout(() => navigate(targetUrl), 500)
 	}
 

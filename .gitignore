@@ -30,6 +30,7 @@
 
 # Secrets
 /config/*.env
+/config/firebase/
 !/config/*.env.example
 **/.env
 **/.env.*

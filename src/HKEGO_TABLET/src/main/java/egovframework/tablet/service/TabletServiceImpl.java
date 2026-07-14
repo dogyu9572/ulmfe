@@ -57,13 +57,15 @@ public class TabletServiceImpl implements TabletService {
 	private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 	private static final DateTimeFormatter HOUR_MINUTE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 	private final TabletMapper tabletMapper;
+	private final TabletPushService tabletPushService;
 	private final PasswordEncoder passwordEncoder;
 	private final ObjectMapper objectMapper;
 	@Value("${file.upload.path}")
 	private String uploadPath;
 
-	public TabletServiceImpl(TabletMapper tabletMapper, PasswordEncoder passwordEncoder, ObjectMapper objectMapper) {
+	public TabletServiceImpl(TabletMapper tabletMapper, TabletPushService tabletPushService, PasswordEncoder passwordEncoder, ObjectMapper objectMapper) {
 		this.tabletMapper = tabletMapper;
+		this.tabletPushService = tabletPushService;
 		this.passwordEncoder = passwordEncoder;
 		this.objectMapper = objectMapper;
 	}
@@ -367,6 +369,7 @@ public class TabletServiceImpl implements TabletService {
 		teacherCall.setPlaceNm(normalizeText(request.getPlaceNm()));
 		teacherCall.setCallCn("선생님을 호출했어요.");
 		tabletMapper.insertTeacherCall(teacherCall);
+		tabletPushService.sendTeacherCallAfterCommit(teacherCall);
 	}
 
 	@Override
@@ -429,6 +432,9 @@ public class TabletServiceImpl implements TabletService {
 		tabletMapper.insertTeacherMessageRecipients(
 			teacherMessage.getMsgSn(),
 			rsvtSn,
+			selectedStudents.stream().map(TabletStudentVO::getStdntSn).toList());
+		tabletPushService.sendTeacherMessageAfterCommit(
+			teacherMessage,
 			selectedStudents.stream().map(TabletStudentVO::getStdntSn).toList());
 	}
 

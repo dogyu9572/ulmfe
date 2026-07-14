@@ -10,6 +10,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLDecoder
 import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -149,7 +150,19 @@ object PushRegistrationManager {
             connection.setRequestProperty("Accept", "application/json")
             CookieManager.getInstance().getCookie(PushContract.TABLET_ORIGIN)
                 ?.takeIf { it.isNotBlank() }
-                ?.let { cookie -> connection.setRequestProperty("Cookie", cookie) }
+                ?.let { cookie ->
+                    connection.setRequestProperty("Cookie", cookie)
+                    cookie.split(';')
+                        .map { it.trim() }
+                        .firstOrNull { it.startsWith("XSRF-TOKEN=") }
+                        ?.substringAfter('=')
+                        ?.let { token ->
+                            connection.setRequestProperty(
+                                "X-XSRF-TOKEN",
+                                URLDecoder.decode(token, Charsets.UTF_8.name())
+                            )
+                        }
+                }
 
             connection.outputStream.bufferedWriter(Charsets.UTF_8).use { writer ->
                 writer.write(payload.toString())

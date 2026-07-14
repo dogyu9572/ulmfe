@@ -13,6 +13,7 @@ import egovframework.tablet.service.vo.TabletSavedAnswerVO;
 import egovframework.tablet.service.vo.TabletStudentVO;
 import egovframework.tablet.service.vo.TabletTeacherCallVO;
 import egovframework.tablet.service.vo.TabletTeacherMessageVO;
+import egovframework.tablet.service.vo.TabletPushDeviceVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -81,4 +82,22 @@ public interface TabletMapper {
 	void insertProgressLogDone(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("stepCd") String stepCd, @Param("actvtNm") String actvtNm);
 
 	void updateStudentProgress(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("progressRate") Integer progressRate, @Param("learningStatus") String learningStatus);
+
+	int countReservation(Integer rsvtSn);
+
+	void deactivatePushDevicesByToken(@Param("deviceId") String deviceId, @Param("fcmToken") String fcmToken);
+
+	void upsertPushDevice(TabletPushDeviceVO device);
+
+	int deactivatePushDevice(String deviceId);
+
+	void deletePushDeviceStudents(String deviceId);
+
+	void insertPushDeviceStudents(@Param("deviceId") String deviceId, @Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
+
+	List<String> selectTeacherPushTokens(Integer rsvtSn);
+
+	List<String> selectStudentPushTokens(@Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
+
+	int deactivatePushDeviceByToken(String fcmToken);
 }

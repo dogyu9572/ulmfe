@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import egovframework.tablet.common.ApiResponse;
 import egovframework.tablet.service.TabletService;
+import egovframework.tablet.service.TabletPushService;
 import egovframework.tablet.service.vo.TabletAttendanceRequest;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletLoginRequest;
@@ -17,6 +18,8 @@ import egovframework.tablet.service.vo.TabletTeacherCallVO;
 import egovframework.tablet.service.vo.TabletTeacherMessageReadRequest;
 import egovframework.tablet.service.vo.TabletTeacherMessageRequest;
 import egovframework.tablet.service.vo.TabletTeacherMessageVO;
+import egovframework.tablet.service.vo.TabletPushDeviceRequest;
+import egovframework.tablet.service.vo.TabletPushDeviceResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,11 +50,28 @@ import java.net.URI;
 @RequestMapping("/api/tablet")
 public class TabletApiController {
 	private final TabletService tabletService;
+	private final TabletPushService tabletPushService;
 	private final ObjectMapper objectMapper;
 
-	public TabletApiController(TabletService tabletService, ObjectMapper objectMapper) {
+	public TabletApiController(TabletService tabletService, TabletPushService tabletPushService, ObjectMapper objectMapper) {
 		this.tabletService = tabletService;
+		this.tabletPushService = tabletPushService;
 		this.objectMapper = objectMapper;
+	}
+
+	@PutMapping("/push/devices/{deviceId}")
+	public ResponseEntity<ApiResponse<TabletPushDeviceResponse>> registerPushDevice(
+		@PathVariable String deviceId,
+		@RequestBody TabletPushDeviceRequest request
+	) {
+		try {
+			return ResponseEntity.ok(ApiResponse.success(
+				"푸시 알림 기기 정보가 저장되었습니다.",
+				tabletPushService.registerDevice(deviceId, request)
+			));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		}
 	}
 
 	@PostMapping("/auth/login")

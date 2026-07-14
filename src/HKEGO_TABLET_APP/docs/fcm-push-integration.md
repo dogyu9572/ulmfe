@@ -101,7 +101,7 @@ Cookie: 기존 WebView 로그인 세션 쿠키
 
 실제 물리명은 ULMFE DB 명명 규칙과 공공데이터 표준용어 검토 후 확정한다.
 
-### PUSH_DEVICE
+### EDU_PUSH_DVC
 
 | 컬럼 | 설명 |
 |---|---|
@@ -113,14 +113,14 @@ Cookie: 기존 WebView 로그인 세션 쿠키
 | LAST_UPDT_DT | 토큰/컨텍스트 마지막 갱신 시각 |
 | REG_DT | 최초 등록 시각 |
 
-### PUSH_DEVICE_STUDENT
+### EDU_PUSH_DVC_STDNT
 
 | 컬럼 | 설명 |
 |---|---|
 | DEVICE_ID | PUSH_DEVICE FK |
 | STUDENT_SN | 선택 학생 번호 |
 
-`DEVICE_ID + STUDENT_SN`을 복합 PK로 두고 학생 선택이 갱신될 때 전체 교체하는 방식을 권장한다.
+`DVC_ID + STDNT_SN`을 복합 PK로 두고 학생 선택이 갱신될 때 전체 교체한다.
 
 ## 발송 대상 결정
 
@@ -210,11 +210,12 @@ Content-Type: application/json
 
 - [ ] Firebase 프로젝트에 `kr.co.ulmfe.tablet` 앱 등록
 - [ ] 실제 `google-services.json`을 각 개발/배포 환경에 안전하게 배치
-- [ ] 서버의 기기 등록 API 구현 및 실제 URL 확정
-- [ ] 서버 세션/CSRF 인증 방식 확정
-- [ ] 기기/학생 연결 테이블 및 산출물 갱신
-- [ ] 호출 저장 트랜잭션 이후 FCM 발송 연결
-- [ ] 메시지 저장 트랜잭션 이후 대상 토큰 조회와 FCM 발송 연결
-- [ ] React 역할/예약/학생 선택 완료 시 `AndroidPush.registerContext` 호출
-- [ ] 로그아웃/예약 종료 시 `AndroidPush.unregisterContext` 호출
+- [x] 서버의 기기 등록 API 구현 및 URL 확정
+- [x] 기존 세션 쿠키와 XSRF 헤더를 이용한 인증 방식 적용
+- [x] 기기/학생 연결 테이블 구현 (`EDU_PUSH_DVC`, `EDU_PUSH_DVC_STDNT`)
+- [x] 호출 저장 트랜잭션 이후 FCM 발송 연결
+- [x] 메시지 저장 트랜잭션 이후 대상 토큰 조회와 FCM 발송 연결
+- [x] React 역할/예약/학생 선택 완료 시 `AndroidPush.registerContext` 호출
+- [x] 인증 만료 시 `AndroidPush.unregisterContext` 호출
+- [ ] 명시적 로그아웃/예약 종료 화면에서 `AndroidPush.unregisterContext` 호출
 - [ ] 실제 태블릿 절전·화면 꺼짐·전원 재연결 테스트

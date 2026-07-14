@@ -12,6 +12,10 @@ server:
         secure: ${APP_SESSION_COOKIE_SECURE:false}
 
 app:
+  push:
+    firebase:
+      enabled: ${FCM_ENABLED:false}
+      project-id: ${FCM_PROJECT_ID:}
   security:
     csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
     csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:false}

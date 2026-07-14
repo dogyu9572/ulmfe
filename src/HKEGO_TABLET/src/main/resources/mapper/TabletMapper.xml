@@ -605,4 +605,93 @@
 		AND STDNT_SN = #{stdntSn}
 		AND DEL_DT IS NULL
 	</update>
+
+	<select id="countReservation" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_RSVT_MST
+		WHERE RSVT_SN = #{rsvtSn}
+		AND DEL_DT IS NULL
+	</select>
+
+	<update id="deactivatePushDevicesByToken">
+		UPDATE EDU_PUSH_DVC
+		SET ACTV_YN = 'N',
+			LAST_UPDT_DT = NOW()
+		WHERE FCM_TKN = #{fcmToken}
+		AND DVC_ID != #{deviceId}
+		AND ACTV_YN = 'Y'
+	</update>
+
+	<insert id="upsertPushDevice">
+		INSERT INTO EDU_PUSH_DVC (
+			DVC_ID, FCM_TKN, ROLE_CD, RSVT_SN, ACTV_YN,
+			CLNT_UPDT_DT, LAST_UPDT_DT, REG_DT
+		) VALUES (
+			#{deviceId}, #{fcmToken}, #{roleCd}, #{rsvtSn}, #{activeYn},
+			#{clientUpdatedAt}, NOW(), NOW()
+		)
+		ON DUPLICATE KEY UPDATE
+			FCM_TKN = VALUES(FCM_TKN),
+			ROLE_CD = VALUES(ROLE_CD),
+			RSVT_SN = VALUES(RSVT_SN),
+			ACTV_YN = VALUES(ACTV_YN),
+			CLNT_UPDT_DT = VALUES(CLNT_UPDT_DT),
+			LAST_UPDT_DT = NOW()
+	</insert>
+
+	<update id="deactivatePushDevice">
+		UPDATE EDU_PUSH_DVC
+		SET ACTV_YN = 'N',
+			LAST_UPDT_DT = NOW()
+		WHERE DVC_ID = #{deviceId}
+	</update>
+
+	<delete id="deletePushDeviceStudents">
+		DELETE FROM EDU_PUSH_DVC_STDNT
+		WHERE DVC_ID = #{deviceId}
+	</delete>
+
+	<insert id="insertPushDeviceStudents">
+		INSERT INTO EDU_PUSH_DVC_STDNT (
+			DVC_ID, RSVT_SN, STDNT_SN, REG_DT
+		) VALUES
+		<foreach collection="studentSns" item="studentSn" separator=",">
+			(#{deviceId}, #{rsvtSn}, #{studentSn}, NOW())
+		</foreach>
+	</insert>
+
+	<select id="selectTeacherPushTokens" resultType="string">
+		SELECT DISTINCT FCM_TKN
+		FROM EDU_PUSH_DVC
+		WHERE RSVT_SN = #{rsvtSn}
+		AND ROLE_CD = 'TEACHER'
+		AND ACTV_YN = 'Y'
+		AND FCM_TKN IS NOT NULL
+		AND FCM_TKN != ''
+		AND LAST_UPDT_DT &gt;= DATE_SUB(NOW(), INTERVAL 7 DAY)
+	</select>
+
+	<select id="selectStudentPushTokens" resultType="string">
+		SELECT DISTINCT D.FCM_TKN
+		FROM EDU_PUSH_DVC D
+		INNER JOIN EDU_PUSH_DVC_STDNT S ON S.DVC_ID = D.DVC_ID
+		WHERE D.RSVT_SN = #{rsvtSn}
+		AND S.RSVT_SN = #{rsvtSn}
+		AND D.ROLE_CD = 'STUDENT'
+		AND D.ACTV_YN = 'Y'
+		AND D.FCM_TKN IS NOT NULL
+		AND D.FCM_TKN != ''
+		AND D.LAST_UPDT_DT &gt;= DATE_SUB(NOW(), INTERVAL 7 DAY)
+		AND S.STDNT_SN IN
+		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+			#{studentSn}
+		</foreach>
+	</select>
+
+	<update id="deactivatePushDeviceByToken">
+		UPDATE EDU_PUSH_DVC
+		SET ACTV_YN = 'N',
+			LAST_UPDT_DT = NOW()
+		WHERE FCM_TKN = #{fcmToken}
+	</update>
 </mapper>
