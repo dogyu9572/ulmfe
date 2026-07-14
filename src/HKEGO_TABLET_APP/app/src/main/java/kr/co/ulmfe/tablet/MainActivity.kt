@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.provider.MediaStore
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -40,6 +41,8 @@ class MainActivity : AppCompatActivity() {
     private var pendingCameraUri: Uri? = null
     private var pendingCameraFile: File? = null
     private var lastCapturedImageFile: File? = null
+    private var jsAlertDialog: AlertDialog? = null
+    private var jsAlertResult: JsResult? = null
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -92,6 +95,16 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             webChromeClient = object : WebChromeClient() {
+                override fun onJsAlert(
+                    view: WebView,
+                    url: String,
+                    message: String,
+                    result: JsResult
+                ): Boolean {
+                    showJsAlert(message, result)
+                    return true
+                }
+
                 override fun onShowFileChooser(
                     webView: WebView,
                     filePathCallback: ValueCallback<Array<Uri>>,
@@ -130,6 +143,57 @@ class MainActivity : AppCompatActivity() {
         ) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+    }
+
+    private fun showJsAlert(message: String, result: JsResult) {
+        dismissJsAlert()
+
+        if (isFinishing || isDestroyed) {
+            result.confirm()
+            return
+        }
+
+        jsAlertResult = result
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.js_alert_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.js_alert_confirm, null)
+            .create()
+
+        jsAlertDialog = dialog
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                confirmJsAlert(result)
+                dialog.dismiss()
+            }
+        }
+        dialog.setOnCancelListener {
+            confirmJsAlert(result)
+        }
+        dialog.setOnDismissListener {
+            confirmJsAlert(result)
+        }
+        dialog.show()
+    }
+
+    private fun confirmJsAlert(result: JsResult) {
+        if (jsAlertResult !== result) {
+            return
+        }
+
+        jsAlertResult = null
+        jsAlertDialog = null
+        result.confirm()
+    }
+
+    private fun dismissJsAlert() {
+        val result = jsAlertResult
+        val dialog = jsAlertDialog
+        jsAlertResult = null
+        jsAlertDialog = null
+        result?.confirm()
+        dialog?.setOnDismissListener(null)
+        dialog?.dismiss()
     }
 
     private fun refreshFcmTokenIfConfigured() {
@@ -357,6 +421,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        dismissJsAlert()
         cancelFileChooser()
         lastCapturedImageFile?.delete()
         lastCapturedImageFile = null

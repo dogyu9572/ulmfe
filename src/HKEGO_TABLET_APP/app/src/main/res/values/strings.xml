@@ -5,6 +5,8 @@
     <string name="exit_dialog_title">앱 종료</string>
     <string name="exit_dialog_message">앱을 종료하시겠습니까?</string>
     <string name="exit_dialog_confirm">종료</string>
+    <string name="js_alert_title">안내</string>
+    <string name="js_alert_confirm">확인</string>
     <string name="image_chooser_title">사진 첨부</string>
     <string name="notification_permission_denied">알림 권한이 꺼져 있어 푸시 알림을 표시할 수 없습니다.</string>
     <string name="teacher_call_channel_name">선생님 호출</string>
