@@ -152,14 +152,11 @@ object PushRegistrationManager {
                 ?.takeIf { it.isNotBlank() }
                 ?.let { cookie ->
                     connection.setRequestProperty("Cookie", cookie)
-                    cookie.split(';')
-                        .map { it.trim() }
-                        .firstOrNull { it.startsWith("XSRF-TOKEN=") }
-                        ?.substringAfter('=')
-                        ?.let { token ->
+                    extractCookieValue(cookie, XSRF_COOKIE_NAME)
+                        ?.let { xsrfToken ->
                             connection.setRequestProperty(
-                                "X-XSRF-TOKEN",
-                                URLDecoder.decode(token, Charsets.UTF_8.name())
+                                XSRF_HEADER_NAME,
+                                URLDecoder.decode(xsrfToken, Charsets.UTF_8.name())
                             )
                         }
                 }
@@ -182,9 +179,20 @@ object PushRegistrationManager {
     private fun preferences(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    private fun extractCookieValue(cookieHeader: String, cookieName: String): String? =
+        cookieHeader.split(';')
+            .asSequence()
+            .map { it.trim() }
+            .firstOrNull { cookie -> cookie.substringBefore('=') == cookieName }
+            ?.substringAfter('=', missingDelimiterValue = "")
+            ?.takeIf { it.isNotBlank() }
+
     private data class DeviceContext(
         val role: String,
         val rsvtSn: Long,
         val studentSns: JSONArray
     )
+
+    private const val XSRF_COOKIE_NAME = "XSRF-TOKEN"
+    private const val XSRF_HEADER_NAME = "X-XSRF-TOKEN"
 }
