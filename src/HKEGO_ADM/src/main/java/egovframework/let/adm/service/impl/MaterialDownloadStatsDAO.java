@@ -1,0 +1,54 @@
+package egovframework.let.adm.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.egovframe.rte.psl.dataaccess.EgovAbstractMapper;
+import org.springframework.stereotype.Repository;
+
+import egovframework.let.adm.service.vo.MaterialDownloadStatsVO;
+
+@Repository("materialDownloadStatsDAO")
+public class MaterialDownloadStatsDAO extends EgovAbstractMapper {
+	private static final String NS = "egovframework.let.adm.service.impl.MaterialDownloadStatsDAO.";
+
+	public int selectCount(
+		String lrnTypeCd, String dataTypeCd, String startDate, String endDate,
+		String searchType, String keyword
+	) {
+		Integer count = selectOne(NS + "selectCount", params(lrnTypeCd, dataTypeCd, startDate, endDate, searchType, keyword));
+		return count == null ? 0 : count;
+	}
+
+	public List<MaterialDownloadStatsVO> selectList(
+		String lrnTypeCd, String dataTypeCd, String startDate, String endDate,
+		String searchType, String keyword, int offset, int limit
+	) {
+		Map<String, Object> params = params(lrnTypeCd, dataTypeCd, startDate, endDate, searchType, keyword);
+		params.put("offset", offset);
+		params.put("limit", limit);
+		return selectList(NS + "selectList", params);
+	}
+
+	public List<MaterialDownloadStatsVO> selectExcelList(
+		String lrnTypeCd, String dataTypeCd, String startDate, String endDate,
+		String searchType, String keyword
+	) {
+		return selectList(NS + "selectExcelList", params(lrnTypeCd, dataTypeCd, startDate, endDate, searchType, keyword));
+	}
+
+	private Map<String, Object> params(
+		String lrnTypeCd, String dataTypeCd, String startDate, String endDate,
+		String searchType, String keyword
+	) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("lrnTypeCd", lrnTypeCd);
+		params.put("dataTypeCd", dataTypeCd);
+		params.put("startDate", startDate);
+		params.put("endDate", endDate);
+		params.put("searchType", searchType);
+		params.put("keyword", keyword);
+		return params;
+	}
+}

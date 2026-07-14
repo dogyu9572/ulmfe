@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,9 @@ public class EgovUserAccessLogManageApiController {
 			userId, userNm, ipAddr, cntnTypeCd, startDate, endDate
 		);
 		byte[] body = createWorkbook(rows);
+		String filename = "사용자_접속로그_" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + ".xlsx";
 		ContentDisposition disposition = ContentDisposition.attachment()
-			.filename("user-access-log.xlsx", StandardCharsets.UTF_8)
+			.filename(filename, StandardCharsets.UTF_8)
 			.build();
 		return ResponseEntity.ok()
 			.header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
@@ -81,7 +83,7 @@ public class EgovUserAccessLogManageApiController {
 			headerStyle.setFont(headerFont);
 
 			Row header = sheet.createRow(0);
-			String[] columns = {"번호", "접속일시", "접속 IP", "접속 페이지 URL", "접속유형", "응답상태"};
+			String[] columns = {"번호", "접속일시", "접속 IP", "접속 페이지 URL"};
 			for (int i = 0; i < columns.length; i++) {
 				Cell cell = header.createCell(i);
 				cell.setCellValue(columns[i]);
@@ -91,12 +93,10 @@ public class EgovUserAccessLogManageApiController {
 			int rowIndex = 1;
 			for (UserAccessLogVO log : rows) {
 				Row row = sheet.createRow(rowIndex++);
-				row.createCell(0).setCellValue(log.getCntnLogSn() == null ? 0 : log.getCntnLogSn());
+				row.createCell(0).setCellValue(rows.size() - rowIndex + 2);
 				row.createCell(1).setCellValue(log.getRegDt() == null ? "" : DATE_TIME_FORMAT.format(log.getRegDt()));
 				row.createCell(2).setCellValue(nvl(log.getIpAddr()));
 				row.createCell(3).setCellValue(nvl(log.getRequestUri()));
-				row.createCell(4).setCellValue(nvl(log.getCntnTypeCd()));
-				row.createCell(5).setCellValue(log.getResponseStatus() == null ? "" : String.valueOf(log.getResponseStatus()));
 			}
 			for (int i = 0; i < columns.length; i++) {
 				sheet.autoSizeColumn(i);

@@ -22,6 +22,10 @@ import { UserInfoPage } from './pages/UserInfoPage'
 import { AccessLogPage } from './pages/AccessLogPage'
 import { UserAccessLogPage } from './pages/UserAccessLogPage'
 import { UserVisitorStatsPage } from './pages/UserVisitorStatsPage'
+import { NotificationSendLogPage } from './pages/NotificationSendLogPage'
+import { VisitCountStatsPage } from './pages/VisitCountStatsPage'
+import { EducationProgramStatsPage } from './pages/EducationProgramStatsPage'
+import { MaterialDownloadStatsPage } from './pages/MaterialDownloadStatsPage'
 import { LibraryBookPage } from './pages/LibraryBookPage'
 import { EvaluationFormPage } from './pages/EvaluationFormPage'
 import { SurveyFormPage } from './pages/SurveyFormPage'
@@ -32,12 +36,6 @@ import { LearningFieldStatusPage } from './pages/LearningFieldStatusPage'
 import { LearningResultPage } from './pages/LearningResultPage'
 import { LearningReservationPage } from './pages/LearningReservationPage'
 import { LearningSupportMaterialPage } from './pages/LearningSupportMaterialPage'
-import {
-	EducationProgramStatsPage,
-	MaterialDownloadStatsPage,
-	NotificationSendLogPage,
-	VisitCountStatsPage,
-} from './pages/StatisticsPlaceholderPages'
 import { AdminManageRoute } from './components/AdminManageRoute'
 import { ForbiddenPage } from './pages/ForbiddenPage'
 

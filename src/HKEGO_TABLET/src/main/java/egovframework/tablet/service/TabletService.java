@@ -27,6 +27,8 @@ public interface TabletService {
 
 	List<TabletLearningResourceVO> getLearningResources(String prgrmTypeCd, Integer prgrmSn);
 
+	String recordLearningResourceDownload(String pstSn, Integer fileSeq);
+
 	List<TabletTeacherCallVO> getTeacherCalls(Integer rsvtSn);
 
 	List<TabletTeacherMessageVO> getTeacherMessages(Integer rsvtSn);

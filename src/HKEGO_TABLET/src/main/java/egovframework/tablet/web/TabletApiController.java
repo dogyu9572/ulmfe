@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/tablet")
@@ -87,6 +88,20 @@ public class TabletApiController {
 		@RequestParam Integer prgrmSn
 	) {
 		return ApiResponse.success("학습지원 자료실 조회 성공", tabletService.getLearningResources(prgrmTypeCd, prgrmSn));
+	}
+
+	@GetMapping("/learning-resources/{pstSn}/open")
+	public ResponseEntity<Void> openLearningResource(
+		@PathVariable String pstSn,
+		@RequestParam(required = false) Integer fileSeq
+	) {
+		try {
+			return ResponseEntity.status(HttpStatus.FOUND)
+				.location(URI.create(tabletService.recordLearningResourceDownload(pstSn, fileSeq)))
+				.build();
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 	@GetMapping("/reservations/{rsvtSn}/teacher-calls")

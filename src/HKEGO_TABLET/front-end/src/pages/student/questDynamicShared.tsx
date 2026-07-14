@@ -120,7 +120,7 @@ export const useQuestDynamicPage = (routeIndex: number, contentIndex: number) =>
 		savedAnswers,
 		title: quest?.title || content?.cntnTtl || '',
 		location: quest?.place || '',
-		stepLabel: `STEP ${routeIndex === 0 ? '1' : '2'} 사건탐색 - ${quest?.name || `퀘스트${routeIndex + 1}`}`
+		stepLabel: `STEP 2 사건탐구 - ${quest?.name || `퀘스트${routeIndex + 1}`}`
 	}
 }
 

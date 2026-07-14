@@ -19,6 +19,12 @@ public class AdminAccessLogVO {
 	private Integer rspnsSttsCd;
 	private String cntnTypeCd;
 	private LocalDateTime regDt;
+	private String menu1Cd;
+	private String menu1Nm;
+	private String menu2Cd;
+	private String menu2Nm;
+	private String actionNm;
+	private String actionCn;
 
 	public Integer getUsrIdx() { return userSn; }
 	public void setUsrIdx(Integer usrIdx) { this.userSn = usrIdx; }
@@ -45,4 +51,3 @@ public class AdminAccessLogVO {
 	public String getAccessType() { return cntnTypeCd; }
 	public void setAccessType(String accessType) { this.cntnTypeCd = accessType; }
 }
-

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.EducationProgramStatsDAO">
+	<select id="selectStatsSources" resultType="egovframework.let.adm.service.vo.EducationProgramStatsSourceVO">
+		SELECT
+			R.PRGRM_TYPE_CD AS PROGRAM_TYPE_CD,
+			CASE R.PRGRM_TYPE_CD
+				WHEN 'MISSION' THEN '미션'
+				WHEN 'EXPLORE' THEN '사건탐구'
+				ELSE R.PRGRM_TYPE_CD
+			END AS PROGRAM_TYPE_NM,
+			R.PRGRM_SN AS PROGRAM_SN,
+			COALESCE(P.PRGRM_NM, '-') AS PROGRAM_NM,
+			P.STEP_JSON,
+			R.RSVT_SN AS RESERVATION_SN,
+			S.STDNT_SN AS STUDENT_SN,
+			S.ATND_YN AS ATTENDANCE_YN,
+			S.LRN_STTS_CD AS LEARNING_STATUS_CD,
+			S.PRGRS_RT AS PROGRESS_RATE,
+			GROUP_CONCAT(
+				DISTINCT CASE WHEN L.STEP_STTS_CD = 'DONE' THEN UPPER(L.STEP_CD) END
+				ORDER BY L.STEP_CD SEPARATOR ','
+			) AS DONE_STEP_CODES
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_PRGRM_MST P
+			ON P.PRGRM_SN = R.PRGRM_SN
+			AND P.PRGRM_TYPE_CD = R.PRGRM_TYPE_CD
+		LEFT JOIN EDU_RSVT_STDNT S
+			ON S.RSVT_SN = R.RSVT_SN
+			AND S.DEL_DT IS NULL
+		LEFT JOIN EDU_LRN_PRGRS_LOG L
+			ON L.RSVT_SN = R.RSVT_SN
+			AND L.STDNT_SN = S.STDNT_SN
+		WHERE R.DEL_DT IS NULL
+		<if test="startDate != null and startDate != ''">
+			AND R.RSVT_YMD &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND R.RSVT_YMD &lt;= #{endDate}
+		</if>
+		GROUP BY
+			R.PRGRM_TYPE_CD, R.PRGRM_SN, P.PRGRM_NM, P.STEP_JSON,
+			R.RSVT_SN, S.STDNT_SN, S.ATND_YN, S.LRN_STTS_CD, S.PRGRS_RT
+		HAVING S.STDNT_SN IS NULL
+			OR S.ATND_YN = 'Y'
+			OR COALESCE(S.PRGRS_RT, 0) &gt; 0
+			OR S.LRN_STTS_CD IN ('ING', 'DONE')
+			OR COUNT(CASE WHEN L.STEP_STTS_CD = 'DONE' THEN 1 END) &gt; 0
+		ORDER BY
+			CASE R.PRGRM_TYPE_CD WHEN 'MISSION' THEN 1 WHEN 'EXPLORE' THEN 2 ELSE 3 END,
+			R.PRGRM_SN, R.RSVT_SN, S.STDNT_SN
+	</select>
+</mapper>

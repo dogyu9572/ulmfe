@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.NotificationSendLogDAO">
+	<sql id="notificationSendLogUnion">
+		SELECT
+			CONCAT('MSG-', M.MSG_SN) AS LOG_KEY,
+			M.REG_DT AS SEND_DT,
+			COALESCE(R.SCHL_NM, '-') AS SCHL_NM,
+			'TEACHER_TO_STUDENT' AS TARGET_CD,
+			'선생님 -&gt; 학생' AS TARGET_NM,
+			M.MSG_CN AS CONTENT,
+			CASE
+				WHEN M.STDNT_CNT &gt; 0 AND M.STDNT_CNT = (
+					SELECT COUNT(*)
+					FROM EDU_TCHR_MSG_RCPT MR
+					WHERE MR.MSG_SN = M.MSG_SN
+					AND MR.DEL_DT IS NULL
+				) THEN 'Y'
+				ELSE 'N'
+			END AS SUCCESS_YN,
+			CASE
+				WHEN M.STDNT_CNT &gt; 0 AND M.STDNT_CNT = (
+					SELECT COUNT(*)
+					FROM EDU_TCHR_MSG_RCPT MR
+					WHERE MR.MSG_SN = M.MSG_SN
+					AND MR.DEL_DT IS NULL
+				) THEN '성공'
+				ELSE '실패'
+			END AS SUCCESS_NM
+		FROM EDU_TCHR_MSG M
+		LEFT JOIN EDU_RSVT_MST R ON R.RSVT_SN = M.RSVT_SN AND R.DEL_DT IS NULL
+		WHERE M.DEL_DT IS NULL
+
+		UNION ALL
+
+		SELECT
+			CONCAT('CALL-', C.CALL_SN) AS LOG_KEY,
+			C.REG_DT AS SEND_DT,
+			COALESCE(R.SCHL_NM, '-') AS SCHL_NM,
+			'STUDENT_TO_TEACHER' AS TARGET_CD,
+			'학생 -&gt; 선생님' AS TARGET_NM,
+			C.CALL_CN AS CONTENT,
+			CASE WHEN C.CALL_STTS_CD IN ('WAIT', 'READ') THEN 'Y' ELSE 'N' END AS SUCCESS_YN,
+			CASE WHEN C.CALL_STTS_CD IN ('WAIT', 'READ') THEN '성공' ELSE '실패' END AS SUCCESS_NM
+		FROM EDU_TCHR_CALL C
+		LEFT JOIN EDU_RSVT_MST R ON R.RSVT_SN = C.RSVT_SN AND R.DEL_DT IS NULL
+		WHERE C.DEL_DT IS NULL
+	</sql>
+
+	<sql id="notificationSendLogWhere">
+		<where>
+			<if test="targetCd != null and targetCd != ''">
+				L.TARGET_CD = #{targetCd}
+			</if>
+			<if test="startDate != null and startDate != ''">
+				AND DATE(L.SEND_DT) &gt;= #{startDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+				AND DATE(L.SEND_DT) &lt;= #{endDate}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				<choose>
+					<when test="searchType == 'school'">
+						AND L.SCHL_NM LIKE CONCAT('%', #{keyword}, '%')
+					</when>
+					<when test="searchType == 'content'">
+						AND L.CONTENT LIKE CONCAT('%', #{keyword}, '%')
+					</when>
+					<otherwise>
+						AND (L.SCHL_NM LIKE CONCAT('%', #{keyword}, '%') OR L.CONTENT LIKE CONCAT('%', #{keyword}, '%'))
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<select id="selectCount" resultType="int">
+		SELECT COUNT(*)
+		FROM (<include refid="notificationSendLogUnion"/>) L
+		<include refid="notificationSendLogWhere"/>
+	</select>
+
+	<select id="selectList" resultType="egovframework.let.adm.service.vo.NotificationSendLogVO">
+		SELECT L.*
+		FROM (<include refid="notificationSendLogUnion"/>) L
+		<include refid="notificationSendLogWhere"/>
+		ORDER BY L.SEND_DT DESC, L.LOG_KEY DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectExcelList" resultType="egovframework.let.adm.service.vo.NotificationSendLogVO">
+		SELECT L.*
+		FROM (<include refid="notificationSendLogUnion"/>) L
+		<include refid="notificationSendLogWhere"/>
+		ORDER BY L.SEND_DT DESC, L.LOG_KEY DESC
+		LIMIT 50000
+	</select>
+</mapper>

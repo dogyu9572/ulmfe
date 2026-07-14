@@ -214,6 +214,7 @@ const redirectToLoginOnAuthExpired = (url: string, response: Response) => {
 
 	authRedirecting = true
 	window.sessionStorage.removeItem('hkegoTabletStudentFlowSession')
+	window.sessionStorage.removeItem('hkegoTabletAdminId')
 	if (window.location.pathname !== '/') {
 		window.alert('로그인이 필요합니다.')
 		window.location.replace('/')

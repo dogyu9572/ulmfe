@@ -147,6 +147,33 @@ public class TabletServiceImpl implements TabletService {
 	}
 
 	@Override
+	@Transactional
+	public String recordLearningResourceDownload(String pstSn, Integer fileSeq) {
+		String normalizedPostSn = normalizeText(pstSn);
+		if (isBlank(normalizedPostSn)) {
+			throw new IllegalArgumentException("자료 정보가 올바르지 않습니다.");
+		}
+		TabletLearningResourceVO resource = tabletMapper.selectLearningResourceTarget(normalizedPostSn, fileSeq);
+		if (resource == null) {
+			throw new IllegalArgumentException("자료를 찾을 수 없습니다.");
+		}
+		String targetUrl;
+		if (fileSeq != null) {
+			targetUrl = normalizeText(resource.getFileUrl());
+		} else if ("VIDEO".equals(resource.getDataTypeCd())) {
+			targetUrl = normalizeText(resource.getVideoEmbedUrl());
+			if (isBlank(targetUrl)) targetUrl = normalizeText(resource.getLinkUrl());
+		} else {
+			targetUrl = normalizeText(resource.getLinkUrl());
+		}
+		if (isBlank(targetUrl)) {
+			throw new IllegalArgumentException("연결된 자료가 없습니다.");
+		}
+		tabletMapper.insertLearningResourceDownloadLog(resource);
+		return targetUrl;
+	}
+
+	@Override
 	public List<TabletTeacherCallVO> getTeacherCalls(Integer rsvtSn) {
 		if (rsvtSn == null || rsvtSn <= 0) {
 			return List.of();
@@ -215,8 +242,6 @@ public class TabletServiceImpl implements TabletService {
 		int progressRate = totalRouteCount <= 0 ? 0 : Math.min(100, Math.round(((routeIndex + 1) * 100f) / totalRouteCount));
 		String learningStatus = progressRate >= 100 ? "DONE" : "ING";
 		List<TabletMissionAnswerVO> answers = request.getAnswers() == null ? List.of() : request.getAnswers();
-		List<TabletContentVO> requiredContents = selectMissionRouteContents(rsvtSn, routeIndex, activityName);
-		validateMissionAnswers(requiredContents, answers, filesByFieldName);
 
 		for (Integer studentSn : request.getStudentSns()) {
 			if (studentSn == null || studentSn <= 0) continue;
@@ -517,44 +542,6 @@ public class TabletServiceImpl implements TabletService {
 		return selectContents(refs);
 	}
 
-	private List<TabletContentVO> selectMissionRouteContents(Integer rsvtSn, int routeIndex, String routeName) {
-		String stepJson = tabletMapper.selectReservationStepJson(rsvtSn);
-		if (isBlank(stepJson)) {
-			throw new IllegalArgumentException("예약에 연결된 미션 프로그램 정보가 없습니다.");
-		}
-		try {
-			JsonNode steps = objectMapper.readTree(stepJson);
-			if (!steps.isArray()) throw new IllegalArgumentException("미션 프로그램 단계 정보가 올바르지 않습니다.");
-			for (JsonNode step : steps) {
-				if (!"STEP3".equals(step.path("step").asText(""))) continue;
-				JsonNode quests = step.path("quests");
-				if (!quests.isArray()) {
-					throw new IllegalArgumentException("미션 단계에 연결된 콘텐츠가 없습니다.");
-				}
-				JsonNode selectedQuest = null;
-				if (!isBlank(routeName)) {
-					for (JsonNode quest : quests) {
-						if (routeName.equals(normalizeText(quest.path("name").asText("")))) {
-							selectedQuest = quest;
-							break;
-						}
-					}
-				}
-				if (selectedQuest == null && routeIndex < quests.size()) selectedQuest = quests.get(routeIndex);
-				if (selectedQuest == null) throw new IllegalArgumentException("미션 단계에 연결된 콘텐츠가 없습니다.");
-				Set<Integer> contentIds = new LinkedHashSet<>();
-				Set<String> contentNames = new LinkedHashSet<>();
-				collectContentRefs(selectedQuest.path("contents"), contentIds, contentNames);
-				return selectContents(new ContentRefs(new ArrayList<>(contentIds), new ArrayList<>(contentNames)));
-			}
-		} catch (IllegalArgumentException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new IllegalArgumentException("미션 프로그램 단계 정보를 확인하지 못했습니다.");
-		}
-		throw new IllegalArgumentException("미션 수행 단계 정보가 없습니다.");
-	}
-
 	private List<TabletContentVO> selectContents(ContentRefs refs) {
 		if (refs.contentIds().isEmpty() && refs.contentNames().isEmpty()) {
 			return List.of();
@@ -585,49 +572,6 @@ public class TabletServiceImpl implements TabletService {
 			.collect(Collectors.groupingBy(TabletContentQuestionVO::getCntnSn));
 		contents.forEach(content -> content.setQuestions(questionsByContentId.getOrDefault(content.getCntnSn(), List.of())));
 		return contents;
-	}
-
-	private void validateMissionAnswers(List<TabletContentVO> requiredContents, List<TabletMissionAnswerVO> answers,
-		Map<String, MultipartFile> filesByFieldName) {
-		if (requiredContents == null || requiredContents.isEmpty()) {
-			throw new IllegalArgumentException("미션 단계에 연결된 콘텐츠가 없습니다.");
-		}
-		Set<String> submittedAnswerKeys = answers.stream()
-			.filter(answer -> answer != null && hasMissionAnswerValue(answer, filesByFieldName))
-			.map(answer -> answerKey(answer.getCntnSn(), answer.getQstnSn()))
-			.collect(Collectors.toSet());
-		List<String> missingQuestions = new ArrayList<>();
-		for (TabletContentVO content : requiredContents) {
-			List<TabletContentQuestionVO> questions = content.getQuestions();
-			if (questions == null || questions.isEmpty()) {
-				if (!submittedAnswerKeys.contains(answerKey(content.getCntnSn(), content.getCntnSn()))) {
-					missingQuestions.add(content.getCntnTtl());
-				}
-				continue;
-			}
-			for (TabletContentQuestionVO question : questions) {
-				if (!submittedAnswerKeys.contains(answerKey(content.getCntnSn(), question.getCntnQstnSn()))) {
-					missingQuestions.add(question.getQstnNm());
-				}
-			}
-		}
-		if (!missingQuestions.isEmpty()) {
-			throw new IllegalArgumentException("모든 문항에 답해야 미션을 완료할 수 있습니다. (미완료 " + missingQuestions.size() + "개)");
-		}
-	}
-
-	private boolean hasMissionAnswerValue(TabletMissionAnswerVO answer, Map<String, MultipartFile> filesByFieldName) {
-		if (!isBlank(answer.getAnsCn())) return true;
-		if (answer.getFiles() == null || answer.getFiles().isEmpty()) return false;
-		return answer.getFiles().stream().anyMatch(fileInfo -> {
-			if (fileInfo == null || isBlank(fileInfo.getFieldName())) return false;
-			MultipartFile file = filesByFieldName == null ? null : filesByFieldName.get(fileInfo.getFieldName());
-			return file != null && !file.isEmpty();
-		});
-	}
-
-	private String answerKey(Integer contentSn, Integer questionSn) {
-		return (contentSn == null ? 0 : contentSn) + ":" + (questionSn == null ? 0 : questionSn);
 	}
 
 	private ContentRefs extractContentRefs(String stepJson) {

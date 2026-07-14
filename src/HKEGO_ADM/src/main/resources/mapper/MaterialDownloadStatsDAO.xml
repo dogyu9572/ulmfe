@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.MaterialDownloadStatsDAO">
+	<sql id="statsCte">
+		WITH MATERIAL_ROWS AS (
+			SELECT
+				B.PST_SN,
+				B.PST_TTL,
+				B.ETC1 AS LRN_TYPE_CD,
+				B.ETC2 AS DATA_TYPE_CD,
+				B.ETC3 AS PROGRAM_TYPE_CD,
+				CAST(NULLIF(B.ETC4, '') AS UNSIGNED) AS PROGRAM_SN,
+				F.ATCH_FILE_MNG_NO,
+				F.FILE_SEQ,
+				F.ORGNL_FILE_NM,
+				F.REG_DT AS FILE_REG_DT
+			FROM BBS_ARTICLE B
+			INNER JOIN ATCH_FILE_INFO F ON F.ATCH_FILE_MNG_NO = B.ATCH_FILE_MNG_NO
+			WHERE B.BBS_ID = 'LRNSUP'
+			UNION ALL
+			SELECT
+				B.PST_SN,
+				B.PST_TTL,
+				B.ETC1 AS LRN_TYPE_CD,
+				B.ETC2 AS DATA_TYPE_CD,
+				B.ETC3 AS PROGRAM_TYPE_CD,
+				CAST(NULLIF(B.ETC4, '') AS UNSIGNED) AS PROGRAM_SN,
+				NULL AS ATCH_FILE_MNG_NO,
+				NULL AS FILE_SEQ,
+				NULL AS ORGNL_FILE_NM,
+				B.REG_DT AS FILE_REG_DT
+			FROM BBS_ARTICLE B
+			WHERE B.BBS_ID = 'LRNSUP'
+			AND NOT EXISTS (
+				SELECT 1 FROM ATCH_FILE_INFO F WHERE F.ATCH_FILE_MNG_NO = B.ATCH_FILE_MNG_NO
+			)
+		),
+		DOWNLOAD_COUNTS AS (
+			SELECT PST_SN, ATCH_FILE_MNG_NO, FILE_SEQ, COUNT(*) AS DOWNLOAD_COUNT
+			FROM EDU_LRN_MTRL_DWNLD_LOG
+			GROUP BY PST_SN, ATCH_FILE_MNG_NO, FILE_SEQ
+		)
+	</sql>
+
+	<sql id="statsFrom">
+		FROM MATERIAL_ROWS M
+		LEFT JOIN EDU_PRGRM_MST P
+			ON P.PRGRM_TYPE_CD = M.PROGRAM_TYPE_CD
+			AND P.PRGRM_SN = M.PROGRAM_SN
+			AND P.DEL_DT IS NULL
+		LEFT JOIN DOWNLOAD_COUNTS D
+			ON D.PST_SN = M.PST_SN
+			AND D.ATCH_FILE_MNG_NO &lt;=&gt; M.ATCH_FILE_MNG_NO
+			AND D.FILE_SEQ &lt;=&gt; M.FILE_SEQ
+	</sql>
+
+	<sql id="searchWhere">
+		<where>
+			<if test="lrnTypeCd != null and lrnTypeCd != ''">
+				M.LRN_TYPE_CD = #{lrnTypeCd}
+			</if>
+			<if test="dataTypeCd != null and dataTypeCd != ''">
+				AND M.DATA_TYPE_CD = #{dataTypeCd}
+			</if>
+			<if test="startDate != null and startDate != ''">
+				AND DATE(M.FILE_REG_DT) &gt;= #{startDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+				AND DATE(M.FILE_REG_DT) &lt;= #{endDate}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				<choose>
+					<when test="searchType == 'program'">
+						AND P.PRGRM_NM LIKE CONCAT('%', #{keyword}, '%')
+					</when>
+					<when test="searchType == 'title'">
+						AND M.PST_TTL LIKE CONCAT('%', #{keyword}, '%')
+					</when>
+					<when test="searchType == 'file'">
+						AND M.ORGNL_FILE_NM LIKE CONCAT('%', #{keyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+							P.PRGRM_NM LIKE CONCAT('%', #{keyword}, '%')
+							OR M.PST_TTL LIKE CONCAT('%', #{keyword}, '%')
+							OR M.ORGNL_FILE_NM LIKE CONCAT('%', #{keyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<sql id="selectColumns">
+		M.PST_SN,
+		M.LRN_TYPE_CD,
+		CASE M.LRN_TYPE_CD
+			WHEN 'PRE' THEN '사전학습'
+			WHEN 'MAIN' THEN '본학습'
+			WHEN 'POST' THEN '사후학습'
+			ELSE M.LRN_TYPE_CD
+		END AS LRN_TYPE_NM,
+		M.DATA_TYPE_CD,
+		CASE M.DATA_TYPE_CD
+			WHEN 'LINK' THEN '링크'
+			WHEN 'DOC' THEN '문서'
+			WHEN 'VIDEO' THEN '영상'
+			ELSE M.DATA_TYPE_CD
+		END AS DATA_TYPE_NM,
+		COALESCE(P.PRGRM_NM, '-') AS PROGRAM_NM,
+		M.PST_TTL AS POST_TITLE,
+		M.ATCH_FILE_MNG_NO AS ATTACHMENT_FILE_MNG_NO,
+		M.FILE_SEQ,
+		COALESCE(M.ORGNL_FILE_NM, '-') AS ORIGINAL_FILE_NAME,
+		COALESCE(D.DOWNLOAD_COUNT, 0) AS DOWNLOAD_COUNT,
+		M.FILE_REG_DT
+	</sql>
+
+	<select id="selectCount" resultType="int">
+		<include refid="statsCte"/>
+		SELECT COUNT(*)
+		<include refid="statsFrom"/>
+		<include refid="searchWhere"/>
+	</select>
+
+	<select id="selectList" resultType="egovframework.let.adm.service.vo.MaterialDownloadStatsVO">
+		<include refid="statsCte"/>
+		SELECT <include refid="selectColumns"/>
+		<include refid="statsFrom"/>
+		<include refid="searchWhere"/>
+		ORDER BY M.FILE_REG_DT DESC, M.PST_SN DESC, M.FILE_SEQ ASC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectExcelList" resultType="egovframework.let.adm.service.vo.MaterialDownloadStatsVO">
+		<include refid="statsCte"/>
+		SELECT <include refid="selectColumns"/>
+		<include refid="statsFrom"/>
+		<include refid="searchWhere"/>
+		ORDER BY M.FILE_REG_DT DESC, M.PST_SN DESC, M.FILE_SEQ ASC
+	</select>
+</mapper>

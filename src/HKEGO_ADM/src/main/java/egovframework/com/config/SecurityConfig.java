@@ -11,9 +11,10 @@ import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
+import egovframework.com.security.AdminActionLoggingFilter;
 import egovframework.let.adm.service.EgovAdminRolePolicyService;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
 	private final SessionAuthenticationEntryPoint sessionAuthenticationEntryPoint;
 	private final SessionAuthenticationFilter sessionAuthenticationFilter;
@@ -21,6 +22,7 @@ public class SecurityConfig {
 	private final EgovAdminRolePolicyService adminRolePolicyService;
 	private final SpaCsrfHeaderFilter spaCsrfHeaderFilter;
 	private final AdminMenuAuthorizationFilter adminMenuAuthorizationFilter;
+	private final AdminActionLoggingFilter adminActionLoggingFilter;
 
 	public SecurityConfig(
 		SessionAuthenticationEntryPoint sessionAuthenticationEntryPoint,
@@ -28,13 +30,15 @@ public class SecurityConfig {
 		SessionAccessDeniedHandler sessionAccessDeniedHandler,
 		EgovAdminRolePolicyService adminRolePolicyService,
 		SpaCsrfHeaderFilter spaCsrfHeaderFilter,
-		AdminMenuAuthorizationFilter adminMenuAuthorizationFilter) {
+		AdminMenuAuthorizationFilter adminMenuAuthorizationFilter,
+		AdminActionLoggingFilter adminActionLoggingFilter) {
 		this.sessionAuthenticationEntryPoint = sessionAuthenticationEntryPoint;
 		this.sessionAuthenticationFilter = sessionAuthenticationFilter;
 		this.sessionAccessDeniedHandler = sessionAccessDeniedHandler;
 		this.adminRolePolicyService = adminRolePolicyService;
 		this.spaCsrfHeaderFilter = spaCsrfHeaderFilter;
 		this.adminMenuAuthorizationFilter = adminMenuAuthorizationFilter;
+		this.adminActionLoggingFilter = adminActionLoggingFilter;
 	}
 
 	@Bean
@@ -70,7 +74,8 @@ public class SecurityConfig {
 				.accessDeniedHandler(sessionAccessDeniedHandler))
 			.addFilterBefore(spaCsrfHeaderFilter, CsrfFilter.class)
 			.addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-			.addFilterAfter(adminMenuAuthorizationFilter, SessionAuthenticationFilter.class);
+			.addFilterAfter(adminMenuAuthorizationFilter, SessionAuthenticationFilter.class)
+			.addFilterAfter(adminActionLoggingFilter, AdminMenuAuthorizationFilter.class);
 
 		return http.build();
 	}

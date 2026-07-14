@@ -16,7 +16,8 @@ export const LoginPage = () => {
 		const nextPassword = String(formData.get('password') ?? '')
 		setLoading(true)
 		try {
-			await loginTablet(nextUserId, nextPassword)
+			const loginSession = await loginTablet(nextUserId, nextPassword)
+			window.sessionStorage.setItem('hkegoTabletAdminId', loginSession.adminId || nextUserId)
 			navigate('/select-user')
 		} catch (error) {
 			window.alert(error instanceof Error ? error.message : '로그인에 실패했습니다.')

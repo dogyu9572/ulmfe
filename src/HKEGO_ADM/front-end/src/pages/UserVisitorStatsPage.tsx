@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { API_BASE_URL } from '../config'
+import { timestampedExcelFileName } from '../utils/downloadFileName'
 
 type ApiResponse<T> = {
 	success: boolean
@@ -65,7 +66,7 @@ const StatPanel: React.FC<StatPanelProps> = ({
 	filter,
 	rows,
 	loading,
-	valueHeader = '방문자 수'
+	valueHeader = '고유 방문자 수'
 }) => (
 	<section className="visitor-stats-panel">
 		<h3 className="visitor-stats-panel-title">{title}</h3>
@@ -238,7 +239,7 @@ export const UserVisitorStatsPage: React.FC = () => {
 			const url = window.URL.createObjectURL(blob)
 			const link = document.createElement('a')
 			link.href = url
-			link.download = 'user-visitor-stats.xlsx'
+			link.download = timestampedExcelFileName('누리집 접속통계', `${s}-${e}`)
 			document.body.appendChild(link)
 			link.click()
 			link.remove()
@@ -321,10 +322,10 @@ export const UserVisitorStatsPage: React.FC = () => {
 	}, [])
 
 	return (
-		<AdminLayout title="접속 통계">
-			<CrudPageCard title="접속 통계" error={error}>
+		<AdminLayout title="누리집 접속통계">
+			<CrudPageCard title="누리집 접속통계" error={error}>
 				<p className="visitor-stats-desc">
-					사용자 사이트 메인 페이지 접속(<code>MAIN</code>) 기준 방문 수입니다. 조회일을 변경하면 요약의
+					사용자 사이트 메인 페이지 접속(<code>MAIN</code>)을 세션 기준으로 중복 제거한 고유 방문자 수입니다. 조회일을 변경하면 요약의
 					어제·오늘·최고 방문 일자가 함께 갱신됩니다.
 				</p>
 
@@ -346,10 +347,10 @@ export const UserVisitorStatsPage: React.FC = () => {
 				<table className="table visitor-stats-summary-table">
 					<thead>
 						<tr>
-							<th>전체 방문자 수</th>
-							<th>어제 방문자 수</th>
-							<th>오늘 방문자 수</th>
-							<th>최고 방문자 수</th>
+							<th>전체 고유 방문자 수</th>
+							<th>어제 고유 방문자 수</th>
+							<th>오늘 고유 방문자 수</th>
+							<th>최고 고유 방문자 수</th>
 						</tr>
 					</thead>
 					<tbody>

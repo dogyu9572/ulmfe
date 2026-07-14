@@ -249,21 +249,13 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 			return
 		}
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-question-index]') ?? [])
-		if (cards.length === 0 || dynamicQuestions.length === 0) {
-			alert('관리자에 연결된 콘텐츠가 없습니다.')
-			return
-		}
 		const filesByFieldName: Record<string, File> = {}
-		const incompleteQuestionNumbers: number[] = []
 		const answers = cards.reduce<TabletMissionAnswer[]>((acc, card, cardIndex) => {
 			const index = Number(card.dataset.questionIndex)
 			const item = dynamicQuestions[index]
 			if (!item) return acc
 			const collected = collectCardAnswer(card, cardIndex)
-			if (!collected.ansCn.trim() && collected.files.length === 0) {
-				incompleteQuestionNumbers.push(index + 1)
-				return acc
-			}
+			if (!collected.ansCn.trim() && collected.files.length === 0) return acc
 			Object.assign(filesByFieldName, collected.fileMap)
 			acc.push({
 				cntnSn: item.content.cntnSn,
@@ -275,12 +267,6 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 			})
 			return acc
 		}, [])
-		if (incompleteQuestionNumbers.length > 0 || answers.length !== dynamicQuestions.length) {
-			alert(`모든 문항에 답해주세요. (미완료 문항: ${incompleteQuestionNumbers.join(', ')})`)
-			const firstIncompleteCard = cards.find((card) => Number(card.dataset.questionIndex) + 1 === incompleteQuestionNumbers[0])
-			firstIncompleteCard?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-			return
-		}
 		try {
 			setSaving(true)
 			const payload = {

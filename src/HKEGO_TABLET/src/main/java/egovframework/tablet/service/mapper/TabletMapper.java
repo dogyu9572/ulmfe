@@ -26,8 +26,6 @@ public interface TabletMapper {
 
 	TabletReservationVO findReservationByDate(@Param("rsvtYmd") String rsvtYmd, @Param("currentHm") String currentHm);
 
-	String selectReservationStepJson(Integer rsvtSn);
-
 	List<TabletStudentVO> selectStudents(Integer rsvtSn);
 
 	List<TabletContentVO> selectContentsByIds(@Param("contentIds") List<Integer> contentIds);
@@ -45,6 +43,10 @@ public interface TabletMapper {
 	List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestionsByName(@Param("qstnrNm") String qstnrNm, @Param("qstnrTypeCd") String qstnrTypeCd);
 
 	List<TabletLearningResourceVO> selectLearningResources(@Param("prgrmTypeCd") String prgrmTypeCd, @Param("prgrmSn") Integer prgrmSn);
+
+	TabletLearningResourceVO selectLearningResourceTarget(@Param("pstSn") String pstSn, @Param("fileSeq") Integer fileSeq);
+
+	void insertLearningResourceDownloadLog(TabletLearningResourceVO resource);
 
 	List<TabletTeacherCallVO> selectTeacherCalls(Integer rsvtSn);
 

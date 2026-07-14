@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import UserAccessLogger from './UserAccessLogger'
 
 export const metadata: Metadata = {
 	title: 'HKEGO 사용자 포털',
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="ko">
-			<body>{children}</body>
+			<body>
+				<UserAccessLogger />
+				{children}
+			</body>
 		</html>
 	)
 }

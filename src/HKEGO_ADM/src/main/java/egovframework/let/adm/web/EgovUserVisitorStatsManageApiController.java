@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -130,8 +131,9 @@ public class EgovUserVisitorStatsManageApiController {
 		List<Map<String, Object>> yearly = userVisitorStatsService.getYearlyStats(startYear, endYear);
 		List<Map<String, Object>> monthly = userVisitorStatsService.getMonthlyStats(startYear, endYear);
 		byte[] body = createWorkbook(yearly, monthly);
+		String filename = "누리집_접속통계_" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + ".xlsx";
 		ContentDisposition disposition = ContentDisposition.attachment()
-			.filename("user-visitor-stats.xlsx", StandardCharsets.UTF_8)
+			.filename(filename, StandardCharsets.UTF_8)
 			.build();
 		return ResponseEntity.ok()
 			.header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
@@ -159,7 +161,7 @@ public class EgovUserVisitorStatsManageApiController {
 			CellStyle headerStyle) {
 		Sheet sheet = workbook.createSheet(sheetName);
 		Row header = sheet.createRow(0);
-		String[] columns = {"구분", "방문자 수"};
+		String[] columns = {"구분", "고유 방문자 수"};
 		for (int i = 0; i < columns.length; i++) {
 			Cell cell = header.createCell(i);
 			cell.setCellValue(columns[i]);

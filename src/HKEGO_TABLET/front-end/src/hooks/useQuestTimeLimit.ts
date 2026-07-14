@@ -17,7 +17,7 @@ const formatSeconds = (seconds: number) => {
 export const useQuestTimeLimit = (storageKey: string, limitMin?: number | string | null) => {
 	const limitSeconds = useMemo(() => parseLimitSeconds(limitMin), [limitMin])
 	const [now, setNow] = useState(() => Date.now())
-	const [adminId, setAdminId] = useState('')
+	const [adminId, setAdminId] = useState(() => typeof window === 'undefined' ? '' : window.sessionStorage.getItem('hkegoTabletAdminId') || '')
 	const isTimeLimitBypassed = adminId.trim().toLowerCase() === 'admin2'
 
 	const startedAt = useMemo(() => {
@@ -40,10 +40,18 @@ export const useQuestTimeLimit = (storageKey: string, limitMin?: number | string
 		let canceled = false
 		void fetchTabletAuthSession()
 			.then((session) => {
-				if (!canceled) setAdminId(session.adminId || '')
+				if (!canceled) {
+					const nextAdminId = session.adminId || ''
+					setAdminId(nextAdminId)
+					if (nextAdminId) window.sessionStorage.setItem('hkegoTabletAdminId', nextAdminId)
+					else window.sessionStorage.removeItem('hkegoTabletAdminId')
+				}
 			})
 			.catch(() => {
-				if (!canceled) setAdminId('')
+				if (!canceled) {
+					setAdminId('')
+					window.sessionStorage.removeItem('hkegoTabletAdminId')
+				}
 			})
 		return () => {
 			canceled = true

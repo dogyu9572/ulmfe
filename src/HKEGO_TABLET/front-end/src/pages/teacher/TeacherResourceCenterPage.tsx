@@ -13,9 +13,10 @@ const resourceLabel = (resource: TabletLearningResource) => {
 }
 
 const resourceHref = (resource: TabletLearningResource) => {
-	if (resource.dataTypeCd === 'VIDEO') return resource.videoEmbedUrl || resource.linkUrl || ''
-	if (resource.dataTypeCd === 'LINK') return resource.linkUrl || ''
-	return resource.fileUrl || resource.linkUrl || ''
+	const hasTarget = resource.fileSeq != null || Boolean(resource.videoEmbedUrl || resource.linkUrl)
+	if (!hasTarget || !resource.pstSn) return ''
+	const params = resource.fileSeq != null ? `?fileSeq=${resource.fileSeq}` : ''
+	return `/api/tablet/learning-resources/${encodeURIComponent(resource.pstSn)}/open${params}`
 }
 
 const resourceButton = (resource: TabletLearningResource) => resource.dataTypeCd === 'VIDEO' || resource.dataTypeCd === 'LINK' ? '보기' : '다운로드'
@@ -84,7 +85,7 @@ export const TeacherResourceCenterPage = () => {
 						{filteredResources.map((resource) => {
 							const href = resourceHref(resource)
 							return (
-								<li key={resource.pstSn}>
+							<li key={`${resource.pstSn}_${resource.fileSeq ?? 'link'}`}>
 									<div className={`type ${resourceType(resource)}`}>{resourceLabel(resource)}</div>
 									<h3 className="tit">{resource.pstTtl}</h3>
 									<p>{textOnly(resource.pstCn) || resource.orgnlFileNm || ''}</p>

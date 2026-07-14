@@ -20,6 +20,7 @@ import java.util.Map;
 public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl implements EgovUserVisitorStatsService {
 
 	private static final String MAIN_ACCESS = "MAIN";
+	private static final String VISITOR_KEY = "COALESCE(NULLIF(SSN_ID, ''), CONCAT(COALESCE(IP_ADDR, ''), '|', COALESCE(USER_AGT_NM, '')))";
 
 	@Resource(name = "jdbcTemplate")
 	private JdbcTemplate jdbcTemplate;
@@ -52,7 +53,7 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 		int from = Math.min(startYear, endYear);
 		int to = Math.max(startYear, endYear);
 		List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-			"SELECT YEAR(REG_DT) AS y, COUNT(*) AS visitCount "
+			"SELECT YEAR(REG_DT) AS y, COUNT(DISTINCT " + VISITOR_KEY + ") AS visitCount "
 				+ "FROM USER_ACCESS_LOG "
 				+ "WHERE CNTN_TYPE_CD = ? AND YEAR(REG_DT) BETWEEN ? AND ? "
 				+ "GROUP BY YEAR(REG_DT) ORDER BY YEAR(REG_DT) ASC",
@@ -83,7 +84,7 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 		YearMonth to = YearMonth.of(toY, 12);
 
 		List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-			"SELECT YEAR(REG_DT) AS y, MONTH(REG_DT) AS m, COUNT(*) AS visitCount "
+			"SELECT YEAR(REG_DT) AS y, MONTH(REG_DT) AS m, COUNT(DISTINCT " + VISITOR_KEY + ") AS visitCount "
 				+ "FROM USER_ACCESS_LOG "
 				+ "WHERE CNTN_TYPE_CD = ? "
 				+ "AND DATE(REG_DT) >= ? AND DATE(REG_DT) <= ? "
@@ -118,7 +119,7 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 		LocalDate to = startDate.isBefore(endDate) ? endDate : startDate;
 
 		List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-			"SELECT DATE(REG_DT) AS visitDate, COUNT(*) AS visitCount "
+			"SELECT DATE(REG_DT) AS visitDate, COUNT(DISTINCT " + VISITOR_KEY + ") AS visitCount "
 				+ "FROM USER_ACCESS_LOG "
 				+ "WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) BETWEEN ? AND ? "
 				+ "GROUP BY DATE(REG_DT) ORDER BY DATE(REG_DT) ASC",
@@ -150,7 +151,7 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 		LocalDate to = startDate.isBefore(endDate) ? endDate : startDate;
 
 		List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-			"SELECT HOUR(REG_DT) AS h, COUNT(*) AS visitCount "
+			"SELECT HOUR(REG_DT) AS h, COUNT(DISTINCT " + VISITOR_KEY + ") AS visitCount "
 				+ "FROM USER_ACCESS_LOG "
 				+ "WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) BETWEEN ? AND ? "
 				+ "GROUP BY HOUR(REG_DT) ORDER BY HOUR(REG_DT) ASC",
@@ -179,14 +180,14 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 	private long countMainAccess(LocalDate from, LocalDate to) {
 		if (from == null && to == null) {
 			Long v = jdbcTemplate.queryForObject(
-				"SELECT COUNT(*) FROM USER_ACCESS_LOG WHERE CNTN_TYPE_CD = ?",
+				"SELECT COUNT(DISTINCT " + VISITOR_KEY + ") FROM USER_ACCESS_LOG WHERE CNTN_TYPE_CD = ?",
 				Long.class,
 				MAIN_ACCESS
 			);
 			return v != null ? v : 0L;
 		}
 		Long v = jdbcTemplate.queryForObject(
-			"SELECT COUNT(*) FROM USER_ACCESS_LOG WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) BETWEEN ? AND ?",
+			"SELECT COUNT(DISTINCT " + VISITOR_KEY + ") FROM USER_ACCESS_LOG WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) BETWEEN ? AND ?",
 			Long.class,
 			MAIN_ACCESS,
 			Date.valueOf(from),
@@ -197,7 +198,7 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 
 	private long countMainAccessOnDate(LocalDate date) {
 		Long v = jdbcTemplate.queryForObject(
-			"SELECT COUNT(*) FROM USER_ACCESS_LOG WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) = ?",
+			"SELECT COUNT(DISTINCT " + VISITOR_KEY + ") FROM USER_ACCESS_LOG WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) = ?",
 			Long.class,
 			MAIN_ACCESS,
 			Date.valueOf(date)
@@ -207,7 +208,7 @@ public class EgovUserVisitorStatsServiceImpl extends EgovAbstractServiceImpl imp
 
 	private Map<String, Object> findPeakDayUpTo(LocalDate ref) {
 		List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-			"SELECT DATE(REG_DT) AS visitDate, COUNT(*) AS visitCount "
+			"SELECT DATE(REG_DT) AS visitDate, COUNT(DISTINCT " + VISITOR_KEY + ") AS visitCount "
 				+ "FROM USER_ACCESS_LOG "
 				+ "WHERE CNTN_TYPE_CD = ? AND DATE(REG_DT) <= ? "
 				+ "GROUP BY DATE(REG_DT) "

@@ -47,4 +47,12 @@ public class AdminAccessLogDAO extends EgovAbstractMapper {
 		Integer count = selectOne(NS + "selectCount", param);
 		return count == null ? 0 : count;
 	}
+
+	public List<AdminAccessLogVO> selectExcelList(String userNm, String startDate, String endDate) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("userNm", userNm);
+		param.put("startDate", startDate);
+		param.put("endDate", endDate);
+		return selectList(NS + "selectExcelList", param);
+	}
 }

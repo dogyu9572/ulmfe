@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.VisitCountStatsDAO">
+	<sql id="reservationDateConditions">
+		R.DEL_DT IS NULL
+		<if test="startDate != null and startDate != ''">
+			AND R.RSVT_YMD &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND R.RSVT_YMD &lt;= #{endDate}
+		</if>
+	</sql>
+
+	<select id="selectSummary" resultType="egovframework.let.adm.service.vo.VisitCountSummaryVO">
+		SELECT
+			T.PROGRAM_TYPE_CD,
+			T.PROGRAM_TYPE_NM,
+			COUNT(DISTINCT NULLIF(TRIM(R.SCHL_NM), '')) AS RESERVED_SCHOOL_COUNT,
+			COUNT(DISTINCT CASE WHEN R.LRN_STTS_CD = 'DONE' THEN NULLIF(TRIM(R.SCHL_NM), '') END) AS VISITED_SCHOOL_COUNT,
+			COALESCE(SUM(COALESCE(R.RSVT_NOPE, 0)), 0) AS RESERVED_STUDENT_COUNT,
+			COALESCE(SUM((
+				SELECT COUNT(*)
+				FROM EDU_RSVT_STDNT S
+				WHERE S.RSVT_SN = R.RSVT_SN
+				AND S.ATND_YN = 'Y'
+				AND S.DEL_DT IS NULL
+			)), 0) AS ATTENDED_STUDENT_COUNT
+		FROM (
+			SELECT 'MISSION' AS PROGRAM_TYPE_CD, '미션' AS PROGRAM_TYPE_NM, 1 AS SORT_ORDER
+			UNION ALL SELECT 'EXPLORE', '사건탐구', 2
+			UNION ALL SELECT 'TOTAL', '합계', 3
+		) T
+		LEFT JOIN EDU_RSVT_MST R ON (T.PROGRAM_TYPE_CD = 'TOTAL' OR R.PRGRM_TYPE_CD = T.PROGRAM_TYPE_CD)
+			AND <include refid="reservationDateConditions"/>
+		GROUP BY T.PROGRAM_TYPE_CD, T.PROGRAM_TYPE_NM, T.SORT_ORDER
+		ORDER BY T.SORT_ORDER
+	</select>
+
+	<select id="selectSchoolStats" resultType="egovframework.let.adm.service.vo.VisitSchoolStatsVO">
+		SELECT
+			R.SCHL_NM,
+			COALESCE(
+				GROUP_CONCAT(
+					DISTINCT CASE
+						WHEN S.CLAS_NM IS NULL OR TRIM(S.CLAS_NM) = '' THEN NULL
+						ELSE TRIM(CONCAT(
+							CASE
+								WHEN R.SCYR_NM IS NULL OR TRIM(R.SCYR_NM) = '' THEN ''
+								WHEN R.SCYR_NM LIKE '%학년' THEN R.SCYR_NM
+								ELSE CONCAT(R.SCYR_NM, '학년')
+							END,
+							' ', S.CLAS_NM
+						))
+					END
+					ORDER BY R.SCYR_NM, S.CLAS_NM SEPARATOR ', '
+				),
+				GROUP_CONCAT(
+					DISTINCT CASE
+						WHEN R.SCYR_NM IS NULL OR TRIM(R.SCYR_NM) = '' THEN NULL
+						WHEN R.SCYR_NM LIKE '%학년' THEN R.SCYR_NM
+						ELSE CONCAT(R.SCYR_NM, '학년')
+					END
+					ORDER BY R.SCYR_NM SEPARATOR ', '
+				)
+			) AS GRADE_CLASS_NM,
+			COUNT(DISTINCT R.RSVT_SN) AS VISIT_COUNT,
+			COUNT(S.STDNT_SN) AS TOTAL_STUDENT_COUNT,
+			COALESCE(SUM(CASE WHEN S.ATND_YN = 'Y' THEN 1 ELSE 0 END), 0) AS ATTENDED_STUDENT_COUNT,
+			MAX(R.RSVT_YMD) AS LAST_VISIT_DATE
+		FROM EDU_RSVT_MST R
+		LEFT JOIN EDU_RSVT_STDNT S ON S.RSVT_SN = R.RSVT_SN AND S.DEL_DT IS NULL
+		WHERE <include refid="reservationDateConditions"/>
+		AND R.SCHL_NM IS NOT NULL
+		AND TRIM(R.SCHL_NM) != ''
+		GROUP BY R.SCHL_NM
+		ORDER BY VISIT_COUNT DESC, TOTAL_STUDENT_COUNT DESC, R.SCHL_NM
+	</select>
+</mapper>

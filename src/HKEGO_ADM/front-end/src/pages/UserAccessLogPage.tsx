@@ -3,6 +3,7 @@ import { formatListToolbarInfo } from '../utils/listToolbarInfo'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { API_BASE_URL } from '../config'
+import { timestampedExcelFileName } from '../utils/downloadFileName'
 
 type ApiResponse<T> = { success: boolean; message: string; data: T }
 type PagedResult<T> = { list: T[]; count: number; page: number; size: number }
@@ -10,8 +11,6 @@ type UserAccessLog = {
 	cntnLogSn: number
 	ipAddr: string
 	requestUri: string
-	responseStatus: number
-	cntnTypeCd: string
 	regDt: string
 }
 
@@ -26,8 +25,6 @@ function firstDayOfMonthIso(): string {
 
 export const UserAccessLogPage: React.FC = () => {
 	const [list, setList] = useState<UserAccessLog[]>([])
-	const [ipAddr, setClientIp] = useState('')
-	const [cntnTypeCd, setAccessType] = useState('')
 	const [startDate, setStartDate] = useState(firstDayOfMonthIso)
 	const [endDate, setEndDate] = useState(todayIso)
 	const [page, setPage] = useState(1)
@@ -42,8 +39,6 @@ export const UserAccessLogPage: React.FC = () => {
 			qs.set('page', String(targetPage))
 			qs.set('size', String(size))
 		}
-		if (ipAddr.trim()) qs.set('ipAddr', ipAddr.trim())
-		if (cntnTypeCd) qs.set('cntnTypeCd', cntnTypeCd)
 		if (startDate) qs.set('startDate', startDate)
 		if (endDate) qs.set('endDate', endDate)
 		return qs
@@ -90,7 +85,7 @@ export const UserAccessLogPage: React.FC = () => {
 			const url = window.URL.createObjectURL(blob)
 			const link = document.createElement('a')
 			link.href = url
-			link.download = 'user-access-log.xlsx'
+			link.download = timestampedExcelFileName('사용자 접속로그', `${startDate}_${endDate}`)
 			document.body.appendChild(link)
 			link.click()
 			link.remove()
@@ -115,24 +110,12 @@ export const UserAccessLogPage: React.FC = () => {
 	const totalPages = Math.max(1, Math.ceil(count / size))
 
 	return (
-		<AdminLayout title="사용자접속로그">
+		<AdminLayout title="사용자 접속로그">
 			<CrudPageCard title="사용자 접속 로그" error={error}>
 				<div className="code-filters search-section" style={{ flexWrap: 'wrap', gap: '8px' }}>
 					<label>접속일<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
 					<span className="visitor-stats-range-sep">~</span>
 					<label><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
-					<label>
-						접속유형
-						<select value={cntnTypeCd} onChange={(e) => setAccessType(e.target.value)}>
-							<option value="">전체</option>
-							<option value="MAIN">MAIN</option>
-							<option value="LOGIN">LOGIN</option>
-							<option value="LOGIN_FAIL">LOGIN_FAIL</option>
-							<option value="LOGOUT">LOGOUT</option>
-							<option value="API">API</option>
-						</select>
-					</label>
-					<label>접속 IP<input type="text" value={ipAddr} onChange={(e) => setClientIp(e.target.value)} /></label>
 					<button type="button" className="admin-list-btn-sky" onClick={() => void fetchList(1)}>조회</button>
 				</div>
 
@@ -162,27 +145,23 @@ export const UserAccessLogPage: React.FC = () => {
 						<tr>
 							<th style={{ width: '80px' }}>번호</th>
 							<th style={{ width: '170px' }}>접속일시</th>
-							<th style={{ width: '130px' }}>IP</th>
+							<th style={{ width: '150px' }}>접속 IP</th>
 							<th>접속 페이지 URL</th>
-							<th style={{ width: '110px' }}>접속유형</th>
-							<th style={{ width: '90px' }}>상태</th>
 						</tr>
 					</thead>
 					<tbody>
-						{list.map((row) => (
+						{list.map((row, index) => (
 							<tr key={row.cntnLogSn}>
-								<td>{row.cntnLogSn}</td>
+								<td>{count - (page - 1) * size - index}</td>
 								<td>{row.regDt ? String(row.regDt).replace('T', ' ').slice(0, 19) : '-'}</td>
 								<td>{row.ipAddr ?? '-'}</td>
 								<td title={row.requestUri ?? '-'}>
 									<span className="request-uri-ellipsis">{row.requestUri ?? '-'}</span>
 								</td>
-								<td>{row.cntnTypeCd ?? '-'}</td>
-								<td>{row.responseStatus ?? '-'}</td>
 							</tr>
 						))}
 						{list.length === 0 && (
-							<tr><td colSpan={6} style={{ textAlign: 'center' }}>데이터가 없습니다.</td></tr>
+							<tr><td colSpan={4} style={{ textAlign: 'center' }}>데이터가 없습니다.</td></tr>
 						)}
 					</tbody>
 				</table>
