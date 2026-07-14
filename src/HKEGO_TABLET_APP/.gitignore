@@ -11,3 +11,5 @@ app/debug/
 *.jks
 *.keystore
 google-services.json
+*service-account*.json
+*firebase-adminsdk*.json
