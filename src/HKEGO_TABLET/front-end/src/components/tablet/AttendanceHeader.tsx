@@ -1,5 +1,6 @@
 import { TabletReservation } from '../../api/tabletApi'
 import { useTabletSidebarToggle } from '../../hooks/useTabletSidebarToggle'
+import { stripEmphasisMarkers } from '../../utils/emphasisText'
 
 const formatReservationDateTime = (reservation?: TabletReservation | null) => {
 	if (!reservation?.rsvtYmd) return '-'
@@ -8,7 +9,7 @@ const formatReservationDateTime = (reservation?: TabletReservation | null) => {
 
 const formatProgram = (reservation?: TabletReservation | null) => {
 	if (!reservation) return <>-<br />-</>
-	return <>{reservation.prgrmTypeNm || '-'} 프로그램<br />({reservation.prgrmNm || '-'})</>
+	return <>{reservation.prgrmTypeNm || '-'} 프로그램<br />({stripEmphasisMarkers(reservation.prgrmNm) || '-'})</>
 }
 
 export const AttendanceHeader = ({ reservation }: { reservation?: TabletReservation | null }) => {

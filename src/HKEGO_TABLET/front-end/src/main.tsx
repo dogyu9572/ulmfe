@@ -36,7 +36,6 @@ import {
 	Mission06EndPage,
 	Mission06Page,
 	MissionAboutPage,
-	MissionEndPage,
 	MissionResourceCenterPage,
 	MissionWelcomePage
 } from './pages/student/mission'
@@ -67,7 +66,6 @@ const plannedPages = [
 	'student/mission06',
 	'student/mission06_end',
 	'student/mission_about',
-	'student/mission_end',
 	'student/mission_resource_center',
 	'student/mission_welcome',
 	'student/quest00',
@@ -87,7 +85,6 @@ const plannedPages = [
 	'student/quest04_end',
 	'student/quest05',
 	'student/quest_end',
-	'student/quest_survey',
 	'student/quest_video',
 	'student/resource_center',
 	'student/welcome',
@@ -139,6 +136,8 @@ const UnknownPage = () => (
 
 const PageRoute = () => {
 	const location = useLocation()
+	const questionnaireLinkMatch = location.pathname.replace(/\.html$/, '').match(/^\/student\/quest_survey\/((?:op-eval|eval|survey)\d{3,})$/)
+	if (questionnaireLinkMatch) return <QuestSurveyPage linkCode={questionnaireLinkMatch[1]} />
 	const dynamicQuestMatch = location.pathname.replace(/\.html$/, '').match(/^\/student\/quest(0[1-4])(?:_(\d+))?$/)
 	if (dynamicQuestMatch) {
 		const routeIndex = Number(dynamicQuestMatch[1]) - 1
@@ -170,7 +169,6 @@ const PageRoute = () => {
 	if (page === 'student/quest04_end') return <QuestStepEndPage routeIndex={3} />
 	if (page === 'student/quest05') return <Quest05Page />
 	if (page === 'student/quest_end') return <QuestEndPage />
-	if (page === 'student/quest_survey') return <QuestSurveyPage />
 	if (page === 'student/quest_video') return <QuestVideoPage />
 	if (page === 'student/resource_center') return <ResourceCenterPage />
 	if (page === 'student/mission_welcome') return <MissionWelcomePage />
@@ -185,7 +183,6 @@ const PageRoute = () => {
 	if (page === 'student/mission05_end') return <Mission05EndPage />
 	if (page === 'student/mission06') return <Mission06Page />
 	if (page === 'student/mission06_end') return <Mission06EndPage />
-	if (page === 'student/mission_end') return <MissionEndPage />
 	if (page === 'student/mission_resource_center') return <MissionResourceCenterPage />
 	if (page === 'teacher/attendance') return <TeacherAttendancePage />
 	if (page === 'teacher/monitoring') return <TeacherMonitoringPage />

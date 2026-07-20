@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { AttendanceHeader } from '../../components/tablet/AttendanceHeader'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { studentFlowDisplayName, studentFlowExploreIntroStep, studentFlowExploreQuestByRouteIndex, studentFlowExploreStepByCode, studentFlowReservation, studentFlowRouteItems, studentFlowTeamName } from '../../state/tabletStudentFlowSession'
+import { stripEmphasisMarkers } from '../../utils/emphasisText'
 
 const caseActivityOrderIconSrc = (index: number) => `/pub/images/icon_activity_order0${index + 2}.webp`
 
@@ -26,7 +27,7 @@ export const StudentWelcomePage = () => {
 				<div className="tb tac">오늘 함께할 팀과 활동 순서를 확인해보세요.</div>
 
 				<div className="welcome_top">
-					<div className="box program"><span>참여 프로그램</span><strong>{flowSession.prgrmTypeNm} 프로그램<br />({flowSession.prgrmNm})</strong></div>
+					<div className="box program"><span>참여 프로그램</span><strong>{flowSession.prgrmTypeNm} 프로그램<br />({stripEmphasisMarkers(flowSession.prgrmNm)})</strong></div>
 					<div className="box team"><span className="icon team_a" aria-hidden="true"><i>{teamName}</i></span><span>나의 팀</span><strong>{teamName}</strong></div>
 				</div>
 

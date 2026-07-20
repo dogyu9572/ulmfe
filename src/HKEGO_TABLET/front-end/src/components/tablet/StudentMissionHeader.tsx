@@ -14,6 +14,7 @@ import {
 	studentFlowTeamName
 } from '../../state/tabletStudentFlowSession'
 import { missionRouteIconSrc } from '../../pages/student/mission/missionShared'
+import { stripEmphasisMarkers } from '../../utils/emphasisText'
 
 type MissionSideStep = {
 	title: string
@@ -124,7 +125,7 @@ export const StudentMissionHeader = () => {
 					</div>
 				</div>
 				<div className="area">
-					<div className="team_area"><div className="team">{teamName}</div><span>{flowSession.prgrmNm}</span></div>
+					<div className="team_area"><div className="team">{teamName}</div><span>{stripEmphasisMarkers(flowSession.prgrmNm)}</span></div>
 				</div>
 				<div className="area">
 					<div className="tit"><h3>전체 진척률</h3></div>

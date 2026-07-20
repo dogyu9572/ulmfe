@@ -6,6 +6,7 @@ import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletMakerAnswerRequest;
 import egovframework.tablet.service.vo.TabletMissionFinalSubmitRequest;
 import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
+import egovframework.tablet.service.vo.TabletQuestionnaireVO;
 import egovframework.tablet.service.vo.TabletSessionResponse;
 import egovframework.tablet.service.vo.TabletTeacherCallRequest;
 import egovframework.tablet.service.vo.TabletTeacherCallVO;
@@ -24,6 +25,8 @@ public interface TabletService {
 	TabletLoginResponse getLoginSession(HttpSession session);
 
 	TabletSessionResponse getTodaySession(String rsvtYmd);
+
+	TabletQuestionnaireVO getQuestionnaireByLink(String linkCd);
 
 	List<TabletLearningResourceVO> getLearningResources(String prgrmTypeCd, Integer prgrmSn);
 

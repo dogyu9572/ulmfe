@@ -82,12 +82,22 @@ export type TabletSavedAnswer = {
 
 export type TabletQuestionnaireQuestion = {
 	qstnrSn: number
+	qstnrNm?: string
 	qstnSn: number
 	qstnNo?: string
 	ansTypeCd: string
 	ansTypeNm?: string
 	qstnCn: string
 	sortSeq?: number
+}
+
+export type TabletQuestionnaire = {
+	qstnrSn: number
+	qstnrTypeCd: 'EVAL' | 'SURVEY'
+	evlSeCd?: 'STUDENT' | 'TEACHER'
+	qstnrNm: string
+	linkCd: string
+	questions: TabletQuestionnaireQuestion[]
 }
 
 export type TabletLearningResource = {
@@ -184,6 +194,7 @@ export type TabletMissionAnswer = {
 		label: string
 		fileName: string
 		fieldName: string
+		fileUrl?: string
 	}[]
 }
 
@@ -340,6 +351,11 @@ export const submitTabletMissionFinal = (rsvtSn: number, payload: {
 	method: 'POST',
 	body: JSON.stringify(payload)
 })
+
+export const fetchPublicQuestionnaire = (linkCd: string) => request<TabletQuestionnaire>(
+	`/api/public/questionnaires/${encodeURIComponent(linkCd)}`,
+	{ cache: 'no-store' }
+)
 
 export const fetchTabletLearningResources = (prgrmTypeCd: string, prgrmSn: number) => {
 	const params = new URLSearchParams({

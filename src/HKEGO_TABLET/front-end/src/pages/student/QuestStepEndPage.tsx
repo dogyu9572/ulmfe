@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { submitTabletMissionFinal } from '../../api/tabletApi'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
+import { StudentProgramCompletionPopup } from '../../components/tablet/StudentProgramCompletionPopup'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import {
 	studentFlowCompletedExploreStepCodes,
+	studentFlowDisplayName,
 	studentFlowExploreQuestByRouteIndex,
 	studentFlowRouteItems
 } from '../../state/tabletStudentFlowSession'
@@ -12,6 +16,8 @@ const stampImage = (routeIndex: number) => `/pub/images/icon_stamp${String(route
 export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 	const navigate = useNavigate()
 	const flowSession = useRequiredTabletStudentFlowSession()
+	const [completedOpen, setCompletedOpen] = useState(false)
+	const [saving, setSaving] = useState(false)
 	if (!flowSession) return null
 
 	const quest = studentFlowExploreQuestByRouteIndex(flowSession, routeIndex)
@@ -19,11 +25,37 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 	const questLabel = quest?.name || routeItems[routeIndex] || `퀘스트${routeIndex + 1}`
 	const currentTitle = `${questLabel} 수행 완료!`
 	const nextRouteName = routeItems[routeIndex + 1] || ''
-	const nextPath = nextRouteName ? `/student/quest${String(routeIndex + 2).padStart(2, '0')}` : '/student/quest_survey'
+	const nextPath = nextRouteName ? `/student/quest${String(routeIndex + 2).padStart(2, '0')}` : ''
 	const nextQuest = nextRouteName ? studentFlowExploreQuestByRouteIndex(flowSession, routeIndex + 1) : null
 	const nextTitle = nextQuest?.place || nextQuest?.title || nextRouteName || '사건해결'
 	const completedStepCodes = studentFlowCompletedExploreStepCodes(flowSession)
 	const earnedStampCount = routeItems.filter((_item, index) => completedStepCodes.has(`QUEST${String(index + 1).padStart(2, '0')}`)).length
+
+	const moveNext = async () => {
+		if (nextPath) {
+			navigate(nextPath)
+			return
+		}
+		if (saving) return
+		try {
+			setSaving(true)
+			await submitTabletMissionFinal(flowSession.rsvtSn, {
+				studentSns: flowSession.selectedStudents.map((student) => student.stdntSn),
+				heroName: '',
+				updateHero: false,
+				updateEvaluation: false,
+				updateSurvey: false,
+				complete: true,
+				evaluationAnswers: [],
+				surveyAnswers: []
+			})
+			setCompletedOpen(true)
+		} catch (error) {
+			window.alert(error instanceof Error ? error.message : '교육 완료 처리 중 오류가 발생했습니다.')
+		} finally {
+			setSaving(false)
+		}
+	}
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -48,10 +80,11 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 					<div className="next_page_qr">
 						<h3 className="tit">{nextTitle}</h3>
 						<p>다음 이동 장소로 이동하세요.</p>
-						<button className="btn_qr flex_center" onClick={() => navigate(nextPath)}>이동하기</button>
+						<button className="btn_qr flex_center" onClick={() => void moveNext()} disabled={saving}>{saving ? '처리 중' : '이동하기'}</button>
 					</div>
 				</div>
 			</section>
+			<StudentProgramCompletionPopup open={completedOpen} variant="explore" displayName={studentFlowDisplayName(flowSession)} onClose={() => setCompletedOpen(false)} onComplete={() => navigate('/select-user')} />
 		</main>
 	)
 }

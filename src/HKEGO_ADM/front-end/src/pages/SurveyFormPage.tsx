@@ -8,6 +8,7 @@ import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
 import { API_BASE_URL } from '../config'
 import { timestampedExcelFileName } from '../utils/downloadFileName'
+import { questionnaireLinkCode, questionnairePreviewUrl } from '../utils/questionnaireLink'
 
 type ApiResponse<T> = {
 	success: boolean
@@ -484,13 +485,15 @@ export const SurveyFormPage: React.FC = () => {
 							<th>설문지 이름</th>
 							<th style={{ width: 120 }}>작성자</th>
 							<th style={{ width: 120 }}>등록일</th>
+							<th style={{ width: 140 }}>링크</th>
 							<th style={{ width: 130 }}>결과 다운로드</th>
 							<th style={{ width: 120 }}>관리</th>
 						</tr>
 					</thead>
 					<tbody>
-						{list.map((row) => (
-							<tr key={row.qstnrSn ?? row.qstnrNm} onClick={() => void openEditPopup(row.qstnrSn)}>
+						{list.map((row) => {
+							const linkCode = questionnaireLinkCode(row.qstnrSn, 'SURVEY')
+							return <tr key={row.qstnrSn ?? row.qstnrNm} onClick={() => void openEditPopup(row.qstnrSn)}>
 								<td onClick={(e) => e.stopPropagation()}>
 									<input
 										type="checkbox"
@@ -504,6 +507,9 @@ export const SurveyFormPage: React.FC = () => {
 								<td>{row.rgtr || '-'}</td>
 								<td>{formatDate(row.regDt)}</td>
 								<td onClick={(e) => e.stopPropagation()}>
+									{linkCode ? <a className="admin-questionnaire-link" href={questionnairePreviewUrl(linkCode)} target="_blank" rel="noreferrer">{linkCode}</a> : '-'}
+								</td>
+								<td onClick={(e) => e.stopPropagation()}>
 									<button type="button" className="admin-filter-btn-reset" onClick={() => void downloadResults(row)} disabled={loading}>결과 다운로드</button>
 								</td>
 								<td className="table-actions admin-list-manage-td" onClick={(e) => e.stopPropagation()}>
@@ -514,10 +520,10 @@ export const SurveyFormPage: React.FC = () => {
 									/>
 								</td>
 							</tr>
-						))}
+						})}
 						{list.length === 0 && (
 							<tr>
-								<td colSpan={7} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
+								<td colSpan={8} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
 							</tr>
 						)}
 					</tbody>

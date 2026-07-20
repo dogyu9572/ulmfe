@@ -1,11 +1,16 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { submitTabletMissionFinal } from '../../../api/tabletApi'
+import { StudentProgramCompletionPopup } from '../../../components/tablet/StudentProgramCompletionPopup'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
-import { studentFlowMissionBonusStickerCount, studentFlowMissionQuestByRouteIndex, studentFlowMissionRegularStickerCount } from '../../../state/tabletStudentFlowSession'
+import { studentFlowDisplayName, studentFlowMissionBonusStickerCount, studentFlowMissionQuestByRouteIndex, studentFlowMissionRegularStickerCount, studentFlowRouteItems } from '../../../state/tabletStudentFlowSession'
 
 export const Mission06EndPage = () => {
 	const navigate = useNavigate()
 	const flowSession = useRequiredTabletStudentFlowSession()
+	const [completedOpen, setCompletedOpen] = useState(false)
+	const [saving, setSaving] = useState(false)
 	if (!flowSession) return null
 	const quest = studentFlowMissionQuestByRouteIndex(flowSession, 3)
 	const zoneName = quest?.name || '도서관'
@@ -13,6 +18,28 @@ export const Mission06EndPage = () => {
 	const regularStickerCount = studentFlowMissionRegularStickerCount(flowSession)
 	const bonusStickerCount = studentFlowMissionBonusStickerCount(flowSession)
 	const largeStickerImages = Array.from({ length: Math.min(3, regularStickerCount) }, (_, index) => `/pub/images/icon_sticker_a${String(index + 1).padStart(2, '0')}_large.svg`)
+
+	const finishMission = async () => {
+		if (saving) return
+		try {
+			setSaving(true)
+			await submitTabletMissionFinal(flowSession.rsvtSn, {
+				studentSns: flowSession.selectedStudents.map((student) => student.stdntSn),
+				heroName: '',
+				updateHero: false,
+				updateEvaluation: false,
+				updateSurvey: false,
+				complete: true,
+				evaluationAnswers: [],
+				surveyAnswers: []
+			})
+			setCompletedOpen(true)
+		} catch (error) {
+			window.alert(error instanceof Error ? error.message : '미션 완료 처리 중 오류가 발생했습니다.')
+		} finally {
+			setSaving(false)
+		}
+	}
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -39,9 +66,10 @@ export const Mission06EndPage = () => {
 							</ul>
 						</div>
 					</div>
-					<div className="next_page_qr"><h3 className="tit">실천력 부여</h3><p>별관 1~2층 개방형 열람실로 이동하세요.</p><button className="btn_after flex_center" onClick={() => navigate('/student/mission_end')}>실천력 부여로 이동하기</button></div>
+					<div className="next_page_qr"><h3 className="tit">미션 완료</h3><p>오늘의 미션 활동을 마무리하세요.</p><button className="btn_after flex_center" onClick={() => void finishMission()} disabled={saving}>{saving ? '처리 중' : '이동하기'}</button></div>
 				</div>
 			</section>
+			<StudentProgramCompletionPopup open={completedOpen} variant="mission" displayName={studentFlowDisplayName(flowSession)} missionAreaCount={studentFlowRouteItems(flowSession).length} onClose={() => setCompletedOpen(false)} onComplete={() => navigate('/select-user')} />
 		</main>
 	)
 }

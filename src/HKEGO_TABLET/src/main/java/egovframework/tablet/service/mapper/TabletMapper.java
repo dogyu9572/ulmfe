@@ -8,6 +8,7 @@ import egovframework.tablet.service.vo.TabletMissionAnswerVO;
 import egovframework.tablet.service.vo.TabletProgressLogVO;
 import egovframework.tablet.service.vo.TabletQuestionnaireAnswerVO;
 import egovframework.tablet.service.vo.TabletQuestionnaireQuestionVO;
+import egovframework.tablet.service.vo.TabletQuestionnaireVO;
 import egovframework.tablet.service.vo.TabletReservationVO;
 import egovframework.tablet.service.vo.TabletSavedAnswerVO;
 import egovframework.tablet.service.vo.TabletStudentVO;
@@ -42,6 +43,12 @@ public interface TabletMapper {
 	List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestions(@Param("qstnrSn") Integer qstnrSn, @Param("qstnrTypeCd") String qstnrTypeCd);
 
 	List<TabletQuestionnaireQuestionVO> selectQuestionnaireQuestionsByName(@Param("qstnrNm") String qstnrNm, @Param("qstnrTypeCd") String qstnrTypeCd);
+
+	TabletQuestionnaireVO selectQuestionnaireByLink(
+		@Param("qstnrSn") Integer qstnrSn,
+		@Param("qstnrTypeCd") String qstnrTypeCd,
+		@Param("evlSeCd") String evlSeCd
+	);
 
 	List<TabletLearningResourceVO> selectLearningResources(@Param("prgrmTypeCd") String prgrmTypeCd, @Param("prgrmSn") Integer prgrmSn);
 

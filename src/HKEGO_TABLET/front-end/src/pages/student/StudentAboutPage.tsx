@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { studentFlowTeamName } from '../../state/tabletStudentFlowSession'
+import { EmphasisText, stripEmphasisMarkers } from '../../utils/emphasisText'
 
 export const StudentAboutPage = () => {
 	const navigate = useNavigate()
@@ -27,12 +28,12 @@ export const StudentAboutPage = () => {
 					</div>
 					<div className="case_investigation_btm type1">
 						<div className="left">
-							<div className="tit">{flowSession.prgrmNm}</div>
-							<p>{flowSession.simpleExpln || ''}</p>
+							<div className="tit"><EmphasisText text={flowSession.prgrmNm} emphasisClassName="c_iden" /></div>
+							<p>{stripEmphasisMarkers(flowSession.simpleExpln)}</p>
 						</div>
 						<div className="right">
 							<div className="blue_box">
-								{descriptionLines.length > 0 ? descriptionLines.map((line) => <p key={line}>{line}</p>) : <p>관리자에 등록된 시작 전 설명이 없습니다.</p>}
+								{descriptionLines.length > 0 ? descriptionLines.map((line, index) => <p key={`${line}-${index}`}><EmphasisText text={line} /></p>) : <p>관리자에 등록된 시작 전 설명이 없습니다.</p>}
 							</div>
 							<a href="/student/quest00.html" className="btn_link" onClick={(event) => {
 								event.preventDefault()

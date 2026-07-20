@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { fetchTabletSession, TabletReservation } from '../../api/tabletApi'
+import { stripEmphasisMarkers } from '../../utils/emphasisText'
 
 const teacherMenus = [
 	{ className: 'menu i1', path: '/teacher/attendance', label: '출석부' },
@@ -31,7 +32,7 @@ export const TeacherHeader = () => {
 	}, [])
 
 	const programType = reservation?.prgrmTypeNm || '-'
-	const programName = reservation?.prgrmNm || '-'
+	const programName = stripEmphasisMarkers(reservation?.prgrmNm) || '-'
 	const studentCount = reservation?.stdntCnt ?? reservation?.actlNope ?? reservation?.rsvtNope ?? 0
 	const totalMinutes = reservation?.totalTmMnt
 

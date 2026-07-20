@@ -16,6 +16,7 @@ import egovframework.tablet.service.vo.TabletMissionAnswerVO;
 import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
 import egovframework.tablet.service.vo.TabletQuestionnaireAnswerVO;
 import egovframework.tablet.service.vo.TabletQuestionnaireQuestionVO;
+import egovframework.tablet.service.vo.TabletQuestionnaireVO;
 import egovframework.tablet.service.vo.TabletReservationVO;
 import egovframework.tablet.service.vo.TabletSessionResponse;
 import egovframework.tablet.service.vo.TabletStudentVO;
@@ -50,12 +51,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 public class TabletServiceImpl implements TabletService {
 	private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 	private static final DateTimeFormatter HOUR_MINUTE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+	private static final Pattern QUESTIONNAIRE_LINK_PATTERN = Pattern.compile("^(eval|survey|op-eval)(\\d{3,})$");
 	private final TabletMapper tabletMapper;
 	private final TabletPushService tabletPushService;
 	private final PasswordEncoder passwordEncoder;
@@ -137,6 +141,20 @@ public class TabletServiceImpl implements TabletService {
 			.evaluationQuestions(evaluationQuestions)
 			.surveyQuestions(surveyQuestions)
 			.build();
+	}
+
+	@Override
+	public TabletQuestionnaireVO getQuestionnaireByLink(String linkCd) {
+		QuestionnaireLinkTarget target = parseQuestionnaireLink(linkCd);
+		TabletQuestionnaireVO questionnaire = tabletMapper.selectQuestionnaireByLink(
+			target.qstnrSn(), target.qstnrTypeCd(), target.evlSeCd()
+		);
+		if (questionnaire == null) {
+			throw new IllegalArgumentException("등록된 평가지 또는 설문지를 찾을 수 없습니다.");
+		}
+		questionnaire.setLinkCd(target.linkCd());
+		questionnaire.setQuestions(tabletMapper.selectQuestionnaireQuestions(target.qstnrSn(), target.qstnrTypeCd()));
+		return questionnaire;
 	}
 
 	@Override
@@ -311,8 +329,8 @@ public class TabletServiceImpl implements TabletService {
 		}
 		String heroName = normalizeText(request.getHeroName());
 		boolean updateHero = Boolean.TRUE.equals(request.getUpdateHero());
-		boolean updateEvaluation = Boolean.TRUE.equals(request.getUpdateEvaluation()) || Boolean.TRUE.equals(request.getComplete());
-		boolean updateSurvey = Boolean.TRUE.equals(request.getUpdateSurvey()) || Boolean.TRUE.equals(request.getComplete());
+		boolean updateEvaluation = Boolean.TRUE.equals(request.getUpdateEvaluation());
+		boolean updateSurvey = Boolean.TRUE.equals(request.getUpdateSurvey());
 		boolean complete = Boolean.TRUE.equals(request.getComplete());
 
 		if (updateHero && isBlank(heroName)) {
@@ -543,6 +561,31 @@ public class TabletServiceImpl implements TabletService {
 		}
 	}
 
+	private QuestionnaireLinkTarget parseQuestionnaireLink(String linkCd) {
+		String normalized = normalizeText(linkCd);
+		if (normalized == null) {
+			throw new IllegalArgumentException("링크 형식이 올바르지 않습니다.");
+		}
+		normalized = normalized.toLowerCase();
+		Matcher matcher = QUESTIONNAIRE_LINK_PATTERN.matcher(normalized);
+		if (!matcher.matches()) {
+			throw new IllegalArgumentException("링크 형식이 올바르지 않습니다.");
+		}
+		try {
+			Integer qstnrSn = Integer.valueOf(matcher.group(2));
+			return switch (matcher.group(1)) {
+				case "eval" -> new QuestionnaireLinkTarget(normalized, qstnrSn, "EVAL", "STUDENT");
+				case "op-eval" -> new QuestionnaireLinkTarget(normalized, qstnrSn, "EVAL", "TEACHER");
+				case "survey" -> new QuestionnaireLinkTarget(normalized, qstnrSn, "SURVEY", null);
+				default -> throw new IllegalArgumentException("링크 형식이 올바르지 않습니다.");
+			};
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("링크 형식이 올바르지 않습니다.");
+		}
+	}
+
+	private record QuestionnaireLinkTarget(String linkCd, Integer qstnrSn, String qstnrTypeCd, String evlSeCd) {}
+
 	private List<TabletContentVO> selectProgramContents(String stepJson) {
 		ContentRefs refs = extractContentRefs(stepJson);
 		return selectContents(refs);
@@ -630,14 +673,22 @@ public class TabletServiceImpl implements TabletService {
 		payload.put("answer", answer.getAnsCn() == null ? "" : answer.getAnsCn());
 		var fileArray = payload.putArray("files");
 		answer.getFiles().forEach(fileInfo -> {
-			if (fileInfo == null || isBlank(fileInfo.getFieldName())) return;
-			MultipartFile file = filesByFieldName == null ? null : filesByFieldName.get(fileInfo.getFieldName());
-			if (file == null || file.isEmpty()) return;
-			StoredMakerFile storedFile = storeMakerFile(file);
+			if (fileInfo == null) return;
+			MultipartFile file = isBlank(fileInfo.getFieldName()) || filesByFieldName == null
+				? null
+				: filesByFieldName.get(fileInfo.getFieldName());
 			ObjectNode fileNode = objectMapper.createObjectNode();
 			fileNode.put("label", fileInfo.getLabel() == null ? "" : fileInfo.getLabel());
-			fileNode.put("fileName", storedFile.originalFileName());
-			fileNode.put("fileUrl", storedFile.fileUrl());
+			if (file != null && !file.isEmpty()) {
+				StoredMakerFile storedFile = storeMakerFile(file);
+				fileNode.put("fileName", storedFile.originalFileName());
+				fileNode.put("fileUrl", storedFile.fileUrl());
+			} else {
+				String existingFileUrl = normalizeText(fileInfo.getFileUrl());
+				if (existingFileUrl == null || !existingFileUrl.startsWith("/uploads/tablet-results/")) return;
+				fileNode.put("fileName", sanitizeFileName(fileInfo.getFileName()));
+				fileNode.put("fileUrl", existingFileUrl);
+			}
 			fileArray.add(fileNode);
 		});
 		try {

@@ -1,4 +1,5 @@
 import { TabletContent, TabletProgressLog, TabletQuestionnaireQuestion, TabletSavedAnswer, TabletSession, TabletStudent } from '../api/tabletApi'
+import { stripEmphasisMarkers } from '../utils/emphasisText'
 
 const STORAGE_KEY = 'hkegoTabletStudentFlowSession'
 
@@ -232,7 +233,7 @@ export const studentFlowAssignmentName = (session: TabletStudentFlowSession | nu
 	return assignments.join(', ')
 }
 
-export const studentFlowMissionStartExpln = (session: TabletStudentFlowSession | null) => (session?.startExpln || '').trim()
+export const studentFlowMissionStartExpln = (session: TabletStudentFlowSession | null) => stripEmphasisMarkers(session?.startExpln).trim()
 
 export const studentFlowProgramSteps = (session: TabletStudentFlowSession | null) => parseJsonList<Partial<TabletProgramStep>>(session?.stepJson)
 	.map((row) => ({

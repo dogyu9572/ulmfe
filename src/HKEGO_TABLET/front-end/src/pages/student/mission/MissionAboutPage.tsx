@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import { studentFlowTeamName } from '../../../state/tabletStudentFlowSession'
+import { EmphasisText, stripEmphasisMarkers } from '../../../utils/emphasisText'
 
 export const MissionAboutPage = () => {
 	const flowSession = useRequiredTabletStudentFlowSession()
 	if (!flowSession) return null
 
 	const teamName = studentFlowTeamName(flowSession)
+	const descriptionLines = (flowSession.startExpln || '').split('\n').map((line) => line.trim()).filter(Boolean)
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -18,13 +20,10 @@ export const MissionAboutPage = () => {
 						<div className="team_info team_a"><h2>{teamName}</h2><ul>{flowSession.selectedStudents.map((student, index) => <li key={student.stdntSn}>{index === 0 ? <strong>{student.stdntNm}(나)</strong> : student.stdntNm}</li>)}</ul></div>
 					</div>
 					<div className="case_investigation_btm type2">
-						<div className="left"><div className="tit">소비습관 <strong className="c_iden">구출 작전</strong></div><p>괴물의 탄생을 막아라!</p></div>
+						<div className="left"><div className="tit"><EmphasisText text={flowSession.prgrmNm} emphasisClassName="c_iden" /></div><p>{stripEmphasisMarkers(flowSession.simpleExpln)}</p></div>
 						<div className="right">
 							<div className="blue_box">
-								<p>방에 쌓인 쓰레기들이 모여 괴물이 되었어요! <br />무심코 사고, 버린 물건들이 모여 괴물이 된 거예요.<br />과소비와 낭비, 한 번 쓰고 버리는 습관이 이 괴물을 키우고 있답니다.</p>
-								<p>괴물을 잠재우려면, 나의 소비 선택 방법을 찾아야 해요.<br />그리고 다른 소비 선택 방법도 찾아 이 문제를 해결하세요.</p>
-								<p>지금부터 괴물을 퇴치하는 방법을 배우고, <br />전국 '슬기로운 소비생활'을 시작하세요! 미래교육관에서<br />숨긴 힌트를 찾아 이 문제를 풀고 스티커를 획득하세요.</p>
-								<p><strong>미션을 수행하면 “울산SDGs 히어로즈”가 될 수 있습니다!</strong></p>
+								{descriptionLines.length > 0 ? descriptionLines.map((line, index) => <p key={`${line}-${index}`}><EmphasisText text={line} /></p>) : <p>관리자에 등록된 시작 전 설명이 없습니다.</p>}
 							</div>
 							<Link to="/student/mission01" className="btn_link"><strong>미션 출발하기</strong><p>첫번째 활동으로 떠나볼까요?<img src="/pub/images/btn_link_search.webp" alt="" aria-hidden="true" /></p></Link>
 						</div>

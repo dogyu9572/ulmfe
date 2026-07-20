@@ -58,9 +58,7 @@ public class SecurityConfig {
 			.formLogin(form -> form.disable())
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-				.sessionFixation(fixation -> fixation.migrateSession())
-				.maximumSessions(1)
-				.maxSessionsPreventsLogin(false))
+				.sessionFixation(fixation -> fixation.migrateSession()))
 			.exceptionHandling(exception -> exception
 				.authenticationEntryPoint(sessionAuthenticationEntryPoint)
 				.accessDeniedHandler(sessionAccessDeniedHandler))

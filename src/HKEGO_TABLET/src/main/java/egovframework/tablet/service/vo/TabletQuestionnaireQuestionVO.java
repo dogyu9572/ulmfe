@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class TabletQuestionnaireQuestionVO {
 	private Integer qstnrSn;
+	private String qstnrNm;
 	private Integer qstnSn;
 	private String qstnNo;
 	private String ansTypeCd;

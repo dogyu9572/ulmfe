@@ -65,10 +65,13 @@ public class EgovEvaluationFormServiceImpl extends EgovAbstractServiceImpl imple
 
 	@Transactional
 	public EvaluationFormVO updateEvaluationForm(Integer qstnrSn, EvaluationFormDto dto) {
-		if (evaluationFormDAO.findById(qstnrSn) == null) {
+		EvaluationFormVO existing = evaluationFormDAO.findById(qstnrSn);
+		if (existing == null) {
 			throw new IllegalArgumentException("평가지를 찾을 수 없습니다.");
 		}
-		evaluationFormDAO.update(toForm(qstnrSn, dto, "admin"));
+		EvaluationFormVO updated = toForm(qstnrSn, dto, "admin");
+		updated.setEvlSeCd(existing.getEvlSeCd());
+		evaluationFormDAO.update(updated);
 		saveQuestions(qstnrSn, dto.getQuestions(), "admin");
 		return getEvaluationFormById(qstnrSn);
 	}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchTabletSession, TabletSession, TabletStudent } from '../../api/tabletApi'
 import { TeacherShell } from './teacherShared'
+import { stripEmphasisMarkers } from '../../utils/emphasisText'
 
 const formatReservationDateTime = (session: TabletSession | null) => {
 	const reservation = session?.reservation
@@ -64,7 +65,7 @@ export const TeacherSessionManagementPage = () => {
 							<tbody>
 								<tr><th scope="row">예약 일시</th><td>{formatReservationDateTime(session)}</td></tr>
 								<tr><th scope="row">학교/학년</th><td>{session?.reservation ? `${session.reservation.schlNm || '-'} / ${session.reservation.scyrNm || '-'}` : '-'}</td></tr>
-								<tr><th scope="row">프로그램</th><td>{session?.reservation ? `${session.reservation.prgrmTypeNm || '-'} - ${session.reservation.prgrmNm || '-'}` : '-'}</td></tr>
+								<tr><th scope="row">프로그램</th><td>{session?.reservation ? `${session.reservation.prgrmTypeNm || '-'} - ${stripEmphasisMarkers(session.reservation.prgrmNm) || '-'}` : '-'}</td></tr>
 								<tr><th scope="row">학습상태</th><td>{session?.reservation?.lrnSttsNm || '-'}</td></tr>
 							</tbody>
 						</table>

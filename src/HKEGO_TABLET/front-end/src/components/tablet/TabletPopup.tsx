@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createTabletTeacherCall, fetchUnreadTabletTeacherMessages, markTabletTeacherMessageRead, TabletTeacherMessage } from '../../api/tabletApi'
 import { readTabletStudentFlowSession, studentFlowMissionQuestByRouteIndex } from '../../state/tabletStudentFlowSession'
+import { stripEmphasisMarkers } from '../../utils/emphasisText'
 
 const currentPlaceName = () => {
 	const session = readTabletStudentFlowSession()
@@ -9,9 +10,9 @@ const currentPlaceName = () => {
 	if (match) {
 		const routeIndex = Number(match[1]) - 3
 		const quest = studentFlowMissionQuestByRouteIndex(session, routeIndex)
-		return quest?.place || quest?.name || session.prgrmNm
+		return quest?.place || quest?.name || stripEmphasisMarkers(session.prgrmNm)
 	}
-	return session.prgrmNm
+	return stripEmphasisMarkers(session.prgrmNm)
 }
 
 export const TeacherCallPopup = () => {

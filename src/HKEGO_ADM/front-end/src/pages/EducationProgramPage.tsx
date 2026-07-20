@@ -1094,7 +1094,10 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 							</tr>
 							<tr>
 								<th>{nameLabel} <span className="required">*</span></th>
-								<td colSpan={3}><input type="text" value={form.prgrmNm} onChange={(e) => setForm({ ...form, prgrmNm: e.target.value })} /></td>
+								<td colSpan={3}>
+									<input type="text" value={form.prgrmNm} onChange={(e) => setForm({ ...form, prgrmNm: e.target.value })} />
+									<p className="education-program-field-note">강조할 문구의 앞뒤에 *를 입력해 주세요. 예: 소비습관 *구출 작전*</p>
+								</td>
 							</tr>
 							<tr>
 								<th>대상</th>
@@ -1113,15 +1116,16 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 									<label><input type="radio" checked={form.useYn !== 'Y'} onChange={() => setForm({ ...form, useYn: 'N' })} /> N</label>
 								</td>
 							</tr>
-							{programType !== 'MISSION' && (
-								<tr>
-									<th>간단한 설명</th>
-									<td colSpan={3}><input type="text" value={form.simpleExpln || ''} onChange={(e) => setForm({ ...form, simpleExpln: e.target.value })} /></td>
-								</tr>
-							)}
+							<tr>
+								<th>간단한 설명</th>
+								<td colSpan={3}><input type="text" value={form.simpleExpln || ''} onChange={(e) => setForm({ ...form, simpleExpln: e.target.value })} /></td>
+							</tr>
 							<tr>
 								<th>시작 전 설명</th>
-								<td colSpan={3}><textarea rows={4} value={form.startExpln || ''} onChange={(e) => setForm({ ...form, startExpln: e.target.value })} /></td>
+								<td colSpan={3}>
+									<textarea rows={4} value={form.startExpln || ''} onChange={(e) => setForm({ ...form, startExpln: e.target.value })} />
+									<p className="education-program-field-note">강조할 문구의 앞뒤에 *를 입력해 주세요. * 기호는 화면에 표시되지 않습니다.</p>
+								</td>
 							</tr>
 							{programType !== 'MISSION' && (
 								<tr>

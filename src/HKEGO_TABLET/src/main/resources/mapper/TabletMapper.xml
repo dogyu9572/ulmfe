@@ -208,6 +208,7 @@
 	<select id="selectQuestionnaireQuestions" resultType="TabletQuestionnaireQuestionVO">
 		SELECT
 			Q.QSTNR_SN,
+			M.QSTNR_NM,
 			Q.QSTN_SN,
 			Q.QSTN_NO,
 			Q.ANS_TYPE_CD,
@@ -230,6 +231,7 @@
 	<select id="selectQuestionnaireQuestionsByName" resultType="TabletQuestionnaireQuestionVO">
 		SELECT
 			Q.QSTNR_SN,
+			M.QSTNR_NM,
 			Q.QSTN_SN,
 			Q.QSTN_NO,
 			Q.ANS_TYPE_CD,
@@ -247,6 +249,21 @@
 		AND M.QSTNR_TYPE_CD = #{qstnrTypeCd}
 		AND M.DEL_DT IS NULL
 		ORDER BY Q.SORT_SEQ ASC, Q.QSTN_SN ASC
+	</select>
+
+	<select id="selectQuestionnaireByLink" resultType="TabletQuestionnaireVO">
+		SELECT
+			M.QSTNR_SN,
+			M.QSTNR_TYPE_CD,
+			M.EVL_SE_CD,
+			M.QSTNR_NM
+		FROM EDU_QSTNR_MST M
+		WHERE M.QSTNR_SN = #{qstnrSn}
+		AND M.QSTNR_TYPE_CD = #{qstnrTypeCd}
+		<if test="evlSeCd != null and evlSeCd != ''">
+			AND M.EVL_SE_CD = #{evlSeCd}
+		</if>
+		AND M.DEL_DT IS NULL
 	</select>
 
 	<select id="selectLearningResources" resultType="TabletLearningResourceVO">

@@ -1,13 +1,17 @@
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { submitTabletMissionFinal } from '../../../api/tabletApi'
+import { StudentProgramCompletionPopup } from '../../../components/tablet/StudentProgramCompletionPopup'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import {
+	studentFlowDisplayName,
 	studentFlowMissionBonusStickerCount,
 	studentFlowMissionQuestByRouteIndex,
 	studentFlowMissionRegularStickerCount,
 	studentFlowNextMissionLabelAfterRouteIndex,
-	studentFlowNextMissionPathAfterRouteIndex
+	studentFlowNextMissionPathAfterRouteIndex,
+	studentFlowRouteItems
 } from '../../../state/tabletStudentFlowSession'
 
 export const agreement = ['매우 그렇다', '그렇다', '보통이다', '아니다', '매우 아니다']
@@ -95,19 +99,22 @@ export const RatingGroup = ({ name }: { name: string }) => (
 export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, nextText, nextButton, nextPath, routeIndex }: { title: string; text: ReactNode; image: string; onClass: string[]; nextTitle: string; nextText: string; nextButton: string; nextPath: string; routeIndex?: number }) => {
 	const navigate = useNavigate()
 	const flowSession = useRequiredTabletStudentFlowSession()
+	const [completedOpen, setCompletedOpen] = useState(false)
+	const [saving, setSaving] = useState(false)
 	if (!flowSession) return null
 	const hasDynamicNext = typeof routeIndex === 'number'
 	const dynamicNextPath = hasDynamicNext ? studentFlowNextMissionPathAfterRouteIndex(flowSession, routeIndex) : nextPath
+	const isFinalRoute = dynamicNextPath === '/student/mission_end'
 	const currentQuest = hasDynamicNext ? studentFlowMissionQuestByRouteIndex(flowSession, routeIndex) : null
 	const currentLabel = currentQuest?.name || ''
 	const dynamicTitle = currentLabel ? `${currentLabel} 미션 수행 완료!` : title
 	const dynamicText = hasDynamicNext ? <>미션을 완료했어요.<br /><strong>다음 활동으로 이동해 주세요.</strong></> : text
 	const dynamicNextLabel = hasDynamicNext ? studentFlowNextMissionLabelAfterRouteIndex(flowSession, routeIndex) : nextTitle
 	const dynamicNextQuest = hasDynamicNext ? studentFlowMissionQuestByRouteIndex(flowSession, routeIndex + 1) : null
-	const dynamicNextText = dynamicNextPath === '/student/mission_end'
-		? '오늘의 미션을 정리하고 실천력을 부여받으세요.'
+	const dynamicNextText = isFinalRoute
+		? '오늘의 미션 활동을 마무리하세요.'
 		: `${dynamicNextQuest?.place || dynamicNextLabel}로 이동하세요.`
-	const dynamicNextButton = dynamicNextPath === '/student/mission_end' ? '실천력 부여로 이동하기' : `${dynamicNextLabel}으로 이동하기`
+	const dynamicNextButton = isFinalRoute ? '이동하기' : `${dynamicNextLabel}으로 이동하기`
 	const regularStickerCount = hasDynamicNext ? studentFlowMissionRegularStickerCount(flowSession) : onClass.length
 	const bonusStickerCount = hasDynamicNext ? studentFlowMissionBonusStickerCount(flowSession) : 0
 	const regularStickerClasses = Array.from({ length: Math.min(3, regularStickerCount) }, (_, index) => `i${index + 1}`)
@@ -116,6 +123,32 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 		? regularStickerClasses.map((className) => `/pub/images/icon_sticker_a${className.slice(1).padStart(2, '0')}_large.svg`)
 		: [image]
 	const endClassNumber = hasDynamicNext ? Math.max(1, Math.min(4, (routeIndex ?? 0) + 1)) : Math.max(1, Math.min(4, onClass.length))
+
+	const moveNext = async () => {
+		if (!isFinalRoute) {
+			navigate(dynamicNextPath)
+			return
+		}
+		if (saving) return
+		try {
+			setSaving(true)
+			await submitTabletMissionFinal(flowSession.rsvtSn, {
+				studentSns: flowSession.selectedStudents.map((student) => student.stdntSn),
+				heroName: '',
+				updateHero: false,
+				updateEvaluation: false,
+				updateSurvey: false,
+				complete: true,
+				evaluationAnswers: [],
+				surveyAnswers: []
+			})
+			setCompletedOpen(true)
+		} catch (error) {
+			window.alert(error instanceof Error ? error.message : '미션 완료 처리 중 오류가 발생했습니다.')
+		} finally {
+			setSaving(false)
+		}
+	}
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -145,9 +178,10 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 							</ul>
 						</div>
 					</div>
-					<div className="next_page_qr"><h3 className="tit">{dynamicNextLabel || nextTitle}</h3><p>{hasDynamicNext ? dynamicNextText : nextText}</p><button className="btn_after flex_center" onClick={() => navigate(dynamicNextPath)}>{hasDynamicNext ? dynamicNextButton : nextButton}</button></div>
+					<div className="next_page_qr"><h3 className="tit">{isFinalRoute ? '미션 완료' : dynamicNextLabel || nextTitle}</h3><p>{hasDynamicNext ? dynamicNextText : nextText}</p><button className="btn_after flex_center" onClick={() => void moveNext()} disabled={saving}>{saving ? '처리 중' : hasDynamicNext ? dynamicNextButton : nextButton}</button></div>
 				</div>
 			</section>
+			<StudentProgramCompletionPopup open={completedOpen} variant="mission" displayName={studentFlowDisplayName(flowSession)} missionAreaCount={studentFlowRouteItems(flowSession).length} onClose={() => setCompletedOpen(false)} onComplete={() => navigate('/select-user')} />
 		</main>
 	)
 }

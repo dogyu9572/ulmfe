@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { AttendanceHeader } from '../../../components/tablet/AttendanceHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import { studentFlowAssignmentName, studentFlowDisplayName, studentFlowReservation, studentFlowRouteItems, studentFlowTeamName } from '../../../state/tabletStudentFlowSession'
+import { stripEmphasisMarkers } from '../../../utils/emphasisText'
 import { missionRouteIconSrc } from './missionShared'
 
 export const MissionWelcomePage = () => {
@@ -21,7 +22,7 @@ export const MissionWelcomePage = () => {
 				<div className="subtitle flex_center">{studentFlowDisplayName(flowSession)} 학생, 참석을 환영합니다!</div>
 				<div className="tb tac">오늘 함께할 팀과 활동 순서를 확인해보세요.</div>
 				<div className="welcome_top">
-					<div className="box program"><span>참여 프로그램</span><strong>{flowSession.prgrmTypeNm} 프로그램<br />({flowSession.prgrmNm})</strong></div>
+					<div className="box program"><span>참여 프로그램</span><strong>{flowSession.prgrmTypeNm} 프로그램<br />({stripEmphasisMarkers(flowSession.prgrmNm)})</strong></div>
 					<div className="box team"><span className="icon team_a" aria-hidden="true"><i>{teamName}</i></span><span>나의 팀</span><strong>{teamName}</strong></div>
 				</div>
 				<div className="stit itit">오늘의 활동 순서</div>

@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChangeEvent, Fragment, ReactNode, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { fetchTabletSession, submitTabletMission, submitTabletMissionFiles, TabletContent, TabletContentQuestion, TabletMissionAnswer } from '../../api/tabletApi'
@@ -21,6 +21,17 @@ type QuestionOption = {
 	sentence?: { sentenceText?: string; items?: string[] }
 }
 
+type SavedWorksheetFile = {
+	label: string
+	fileName: string
+	fileUrl: string
+}
+
+type SavedWorksheetAnswer = {
+	answer: string
+	files: SavedWorksheetFile[]
+}
+
 const parseQuestionOption = (value?: string): QuestionOption => {
 	if (!value) return {}
 	try {
@@ -28,6 +39,27 @@ const parseQuestionOption = (value?: string): QuestionOption => {
 		return parsed && typeof parsed === 'object' ? parsed : {}
 	} catch {
 		return {}
+	}
+}
+
+const parseSavedWorksheetAnswer = (value?: string): SavedWorksheetAnswer => {
+	const fallback = { answer: value || '', files: [] }
+	if (!value) return fallback
+	try {
+		const parsed = JSON.parse(value) as { type?: string; answer?: string; files?: Partial<SavedWorksheetFile>[] }
+		if (parsed?.type !== 'WORKSHEET_FILES') return fallback
+		return {
+			answer: typeof parsed.answer === 'string' ? parsed.answer : '',
+			files: Array.isArray(parsed.files)
+				? parsed.files.map((file) => ({
+					label: typeof file.label === 'string' ? file.label : '',
+					fileName: typeof file.fileName === 'string' ? file.fileName : '',
+					fileUrl: typeof file.fileUrl === 'string' ? file.fileUrl : ''
+				})).filter((file) => file.fileUrl)
+				: []
+		}
+	} catch {
+		return fallback
 	}
 }
 
@@ -73,8 +105,15 @@ const collectCardAnswer = (card: HTMLElement, answerIndex = 0): CollectedCardAns
 	})
 	card.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((input, fileInputIndex) => {
 		const files = Array.from(input.files ?? [])
-		if (files.length === 0) return
 		const label = input.closest('li')?.querySelector('label')?.textContent?.trim()
+		if (files.length === 0) {
+			const fileUrl = input.dataset.existingFileUrl || ''
+			const fileName = input.dataset.existingFileName || ''
+			if (!fileUrl) return
+			answerFiles.push({ label: label || '', fileName, fieldName: '', fileUrl })
+			values.push(label ? `${label}: ${fileName}` : fileName)
+			return
+		}
 		files.forEach((file, fileIndex) => {
 			const fieldName = `answer_${answerIndex}_file_${fileInputIndex}_${fileIndex}`
 			fileMap[fieldName] = file
@@ -86,7 +125,8 @@ const collectCardAnswer = (card: HTMLElement, answerIndex = 0): CollectedCardAns
 }
 
 const restoreCardAnswer = (card: HTMLElement, answer: string) => {
-	const lines = parseAnswerLines(answer)
+	const restoredAnswer = parseSavedWorksheetAnswer(answer).answer
+	const lines = parseAnswerLines(restoredAnswer)
 	if (lines.length === 0) return
 	card.querySelectorAll<HTMLInputElement>('input[type="checkbox"], input[type="radio"]').forEach((input) => {
 		const label = input.closest('.box')?.textContent?.trim() || input.value
@@ -100,7 +140,7 @@ const restoreCardAnswer = (card: HTMLElement, answer: string) => {
 			if (matchedLine) input.value = matchedLine.slice(label.length + 1).trim()
 			return
 		}
-		if (textControls.length === 1) input.value = answer
+		if (textControls.length === 1) input.value = restoredAnswer
 	})
 }
 
@@ -215,26 +255,55 @@ const DataInputs = ({ question, options, baseId, savedAnswer }: { question: Tabl
 
 const DynamicQuestionControl = ({ question, baseId, savedAnswer }: { question: TabletContentQuestion; baseId: string; savedAnswer?: string }) => {
 	const options = parseQuestionOption(question.optnCn)
+	const savedWorksheetAnswer = useMemo(() => parseSavedWorksheetAnswer(savedAnswer), [savedAnswer])
 	const types = questionTypes(question)
 	const selectItems = options.select?.items?.filter(Boolean) ?? []
 	const sentenceItems = options.sentence?.items?.filter(Boolean) ?? []
 	const photoLabels = options.photo?.labels?.filter(Boolean) ?? []
-	const checkedItems = parseAnswerLines(savedAnswer)
+	const checkedItems = parseAnswerLines(savedWorksheetAnswer.answer)
+	const [photoPreviews, setPhotoPreviews] = useState<Record<string, { url: string; fileName: string; existing: boolean }>>(() =>
+		Object.fromEntries(savedWorksheetAnswer.files.map((file, index) => [
+			`${baseId}_photo_${index + 1}`,
+			{ url: file.fileUrl, fileName: file.fileName, existing: true }
+		]))
+	)
+
+	useEffect(() => () => {
+		Object.values(photoPreviews).forEach((preview) => {
+			if (!preview.existing) URL.revokeObjectURL(preview.url)
+		})
+	}, [photoPreviews])
+
+	const handlePhotoChange = (id: string, event: ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0]
+		setPhotoPreviews((previous) => {
+			const current = previous[id]
+			if (current && !current.existing) URL.revokeObjectURL(current.url)
+			if (!file) {
+				const next = { ...previous }
+				delete next[id]
+				return next
+			}
+			return { ...previous, [id]: { url: URL.createObjectURL(file), fileName: file.name, existing: false } }
+		})
+	}
 
 	if (types.includes('SELECT') && selectItems.length > 0) return <CheckboxList name={`${baseId}_select`} items={selectItems} checkedItems={checkedItems} mode={options.select?.choiceMode === 'SINGLE' ? 'SINGLE' : 'MULTI'} />
-	if (types.includes('DATA')) return <DataInputs question={question} options={options} baseId={baseId} savedAnswer={savedAnswer} />
+	if (types.includes('DATA')) return <DataInputs question={question} options={options} baseId={baseId} savedAnswer={savedWorksheetAnswer.answer} />
 	if (types.includes('SENTENCE')) {
 		return <ul className="input_list">{(sentenceItems.length > 0 ? sentenceItems : ['']).map((item, index) => {
 			const id = `${baseId}_sentence_${index + 1}`
 			const label = item || question.qstnNm
-			return <li key={id}><label htmlFor={id} className="tt">{label}</label><input type="text" id={id} className="text w100p" placeholder="문장을 완성해주세요." defaultValue={savedValueForLabel(savedAnswer, label)} /></li>
+			return <li key={id}><label htmlFor={id} className="tt">{label}</label><input type="text" id={id} className="text w100p" placeholder="문장을 완성해주세요." defaultValue={savedValueForLabel(savedWorksheetAnswer.answer, label)} /></li>
 		})}</ul>
 	}
 	if (types.includes('PHOTO')) {
-		const count = Math.max(Number(options.photo?.itemCount) || photoLabels.length || 1, 1)
+		const count = Math.max(Number(options.photo?.itemCount) || photoLabels.length || savedWorksheetAnswer.files.length || 1, 1)
 		return <ul className="photo_inputs">{Array.from({ length: count }).map((_, index) => {
 			const id = `${baseId}_photo_${index + 1}`
-			return <li key={id}><input type="file" name="photo" id={id} accept="image/*" /><label htmlFor={id}><span className="imgarea"><span className="thema">{photoLabels[index] || `사진 ${index + 1}`}</span><span className="imgfit"></span></span></label></li>
+			const label = photoLabels[index] || `사진 ${index + 1}`
+			const preview = photoPreviews[id]
+			return <li key={id} className={preview ? 'in_image in_file' : ''}><input type="file" name="photo" id={id} accept="image/*" data-existing-file-url={preview?.existing ? preview.url : undefined} data-existing-file-name={preview?.existing ? preview.fileName : undefined} onChange={(event) => handlePhotoChange(id, event)} /><label htmlFor={id}><span className="imgarea"><span className="thema">{label}</span><span className="imgfit">{preview && <img src={preview.url} alt={`${label} 미리보기`} />}</span></span></label></li>
 		})}</ul>
 	}
 	return <input type="text" className="text w100p" placeholder="입력해주세요." />
