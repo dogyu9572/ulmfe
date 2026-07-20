@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_exhibit.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(2)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(2)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(2) .snb li:nth-child(5)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(2) .snb li:nth-child(5)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(2)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(2) .snb li:nth-child(5)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "지속가능한 미래를 직접 체험하는 울산광역시미래교육관의 공간을 안내합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="board_wrap inner" aria-labelledby="page-title">
+	<h1 id="page-title" class="subtitle"></h1>
+
+	<div class="exhibit_area exhibit5">
+		<h2 class="tit"><span>자연과 함께 뛰놀며 <br/><strong class="c_yellow">생태</strong>를 배우는 곳</span></h2>
+		<div class="wbox">
+			<div class="inbox">
+				<div class="bg" aria-hidden="true"><img src="/pub/images/bg_floor_outdoor.webp" alt=""></div>
+				<div class="btns">
+					<svg width="1114" height="801" viewBox="0 0 1114 801" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<g class="btn btn_popup" data-target="pop01">
+							<path d="M170 215C174.418 215 178 218.582 178 223V249C178 253.418 174.418 257 170 257H136L126.707 266.293C126.317 266.683 125.683 266.683 125.293 266.293L116 257H82C77.5817 257 74 253.418 74 249V223C74 218.582 77.5817 215 82 215H170Z" fill="white" stroke="#F5A200" stroke-width="3px" class="bg"/>
+							<path d="M102.569 229.333V230.396C102.569 231.541 102.569 232.985 102.171 234.861L100.328 234.662C100.685 233.027 100.718 231.84 100.727 230.794H92.1768V229.333H102.569ZM104.23 235.741V237.235H90.6163V235.741H95.8956V232.836H97.7218V235.741H104.23ZM102.935 241.685V243.179H92.2432V238.58H94.086V241.685H102.935ZM118.547 235.758V237.202H112.604V238.414C115.31 238.58 116.87 239.452 116.887 240.938C116.87 242.564 114.961 243.461 111.691 243.461C108.404 243.461 106.461 242.564 106.461 240.938C106.461 239.452 108.047 238.58 110.778 238.414V237.202H104.867V235.758H118.547ZM112.604 228.503V229.864H117.202V231.325H112.753C113.019 232.545 114.787 233.542 117.866 233.766L117.302 235.16C114.613 234.953 112.629 234.114 111.691 232.819C110.753 234.114 108.752 234.953 106.079 235.16L105.515 233.766C108.578 233.542 110.346 232.545 110.628 231.325H106.212V229.864H110.778V228.503H112.604ZM111.691 239.775C109.483 239.775 108.321 240.157 108.337 240.938C108.321 241.701 109.483 242.083 111.691 242.083C113.849 242.083 115.028 241.701 115.044 240.938C115.028 240.157 113.849 239.775 111.691 239.775ZM127.536 229.582V230.479C127.519 231.508 127.519 232.985 127.17 234.895L125.344 234.729C125.635 233.176 125.693 232.031 125.726 231.109H119.882V229.582H127.536ZM123.75 233.002V235.99C125.303 235.932 126.896 235.816 128.349 235.608L128.449 236.937C125.328 237.501 121.792 237.551 119.152 237.567L118.986 236.09C119.874 236.082 120.87 236.073 121.924 236.057V233.002H123.75ZM131.122 228.47V233.151H133.064V234.695H131.122V239.709H129.229V228.47H131.122ZM131.603 241.685V243.179H121.227V238.713H123.086V241.685H131.603ZM138.832 231.342C138.832 232.786 140.093 234.164 142.418 234.662L141.637 236.057C139.878 235.667 138.616 234.77 137.935 233.583C137.263 234.903 135.96 235.907 134.134 236.355L133.337 234.928C135.694 234.363 136.989 232.919 136.989 231.342V231.325H133.851V229.864H136.989V228.42H138.848V229.864H141.969V231.325H138.832V231.342ZM145.273 228.47V231.607H147.365V233.118H145.273V236.306H143.43V228.47H145.273ZM145.273 236.97V240.788H137.304V241.917H145.738V243.345H135.478V239.443H143.43V238.381H135.462V236.97H145.273ZM160.305 228.486V239.842H158.445V238.53H155.507V237.235H158.445V228.486H160.305ZM160.653 241.685V243.179H149.646V238.746H151.489V241.685H160.653ZM147.654 235.227C150.427 235.21 154.145 235.177 157.333 234.778L157.433 236.106C156.196 236.314 154.917 236.455 153.647 236.538V239.427H151.805V236.638C150.402 236.696 149.065 236.704 147.887 236.704L147.654 235.227ZM152.552 229.034C154.743 229.034 156.27 230.113 156.287 231.69C156.27 233.301 154.743 234.33 152.552 234.33C150.327 234.33 148.8 233.301 148.8 231.69C148.8 230.113 150.327 229.034 152.552 229.034ZM152.552 230.396C151.356 230.396 150.543 230.877 150.543 231.69C150.543 232.504 151.356 232.985 152.552 232.985C153.697 232.985 154.511 232.504 154.527 231.69C154.511 230.877 153.697 230.396 152.552 230.396Z" fill="#333D4B" class="text"/>
+						</g>
+						<g class="btn btn_popup" data-target="pop02">
+							<path d="M118 325C122.418 325 126 328.582 126 333V359C126 363.418 122.418 367 118 367H84L74.707 376.293C74.3165 376.683 73.6835 376.683 73.293 376.293L64 367H30C25.5817 367 22 363.418 22 359V333C22 328.582 25.5817 325 30 325H118Z" fill="white" stroke="#F5A200" stroke-width="3px" class="bg"/>
+							<path d="M52.2628 346.289V347.783H38.5831V346.289H44.4766V344.961C41.7374 344.762 39.9942 343.658 39.9942 341.923C39.9942 340.047 42.1358 338.885 45.4063 338.885C48.6768 338.885 50.8018 340.047 50.8184 341.923C50.8018 343.658 49.0753 344.762 46.336 344.961V346.289H52.2628ZM50.7188 351.685V353.179H40.2765V348.812H42.1192V351.685H50.7188ZM45.4063 340.346C43.2315 340.362 41.9034 340.927 41.92 341.923C41.9034 342.969 43.2315 343.5 45.4063 343.5C47.5977 343.5 48.9093 342.969 48.9093 341.923C48.9093 340.927 47.5977 340.362 45.4063 340.346ZM65.3352 338.47V346.123H63.5091V338.47H65.3352ZM65.3685 346.82V350.722H57.2503V351.884H65.8167V353.345H55.4407V349.344H63.5257V348.248H55.4075V346.82H65.3685ZM58.4622 339.997C58.4622 341.906 59.7239 343.699 62.0979 344.413L61.2015 345.841C59.4583 345.31 58.2132 344.189 57.5325 342.753C56.8518 344.313 55.5735 345.534 53.7806 346.106L52.8509 344.662C55.2747 343.882 56.553 341.956 56.553 339.997V338.835H58.4622V339.997ZM80.1675 338.47V353.478H78.4077V345.874H76.8638V352.747H75.1206V338.735H76.8638V344.347H78.4077V338.47H80.1675ZM71.8169 342.305C71.8169 344.978 72.7134 347.435 74.938 348.58L73.8589 349.991C72.4312 349.228 71.4932 347.908 70.9702 346.272C70.4556 348.14 69.5176 349.643 68.0317 350.522L66.9028 349.111C69.1274 347.85 70.0239 345.227 70.0239 342.305V341.591H67.3511V340.113H74.2739V341.591H71.8169V342.305ZM83.6442 339.848V343.317H86.0847V339.848H87.7946V349.842H81.9011V339.848H83.6442ZM83.6442 348.348H86.0847V344.778H83.6442V348.348ZM94.3855 338.47V353.478H92.6091V345.791H91.0153V352.747H89.2722V338.735H91.0153V344.264H92.6091V338.47H94.3855ZM108.305 338.486V349.842H106.445V348.53H103.507V347.235H106.445V338.486H108.305ZM108.653 351.685V353.179H97.6464V348.746H99.4892V351.685H108.653ZM95.6542 345.227C98.4267 345.21 102.145 345.177 105.333 344.778L105.433 346.106C104.196 346.314 102.917 346.455 101.647 346.538V349.427H99.8046V346.638C98.4018 346.696 97.0653 346.704 95.8866 346.704L95.6542 345.227ZM100.552 339.034C102.743 339.034 104.27 340.113 104.287 341.69C104.27 343.301 102.743 344.33 100.552 344.33C98.3271 344.33 96.7997 343.301 96.7997 341.69C96.7997 340.113 98.3271 339.034 100.552 339.034ZM100.552 340.396C99.3564 340.396 98.5429 340.877 98.5429 341.69C98.5429 342.504 99.3564 342.985 100.552 342.985C101.697 342.985 102.511 342.504 102.527 341.69C102.511 340.877 101.697 340.396 100.552 340.396Z" fill="#333D4B" class="text"/>
+						</g>
+						<g class="btn btn_popup" data-target="pop03">
+							<path d="M846 3C850.418 3 854 6.58172 854 11V37C854 41.4183 850.418 45 846 45H814.666L805.373 54.293C804.983 54.6834 804.349 54.6834 803.959 54.293L794.666 45H758C753.582 45 750 41.4183 750 37V11C750 6.58172 753.582 3 758 3H846Z" fill="white" stroke="#F5A200" stroke-width="3px" class="bg"/>
+							<path d="M773.406 16.7852C774.497 16.7852 775.448 16.9069 776.262 17.1504C777.075 17.3883 777.703 17.7314 778.146 18.1797C778.589 18.6279 778.813 19.1592 778.818 19.7734C778.813 20.3213 778.628 20.8055 778.262 21.2261C777.903 21.6411 777.385 21.9759 776.71 22.2305C776.04 22.4795 775.249 22.6344 774.336 22.6953V23.9238H780.263V25.4014H766.583V23.9238H772.477V22.6953C771.558 22.6344 770.761 22.4795 770.086 22.2305C769.416 21.9759 768.899 21.6411 768.534 21.2261C768.174 20.8055 767.994 20.3213 767.994 19.7734C767.994 19.1592 768.216 18.6279 768.658 18.1797C769.101 17.7314 769.729 17.3883 770.543 17.1504C771.362 16.9069 772.316 16.7852 773.406 16.7852ZM773.406 18.2627C772.294 18.2627 771.434 18.3927 770.825 18.6528C770.216 18.9074 769.914 19.2809 769.92 19.7734C769.914 20.0889 770.05 20.36 770.327 20.5869C770.603 20.8138 771.005 20.9881 771.53 21.1099C772.056 21.2261 772.681 21.2842 773.406 21.2842C774.131 21.2842 774.757 21.2261 775.282 21.1099C775.808 20.9881 776.209 20.8138 776.486 20.5869C776.768 20.36 776.909 20.0889 776.909 19.7734C776.909 19.2809 776.602 18.9074 775.988 18.6528C775.379 18.3927 774.519 18.2627 773.406 18.2627ZM778.586 31.4775H776.743V28.041H768.094V26.5801H778.586V31.4775ZM786.18 18.8604C786.18 19.4967 786.316 20.1055 786.587 20.6865C786.858 21.2676 787.259 21.7822 787.79 22.2305C788.322 22.6787 788.964 23.0218 789.716 23.2598L788.72 24.7041C787.929 24.4329 787.242 24.0373 786.661 23.5171C786.08 22.9969 785.624 22.3826 785.292 21.6743C784.954 22.4878 784.481 23.1906 783.872 23.7827C783.269 24.3748 782.544 24.8203 781.698 25.1191L780.701 23.6748C781.487 23.3981 782.151 23.008 782.694 22.5044C783.236 22.0008 783.643 21.4225 783.914 20.7695C784.191 20.1165 784.332 19.4248 784.337 18.6943V17.2666H786.18V18.8604ZM792.704 20.1221H794.796V21.6494H792.704V25.4512H790.862V16.4697H792.704V20.1221ZM787.824 25.7832C788.853 25.7777 789.744 25.8883 790.496 26.1152C791.249 26.3366 791.827 26.6603 792.231 27.0864C792.641 27.5125 792.848 28.0189 792.854 28.6055C792.848 29.2031 792.644 29.715 792.24 30.1411C791.836 30.5728 791.255 30.8993 790.496 31.1206C789.744 31.3475 788.853 31.4609 787.824 31.4609C786.778 31.4609 785.873 31.3475 785.109 31.1206C784.351 30.8993 783.767 30.5728 783.358 30.1411C782.948 29.715 782.743 29.2031 782.743 28.6055C782.743 28.0189 782.948 27.5125 783.358 27.0864C783.767 26.6603 784.354 26.3366 785.117 26.1152C785.881 25.8883 786.783 25.7777 787.824 25.7832ZM787.824 27.2275C786.794 27.2275 785.997 27.3493 785.433 27.5928C784.868 27.8307 784.586 28.1683 784.586 28.6055C784.586 29.0648 784.866 29.4134 785.425 29.6514C785.984 29.8838 786.783 30 787.824 30C788.864 30 789.658 29.8838 790.206 29.6514C790.754 29.4134 791.028 29.0648 791.028 28.6055C791.028 28.1628 790.751 27.8224 790.198 27.5845C789.644 27.3465 788.853 27.2275 787.824 27.2275ZM807.719 27.4434H805.876V21.9482H803.22V20.4541H805.876V16.4863H807.719V27.4434ZM808.101 31.1787H797.875V26.4805H799.717V29.6846H808.101V31.1787ZM800.664 19.4746C800.664 20.0889 800.799 20.6893 801.07 21.2759C801.341 21.8569 801.743 22.3799 802.274 22.8447C802.805 23.304 803.447 23.6582 804.2 23.9072L803.27 25.3848C802.451 25.1025 801.743 24.693 801.145 24.1562C800.553 23.6139 800.088 22.9803 799.75 22.2554C799.413 23.0633 798.931 23.7661 798.306 24.3638C797.681 24.9559 796.934 25.4014 796.065 25.7002L795.119 24.2061C795.893 23.9515 796.555 23.5807 797.103 23.0938C797.656 22.6012 798.074 22.0423 798.356 21.417C798.644 20.7861 798.788 20.1331 798.788 19.458V19.0596H795.667V17.5654H803.768V19.0596H800.664V19.4746ZM817.056 24.1895H809.951V17.582H817.056V24.1895ZM811.76 22.6953H815.247V19.043H811.76V22.6953ZM821.273 19.9893H823.365V21.4834H821.273V25.2188H819.43V16.4697H821.273V19.9893ZM816.392 25.6504C817.411 25.6504 818.296 25.7666 819.049 25.999C819.807 26.2314 820.391 26.5662 820.8 27.0034C821.21 27.4406 821.417 27.958 821.423 28.5557C821.417 29.1644 821.21 29.6873 820.8 30.1245C820.391 30.5617 819.807 30.8965 819.049 31.1289C818.296 31.3613 817.411 31.4775 816.392 31.4775C815.357 31.4775 814.458 31.3613 813.695 31.1289C812.931 30.8965 812.342 30.5617 811.926 30.1245C811.517 29.6873 811.312 29.1644 811.312 28.5557C811.312 27.958 811.52 27.4406 811.935 27.0034C812.35 26.5662 812.939 26.2314 813.703 25.999C814.467 25.7666 815.363 25.6504 816.392 25.6504ZM816.392 27.1279C815.357 27.1279 814.558 27.2497 813.993 27.4932C813.434 27.7367 813.155 28.0908 813.155 28.5557C813.155 29.0316 813.434 29.3913 813.993 29.6348C814.552 29.8783 815.352 30 816.392 30C817.433 30 818.227 29.8783 818.775 29.6348C819.322 29.3913 819.596 29.0316 819.596 28.5557C819.596 28.0908 819.32 27.7367 818.766 27.4932C818.218 27.2497 817.427 27.1279 816.392 27.1279ZM836.637 31.4775H834.877V23.8242H833.184V30.7139H831.49V16.752H833.184V22.3467H834.877V16.4697H836.637V31.4775ZM829.797 19.7402H826.045V26.4141C826.919 26.403 827.708 26.3698 828.411 26.3145C829.113 26.2591 829.824 26.165 830.544 26.0322L830.677 27.543C829.847 27.709 829.028 27.8197 828.22 27.875C827.412 27.9303 826.405 27.9635 825.198 27.9746H824.185V18.2461H829.797V19.7402Z" fill="#333D4B" class="text"/>
+						</g>
+						<g class="btn btn_popup" data-target="pop04">
+							<path d="M1084 111C1088.42 111 1092 114.582 1092 119V145C1092 149.418 1088.42 153 1084 153H1043L1033.71 162.293C1033.32 162.683 1032.68 162.683 1032.29 162.293L1023 153H981C976.582 153 973 149.418 973 145V119C973 114.582 976.582 111 981 111H1084Z" fill="white" stroke="#F5A200" stroke-width="3px" class="bg"/>
+							<path d="M1003.92 130.264V131.774H1001.69V139.444H999.852V124.47H1001.69V130.264H1003.92ZM992.298 125.931V134.215C994.299 134.182 996.432 134.007 998.69 133.534L998.889 135.095C996.366 135.593 993.958 135.742 991.734 135.742H990.472V125.931H992.298ZM1017.92 132.97V134.464H1011.95V139.461H1010.12V134.464H1004.21V132.97H1017.92ZM1016.24 125.233V131.21H1005.89V125.233H1016.24ZM1007.7 126.711V129.766H1014.4V126.711H1007.7ZM1030.45 125.931V127.624C1030.45 129.633 1030.45 131.708 1029.9 134.862L1028.02 134.696C1028.6 131.741 1028.6 129.566 1028.6 127.624V127.425H1019.95V125.931H1030.45ZM1032.19 135.908V137.419H1018.51V135.908H1032.19ZM1044.91 127.707V129.185H1034.55V124.669H1036.36V127.707H1044.91ZM1046.49 130.33V131.808H1032.78V130.33H1046.49ZM1044.81 132.854V136.688H1036.28V137.851H1045.31V139.295H1034.42V135.344H1042.99V134.281H1034.4V132.854H1044.81ZM1059.56 134.265V139.295H1049.44V134.265H1051.21V132.505C1049.83 132.563 1048.5 132.571 1047.33 132.571L1047.1 131.077C1049.92 131.077 1053.6 131.077 1056.82 130.662L1056.94 131.974C1055.68 132.189 1054.37 132.331 1053.09 132.405V134.265H1059.56ZM1051.25 135.742V137.801H1057.74V135.742H1051.25ZM1059.56 124.486V133.567H1057.72V124.486H1059.56ZM1053.1 125.565C1053.1 126.977 1054.33 128.222 1056.61 128.72L1055.81 130.081C1054.08 129.716 1052.85 128.861 1052.19 127.707C1051.54 128.96 1050.28 129.907 1048.49 130.347L1047.66 128.936C1050 128.421 1051.21 127.06 1051.21 125.565V124.901H1053.1V125.565ZM1073.95 124.47V139.494H1072.12V131.393H1069.3V129.898H1072.12V124.47H1073.95ZM1069.07 125.765V127.275H1063.9V129.965H1068.47V131.426H1063.9V134.514C1066.19 134.505 1067.9 134.431 1069.83 134.115L1070.01 135.609C1067.82 135.941 1065.91 136.024 1063.22 136.041H1062.04V125.765H1069.07Z" fill="#333D4B" class="text"/>
+						</g>
+						<g class="btn btn_popup" data-target="pop05">
+							<path d="M981 216C985.418 216 989 219.582 989 224V250C989 254.418 985.418 258 981 258H947L937.707 267.293C937.317 267.683 936.683 267.683 936.293 267.293L927 258H893C888.582 258 885 254.418 885 250V224C885 219.582 888.582 216 893 216H981Z" fill="white" stroke="#F5A200" stroke-width="3px" class="bg"/>
+							<path d="M913.337 229.47V235.181H915.645V236.741H913.337V244.478H911.494V229.47H913.337ZM903.941 230.698V234.45H907.477V230.698H909.319V240.958H902.114V230.698H903.941ZM903.941 239.447H907.477V235.895H903.941V239.447ZM927.621 229.47V235.164H929.929V236.675H927.621V244.494H925.779V229.47H927.621ZM923.504 230.897V232.392H918.325V239.281C920.657 239.281 922.5 239.165 924.567 238.8L924.783 240.36C922.458 240.759 920.433 240.825 917.727 240.825H916.482V230.897H923.504ZM942.271 232.641V234.118H937.921V235.479H943.848V236.957H930.135V235.479H936.079V234.118H931.912V229.669H933.721V232.641H942.271ZM942.171 237.92V241.688H933.638V242.851H942.669V244.295H931.779V240.377H940.345V239.348H931.762V237.92H942.171ZM956.921 229.47V244.494H955.061V229.47H956.921ZM948.836 230.565C951.093 230.565 952.737 232.624 952.754 235.861C952.737 239.132 951.093 241.174 948.836 241.174C946.561 241.174 944.918 239.132 944.918 235.861C944.918 232.624 946.561 230.565 948.836 230.565ZM948.836 232.226C947.557 232.226 946.694 233.57 946.694 235.861C946.694 238.169 947.557 239.514 948.836 239.514C950.097 239.514 950.961 238.169 950.961 235.861C950.961 233.57 950.097 232.226 948.836 232.226ZM971.305 229.47V244.494H969.478V236.393H966.656V234.898H969.478V229.47H971.305ZM966.424 230.765V232.275H961.261V234.965H965.826V236.426H961.261V239.514C963.543 239.505 965.253 239.431 967.187 239.115L967.37 240.609C965.179 240.941 963.269 241.024 960.58 241.041H959.401V230.765H966.424Z" fill="#333D4B" class="text"/>
+						</g>
+						<g class="btn btn_popup" data-target="pop06">
+							<path d="M853 413C857.418 413 861 416.582 861 421V447C861 451.418 857.418 455 853 455H819L809.707 464.293C809.317 464.683 808.683 464.683 808.293 464.293L799 455H765C760.582 455 757 451.418 757 447V421C757 416.582 760.582 413 765 413H853Z" fill="white" stroke="#F5A200" stroke-width="3px" class="bg"/>
+							<path d="M787.296 438.141V439.651H773.583V438.141H779.493V434.87H775.094V427.632H785.719V434.87H781.319V438.141H787.296ZM776.903 429.109V433.426H783.893V429.109H776.903ZM793.977 427.997V433.592H790.092V436.514C791.619 436.497 793.072 436.439 794.741 436.165L794.873 437.659C792.848 437.991 791.204 438.058 789.345 438.058H788.316V432.098H792.2V429.491H788.299V427.997H793.977ZM800.783 426.47V441.478H799.024V433.725H797.33V440.714H795.637V426.752H797.33V432.23H799.024V426.47H800.783ZM814.271 429.641V431.118H809.921V432.479H815.848V433.957H802.135V432.479H808.079V431.118H803.912V426.669H805.721V429.641H814.271ZM814.171 434.92V438.688H805.638V439.851H814.669V441.295H803.779V437.377H812.345V436.348H803.762V434.92H814.171ZM828.921 426.47V441.494H827.061V426.47H828.921ZM820.836 427.565C823.093 427.565 824.737 429.624 824.754 432.861C824.737 436.132 823.093 438.174 820.836 438.174C818.561 438.174 816.918 436.132 816.918 432.861C816.918 429.624 818.561 427.565 820.836 427.565ZM820.836 429.226C819.557 429.226 818.694 430.57 818.694 432.861C818.694 435.169 819.557 436.514 820.836 436.514C822.097 436.514 822.961 435.169 822.961 432.861C822.961 430.57 822.097 429.226 820.836 429.226ZM843.305 426.47V441.494H841.478V433.393H838.656V431.898H841.478V426.47H843.305ZM838.424 427.765V429.275H833.261V431.965H837.826V433.426H833.261V436.514C835.543 436.505 837.253 436.431 839.187 436.115L839.37 437.609C837.179 437.941 835.269 438.024 832.58 438.041H831.401V427.765H838.424Z" fill="#333D4B" class="text"/>
+						</g>
+					</svg>
+				</div>
+			</div>
+		</div>
+		
+		<ul class="mo_btns mo_vw color5">
+			<button class="btn btn_popup" data-target="pop01">곤충관찰원</button>
+			<button class="btn btn_popup" data-target="pop02">온실재배원</button>
+			<button class="btn btn_popup" data-target="pop03">옥상 전망대</button>
+			<button class="btn btn_popup" data-target="pop04">나무그늘쉼터</button>
+			<button class="btn btn_popup" data-target="pop05">바다놀이터</button>
+			<button class="btn btn_popup" data-target="pop06">모래놀이터</button>
+		</ul>
+	</div>
+	
+</section>
+
+<div class="popup pop_floor" id="pop01">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">곤충관찰원</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor01.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor01.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				살아있는 곤충을 가까이서 만나는 관찰 체험 공간입니다.<br/>
+				다양한 곤충의 생태를 직접 들여다보며, 자연 생태계가 우리 삶과 어떻게 연결되어 있는지 탐구해보세요.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_floor" id="pop02">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">온실재배원</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor02.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor02.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				식물을 직접 심고 가꾸는 생태 체험 공간입니다. 씨앗이 자라 먹거리가 되는 과정을 손으로 느끼며, 지속가능한 농업과 자연의 소중함을 배워보세요.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_floor" id="pop03">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">옥상 전망대</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor03.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor03.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				울산 북구 바다와 유포석보를 한눈에 바라볼 수 있는 공간입니다.<br/>
+				탁 트인 전망 속에서 잠시 쉬어가며 오늘의 탐구를 돌아보세요.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_floor" id="pop04">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">나무그늘쉼터</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor04.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor04.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				자연 속에서 잠시 쉬어가는 그늘 쉼터입니다.<br/>
+				탐구로 지친 마음을 달래며 오늘의 배움을 조용히 돌아보는 시간을 가져보세요.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_floor" id="pop05">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">바다놀이터</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor05.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor05.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				울산 북구 해안을 테마로 꾸며진 야외 놀이 공간입니다.<br/>
+				신나게 뛰어놀며 바다와 자연을 온몸으로 느껴보세요.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_floor" id="pop06">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">모래놀이터</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor06.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_outdoor06.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				마음껏 파고 쌓고 만들어보는 열린 놀이 공간입니다.<br/>손끝에서 시작되는 작은 탐구가 큰 발견으로 이어집니다.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<link rel="stylesheet" href="/pub/css/swiper.css" media="all">
+<script src="/pub/js/swiper.js"></script>
+<script src="/pub/js/popup.js"></script>
+<script src="/pub/js/popfloorSlide.js"></script>
+
+</body>
+</html>

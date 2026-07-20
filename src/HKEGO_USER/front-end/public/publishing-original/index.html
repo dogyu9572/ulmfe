@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function popupClose() { const pop = document.querySelector('.pop_gen'); if (pop) pop.style.display = 'none'; }
+		function popupNonClose() { const expires = new Date(); expires.setTime(expires.getTime() + (86400 * 1000)); document.cookie = "popupClosed=true; path=/; expires=" + expires.toUTCString(); popupClose(); }
+		function initIncludes() {
+			const dtdContainer = document.getElementById('include-dtd');
+			if (dtdContainer) {
+				fetch('/pub/inc/dtd.html').then(res => { if (res.ok) return res.text(); }).then(data => {
+					dtdContainer.outerHTML = data;
+					const jq = document.createElement('script'); jq.src = '/pub/js/jquery.js'; document.head.appendChild(jq);
+					const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_main.css'];
+					cssFiles.forEach(url => {
+						fetch(url, { method: 'HEAD' }).then(cssRes => {
+							let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+							const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+						}).catch(() => {
+							const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+						});
+					});
+					const jsFiles = ['/pub/js/com.js'];
+					let jsIndex = 0;
+					function loadNextScript() {
+						if (jsIndex >= jsFiles.length) return;
+						const url = jsFiles[jsIndex];
+						fetch(url, { method: 'HEAD' }).then(jsRes => {
+							let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+							const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+							script.onload = () => { jsIndex++; loadNextScript(); };
+							document.head.appendChild(script);
+						}).catch(() => {
+							const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+							script.onload = () => { jsIndex++; loadNextScript(); };
+							document.head.appendChild(script);
+						});
+					}
+					loadNextScript();
+				}).catch(err => console.error(err));
+			}
+			const elements = document.querySelectorAll('[data-include]');
+			let pCount = 0;
+			elements.forEach(el => {
+				const file = el.getAttribute('data-include');
+				if (file) {
+					fetch(file).then(res => { if (res.ok) return res.text(); }).then(data => {
+						el.innerHTML = data; el.removeAttribute('data-include'); pCount++;
+						if (pCount === elements.length) {
+							const checkReady = setInterval(() => {
+								if (window.initCommonScript) { 
+									clearInterval(checkReady); 
+									window.initCommonScript(); 
+									if (window.initPopupSlider) window.initPopupSlider();
+									if (window.initMainVisual) window.initMainVisual();
+									const header = document.querySelector('header');
+									if (header) {
+										header.classList.add('main');
+									}
+									window.scrollTo(0, 0);
+								}
+							}, 50);
+						}
+					}).catch(err => console.error(err));
+				}
+			});
+		}
+		window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<h1 class="sound_only">울산광역시미래교육관</h1>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container" id="mainContent">
+
+<section class="mvisual_wrap">
+	<div class="mvisual swiper">
+		<div class="swiper-wrapper">
+			<div class="swiper-slide"><img src="/pub/images/mvisual01.webp" alt=""></div>
+			<div class="swiper-slide"><img src="/pub/images/mvisual01.webp" alt=""></div>
+		</div>
+	</div>
+	<div class="txt">
+		<div class="inner">
+			<h2>지속가능한 내일을 <br class="mo_vw">꿈꾸는 <br class="pc_vw">울산의 <br class="mo_vw">새로운 교육 공간</h2>
+			<p>울산광역시미래교육관 홈페이지를 방문해주신 <br class="mo_vw">여러분을 진심으로 환영합니다.</p>
+			<div class="control">
+				<div class="line"><div class="bar"></div></div>
+				<div class="paging"></div>
+				<button type="button" class="papl pause on">일시정지</button>
+				<button type="button" class="papl play">재생</button>
+				<button type="button" class="arrow prev">이전</button>
+				<button type="button" class="arrow next">다음</button>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="mcon mc01">
+	<div class="inner">
+		<div class="left flex">
+			<div class="txt">
+				<h2 class="tit">자주 찾는 메뉴</h2>
+				<p>울산광역시 미래교육관의 <br>자주 찾는 메뉴들을 만나보세요!</p>
+			</div>
+			<ul class="links">
+				<li class="i1"><a href="/program/reserve.html"><i aria-hidden="true"></i>예약 안내</a></li>
+				<li class="i2"><a href="/about/location.html"><i aria-hidden="true"></i>오시는 길</a></li>
+				<li class="i3"><a href="/exhibit/floor_1f.html"><i aria-hidden="true"></i>전시 소개</a></li>
+				<li class="i4"><a href="/support/faq.html"><i aria-hidden="true"></i>FAQ</a></li>
+			</ul>
+		</div>
+		<div class="right flex">
+			<div class="txt">
+				<h2 class="tit">이용안내</h2>
+				<a href="https://use.go.kr/booking/index.do;jsessionid=18A242975D5071CBE5C0B679CB59722B" target="_blank" class="btn">통합 예약 바로가기</a>
+			</div>
+			<ul class="info">
+				<li class="i1"><h3>운영시간</h3><strong>09:00 ~ 18:00</strong><span>(※ 온라인 사전 예약 후 이용이 가능합니다.)</span></li>
+				<li class="i2"><h3>휴관안내</h3><strong>매주 수요일 / 공휴일</strong></li>
+				<li class="i3"><h3>이용요금</h3><strong>무료</strong></li>
+			</ul>
+		</div>
+	</div>
+</section>
+
+<section class="mcon mc02">
+	<div class="inner">
+		<div class="mtit"><h2>울산광역시 미래교육관</h2> <strong>교육 프로그램</strong><a href="/program/esd_pbl.html" class="btn_more">더보기</a></div>
+		<ul class="program_list">
+			<li class="c1"><a href="/program/elementary.html"><i aria-hidden="true"><img src="/pub/images/icon_mc02_01.svg" alt=""></i><h3>사건탐구 프로그램(초5)</h3><p>울산의 문제를 직접 탐구하고 <br>해결하는 프로젝트 학습</p></a></li>
+			<li class="c2"><a href="/program/middle.html"><i aria-hidden="true"><img src="/pub/images/icon_mc02_02.svg" alt=""></i><h3>미션 프로그램(중1)</h3><p>스토리 속 미션을 해결하며 <br>지속가능한 미래를 발견하는 체험</p></a></li>
+			<li class="c3"><a href="/program/biggame.html"><i aria-hidden="true"><img src="/pub/images/icon_mc02_03.svg" alt=""></i><h3>빅게임 프로그램</h3><p>팀과 함께 퀘스트를 수행하며 <br>몰입과 재미로 배우는 모험</p></a></li>
+		</ul>
+	</div>
+</section>
+
+<section class="mcon mc03">
+	<div class="inner">
+		<div class="flex">
+			<div class="left">
+				<h2 class="mtit">기획전</h2>
+				<div class="control">
+					<button type="button" class="papl pause on">일시정지</button>
+					<button type="button" class="papl play">재생</button>
+					<button type="button" class="arrow prev">이전</button>
+					<button type="button" class="arrow next">다음</button>
+				</div>
+				<div class="mc03a_slide swiper">
+					<div class="swiper-wrapper">
+						<div class="swiper-slide"><a href="/news/exhibit_view.html"><img src="/pub/images/img_sample_mc03_a.webp" alt=""><h3>울산미래교육관 기관 상징 공모</h3></a></div>
+						<div class="swiper-slide"><a href="/news/exhibit_view.html"><img src="/pub/images/img_sample_mc03_a.webp" alt=""><h3>울산미래교육관 기관 상징 공모</h3></a></div>
+						<div class="swiper-slide"><a href="/news/exhibit_view.html"><img src="/pub/images/img_sample_mc03_a.webp" alt=""><h3>울산미래교육관 기관 상징 공모</h3></a></div>
+						<div class="swiper-slide"><a href="/news/exhibit_view.html"><img src="/pub/images/img_sample_mc03_a.webp" alt=""><h3>울산미래교육관 기관 상징 공모</h3></a></div>
+					</div>
+				</div>
+			</div>
+			<div class="right">
+				<h2 class="mtit">공지사항</h2>
+				<a href="/news/notice.html" class="btn_more">더보기</a>
+				<ul class="main_notice">
+					<li>
+						<a href="/news/notice_view.html">
+							<span class="imgfit"><img src="/pub/images/img_sample_mc03_b.webp" alt=""></span>
+							<span class="txt">
+								<h3>공무원 사칭 피해 주의하세요!</h3>
+								<p>최근 교육청 직원으로 속여 대량 발주를 미끼로 접근한 뒤, "물품 대금을 대신 입금해달라"며 돈을 가로채는 사기 피해가 발생하고 있습니다. 울산광역시교육청은 공식 절차 없이 물품납품, 결제액 대납 등을 요구하지 않습니다.</p>
+								<span class="date">2026-06-10</span>
+							</span>
+						</a>
+					</li>
+					<li>
+						<a href="/news/notice_view.html">
+							<span class="imgfit"><img src="/pub/images/img_sample_mc03_b.webp" alt=""></span>
+							<span class="txt">
+								<h3>공무원 사칭 피해 주의하세요!</h3>
+								<p>최근 교육청 직원으로 속여 대량 발주를 미끼로 접근한 뒤, "물품 대금을 대신 입금해달라"며 돈을 가로채는 사기 피해가 발생하고 있습니다. 울산광역시교육청은 공식 절차 없이 물품납품, 결제액 대납 등을 요구하지 않습니다.</p>
+								<span class="date">2026-06-10</span>
+							</span>
+						</a>
+					</li>
+					<li>
+						<a href="/news/notice_view.html">
+							<span class="imgfit"><img src="/pub/images/img_sample_mc03_b.webp" alt=""></span>
+							<span class="txt">
+								<h3>공무원 사칭 피해 주의하세요!</h3>
+								<p>최근 교육청 직원으로 속여 대량 발주를 미끼로 접근한 뒤, "물품 대금을 대신 입금해달라"며 돈을 가로채는 사기 피해가 발생하고 있습니다. 울산광역시교육청은 공식 절차 없이 물품납품, 결제액 대납 등을 요구하지 않습니다.</p>
+								<span class="date">2026-06-10</span>
+							</span>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="flex">
+			<div class="left">
+				<h2 class="mtit">갤러리</h2>
+				<a href="/gallery/index.html" class="btn_more">더보기</a>
+				<div class="main_gallery swiper">
+					<div class="swiper-wrapper">
+						<div class="swiper-slide">
+							<a href="/gallery/view.html">
+								<span class="imgfit"><img src="/pub/images/img_sample_mc03_c.webp" alt=""></span>
+								<span class="txt">
+									<h3>울산 미래 마을 디자이너를 찾아라!</h3>
+									<span class="date">2026-06-12</span>
+								</span>
+							</a>
+						</div>
+						<div class="swiper-slide">
+							<a href="/gallery/view.html">
+								<span class="imgfit"><img src="/pub/images/img_sample_mc03_c.webp" alt=""></span>
+								<span class="txt">
+									<h3>울산 미래 마을 디자이너를 찾아라!</h3>
+									<span class="date">2026-06-12</span>
+								</span>
+							</a>
+						</div>
+						<div class="swiper-slide">
+							<a href="/gallery/view.html">
+								<span class="imgfit"><img src="/pub/images/img_sample_mc03_c.webp" alt=""></span>
+								<span class="txt">
+									<h3>울산 미래 마을 디자이너를 찾아라!</h3>
+									<span class="date">2026-06-12</span>
+								</span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="right">
+				<h2 class="mtit">이벤트</h2>
+				<div class="control">
+					<div class="paging"></div>
+					<button type="button" class="papl pause on">일시정지</button>
+					<button type="button" class="papl play">재생</button>
+					<button type="button" class="arrow prev">이전</button>
+					<button type="button" class="arrow next">다음</button>
+				</div>
+				<div class="mc03d_slide swiper">
+					<div class="swiper-wrapper">
+						<div class="swiper-slide"><img src="/pub/images/img_sample_mc03_d.webp" alt=""></div>
+						<div class="swiper-slide"><img src="/pub/images/img_sample_mc03_d.webp" alt=""></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- 팝업 -->
+<!-- <div data-include="popup.html"></div> -->
+<script>
+    window.initPopupSlider = function() {
+        if (document.cookie.includes("popupClosed=true")) { popupClose(); return; }
+        let popSwiper = null;
+        if (document.querySelector(".pop_slide_wrap") && window.Swiper) {
+            popSwiper = new Swiper(".pop_slide_wrap", {
+                wrapperClass: "swiper-wrapper",
+                slideClass: "swiper-slide",
+                loop: true,
+                autoplay: { delay: 3000, disableOnInteraction: false },
+                pagination: {
+                    el: ".pop_slide_wrap .paging",
+                    type: "custom",
+                    renderCustom: function (swiper, current, total) { return current + '/' + total; }
+                }
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            const pop = document.querySelector('.pop_gen');
+            if (!pop || window.getComputedStyle(pop).display === 'none') return;
+            if (e.key === "Escape") { popupClose(); }
+            else if (e.key === "ArrowRight" && popSwiper) { popSwiper.slideNext(); }
+            else if (e.key === "ArrowLeft" && popSwiper) { popSwiper.slidePrev(); }
+        });
+    };
+</script>
+<!-- // -->
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<link rel="stylesheet" href="/pub/css/swiper.css" media="all">
+<script src="/pub/js/swiper.js"></script>
+<script>
+//main
+	document.addEventListener("DOMContentLoaded", function() {
+		const header = document.querySelector('header');
+		if (header) { header.classList.add('main'); }
+	});
+//mvisual_wrap
+	function initMainVisualSlider() {
+		const progressBar = document.querySelector('.mvisual_wrap .line .bar');
+		const pauseBtn = document.querySelector('.mvisual_wrap .papl.pause');
+		const playBtn = document.querySelector('.mvisual_wrap .papl.play');
+		
+		function startProgress() {
+			if (!progressBar) return;
+			progressBar.style.transition = 'width 5000ms linear';
+			progressBar.style.width = '100%';
+		}
+		function resetProgress() {
+			if (!progressBar) return;
+			progressBar.style.transition = 'none';
+			progressBar.style.width = '0%';
+		}
+
+		const mvisualSwiper = new Swiper('.mvisual', {
+			loop: true,
+			autoplay: {
+				delay: 5000,
+				disableOnInteraction: false,
+			},
+			navigation: {
+				nextEl: '.mvisual_wrap .arrow.next',
+				prevEl: '.mvisual_wrap .arrow.prev',
+			},
+			pagination: {
+				el: '.mvisual_wrap .paging',
+				type: 'custom',
+				renderCustom: function (swiper, current, total) {
+					return `<strong>${current}</strong>/<span>${total}</span>`;
+				}
+			},
+			on: {
+				init: function () {
+					startProgress();
+				},
+				slideChangeTransitionStart: function () {
+					resetProgress();
+				},
+				slideChangeTransitionEnd: function () {
+					if (this.autoplay && this.autoplay.running) {
+						startProgress();
+					}
+				}
+			}
+		});
+
+		if (pauseBtn && playBtn) {
+			pauseBtn.classList.add('on');
+			playBtn.classList.remove('on');
+			
+			pauseBtn.addEventListener('click', () => {
+				mvisualSwiper.autoplay.stop();
+				if (progressBar) {
+					const computedWidth = window.getComputedStyle(progressBar).width;
+					progressBar.style.transition = 'none';
+					progressBar.style.width = computedWidth;
+				}
+				pauseBtn.classList.remove('on');
+				playBtn.classList.add('on');
+			});
+			
+			playBtn.addEventListener('click', () => {
+				mvisualSwiper.autoplay.start();
+				startProgress();
+				playBtn.classList.remove('on');
+				pauseBtn.classList.add('on');
+			});
+		}
+	}
+// mc03 기획전 & 이벤트 슬라이더
+	function initMc03Sliders() {
+		// 기획전 슬라이드 (mc03a_slide)
+		const slideA = new Swiper('.mc03a_slide', {
+			loop: true,
+			autoplay: {
+				delay: 3000,
+				disableOnInteraction: false,
+			},
+			navigation: {
+				nextEl: '.mc03 .left .arrow.next',
+				prevEl: '.mc03 .left .arrow.prev',
+			},
+			slidesPerView: 1,
+			spaceBetween: 16,
+			breakpoints: {
+				768: {
+					slidesPerView: 2,
+					spaceBetween: 20,
+				},
+				1024: {
+					slidesPerView: 3,
+					spaceBetween: 24,
+				}
+			}
+		});
+		
+		const slideGallery = new Swiper('.main_gallery', {
+			loop: true,
+			autoplay: {
+				delay: 3000,
+				disableOnInteraction: false,
+			},
+			slidesPerView: 1,
+			spaceBetween: 12,
+			breakpoints: {
+				768: {
+					slidesPerView: 3,
+					spaceBetween: 16,
+				},
+				1024: {
+					slidesPerView: 3,
+					spaceBetween: 20,
+				},
+				1600: {
+					slidesPerView: 3,
+					spaceBetween: 24,
+				}
+			}
+		});
+
+		// 이벤트 슬라이드 (mc03d_slide)
+		const slideD = new Swiper('.mc03d_slide', {
+			loop: true,
+			autoplay: {
+				delay: 3000,
+				disableOnInteraction: false,
+			},
+			navigation: {
+				nextEl: '.mc03 .right .arrow.next',
+				prevEl: '.mc03 .right .arrow.prev',
+			},
+			
+			// 🛠️ 페이징 형식 커스텀 설정 (01/02 방식)
+			pagination: {
+				el: '.mc03 .right .paging',
+				type: 'custom',
+				renderCustom: function (swiper, current, total) {
+					const currentString = String(current).padStart(2, '0');
+					const totalString = String(total).padStart(2, '0');
+					return `<strong>${currentString}</strong>/<span>${totalString}</span>`;
+				}
+			}
+		});
+
+		// 재생 / 일시정지 버튼 (.mc03 전용)
+		$('.mc03 .control .papl').on('click', function(e) {
+			e.preventDefault();
+			
+			const $this = $(this);
+			const $parentContainer = $this.closest('.left, .right');
+			
+			$this.removeClass('on');
+			$this.siblings('.papl').addClass('on');
+			
+			let currentSwiper;
+			if ($parentContainer.hasClass('left')) {
+				currentSwiper = slideA;
+			} else if ($parentContainer.hasClass('right')) {
+				currentSwiper = slideD;
+			}
+			
+			if (currentSwiper && currentSwiper.autoplay) {
+				if ($this.hasClass('pause')) {
+					currentSwiper.autoplay.stop();
+				} else if ($this.hasClass('play')) {
+					currentSwiper.autoplay.start();
+				}
+			}
+		});
+	}
+// 작성된 함수들을 실행
+	initMainVisualSlider();
+	initMc03Sliders();
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+/* 게시판 상단 */
+	.board_top {display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+	.board_top .left {gap:24px;}
+	.board_top .total {font-size:16px; font-weight:500; display:flex; align-items:center; gap:5px;}
+	.board_top .total strong {color:var(--c_blue); font-weight:600;}
+	.board_top select {width:160px;}
+	.board_top select {width:180px; height:48px; border:#E5E8EB 1px solid; border-radius:24px;}
+	.board_top .search_wrap,
+	.board_top .search_wrap fieldset {display:flex; gap:10px; max-width:100%;}
+	.board_top .search_wrap .search_area {position:relative; width:300px; border:#ddd 1px solid; border-radius:24px; padding-right:46px; overflow:hidden; background:#fff;}
+	.board_top .search_wrap .search_area input {border:0; width:100%; height:46px; padding:0 20px;}
+	.board_top .search_wrap .search_area .btn {position:absolute; top:0; right:0; width:46px; height:46px; background:url('../images/icon_search_small.svg') no-repeat 50% 50%; border:0; font-size:0; cursor:pointer;}
+	.board_top.center_type {background:#FAFAFA; border:#E5E8EB 1px solid; border-radius:20px; padding:40px; display:flex; justify-content:center; margin-bottom:80px;}
+	.board_top.center_type .search_wrap fieldset {gap:16px;}
+	.board_top.center_type select {width:240px; height:62px; border-radius:32px;}
+	.board_top.center_type .search_wrap .search_area {width:480px; padding-right:76px; border-radius:32px;}
+	.board_top.center_type .search_wrap .search_area input {height:60px;}
+	.board_top.center_type .search_wrap .search_area .btn {width:76px; height:60px;}
+	.board_top.center_type .search_wrap .search_area.wlong {width:1000px; max-width:calc(100vw - 122px);}
+/* 게시판 하단 */
+	.board_bottom {position:relative;}
+	.board_bottom .paging {display:flex; justify-content:center; gap:8px; margin-top:80px;}
+	.board_bottom .paging a {width:40px; height:40px; line-height:40px; text-align:center; border-radius:50%; font-size:18px;}
+	.board_bottom .paging a.on {background:var(--c_blue); color:#fff; font-weight:700; border-color:var(--c_blue);}
+	.board_bottom .paging .arrow {font-size:0; background:no-repeat 50% 50% !important;}
+	.board_bottom .paging .two {background-image:url('../images/page_two.svg') !important;}
+	.board_bottom .paging .one {background-image:url('../images/page_one.svg') !important;}
+	.board_bottom .paging .prev {margin-right:16px;}
+	.board_bottom .paging .next {margin-left:16px;}
+	.board_bottom .paging .next,
+	.board_bottom .paging .last {transform:scaleX(-1);}
+	.board_bottom .btn_abso {position:absolute; bottom:0; right:0; border-radius:4px; font-size:17px; font-weight:600; display:flex; gap:8px; width:160px; height:50px; border-radius:25px;}
+	.board_bottom .btn_writer:after {content:""; display:block; width:16px; height:16px; background:#fff; mask:url('/pub/images/icon_writer.svg') no-repeat 50% 50% / contain; -webkit-mask:url('/pub/images/icon_writer.svg') no-repeat 50% 50% / contain;}
+	.board_bottom .btns {gap:10px; margin-top:40px;}
+	.board_bottom .btns .btn {width:240px; height:62px; font-size:20px;}
+
+/* 게시물 없음 */
+	.no_content {color:#6B7684; padding:80px 20px; text-align:center; background:#FAFAFA; border-radius:16px; text-align:center;}
+	.no_content:before {content:""; display:block; width:80px; height:80px; background:url('/pub/images/icon_no_content.svg') no-repeat 50% 50% / contain; margin:0 auto 24px;}
+
+/* 반응형 */
+@media screen and (min-width:1024px){
+	.board_bottom .paging a:hover {background:var(--c_blue); color:#fff; font-weight:700; border-color:var(--c_blue);}
+}
+
+@media screen and (max-width:1023px){
+/* 게시판 상단 */
+	.board_top .total {font-size:14px;}
+	.board_top select,
+	.board_top .search_wrap select {width:140px;}
+	.board_top .search_wrap .search_area {width:240px;}
+	
+	.board_top.center_type {padding:30px; margin-bottom:60px;}
+/* 게시판 하단 */
+	.board_bottom .paging {gap:8px; margin-top:60px;}
+	.board_bottom .paging a {width:36px; height:36px; line-height:36px; font-size:16px;}
+	.board_bottom .paging .prev {margin-right:8px;}
+	.board_bottom .paging .next {margin-left:8px;}
+	.board_bottom .btn_abso {font-size:14px;}
+	.board_bottom .btns {gap:6px; margin-top:30px;}
+/* 게시물 없음 */
+	.no_content {padding:60px 20px;}
+	.no_content:before {width:60px; height:60px; margin-bottom:20px;}
+}
+
+@media screen and (max-width:767px){
+/* 게시판 상단 */
+	.board_top {flex-direction:column; gap:6px;}
+	.board_top .left,
+	.board_top .search_wrap,
+	.board_top .search_wrap fieldset {width:100%; gap:4px;}
+	.board_top .left {order:2;}
+	.board_top .search_wrap {order:1;}
+	.board_top .total {font-size:13px; width:100px; height:40px; align-items: flex-end;}
+	.board_top .search_wrap select {width:100px; height:40px;}
+	.board_top .left select,
+	.board_top .search_wrap .search_area {width:calc(100% - 104px); height:40px; padding-right:38px;}
+	.board_top .search_wrap .search_area input,
+	.board_top .search_wrap .search_area .btn {height:38px;}
+	.board_top .search_wrap .search_area input {padding:0 12px;}
+	.board_top .search_wrap .search_area .btn {width:38px;}
+	.board_top.center_type {border-radius:16px; padding:20px; margin-bottom:40px;}
+	.board_top.center_type .search_wrap fieldset {gap:8px;}
+	.board_top.center_type select {width:100px; height:38px;}
+	.board_top.center_type .search_wrap .search_area {width:calc(100% - 108px); padding-right:50px;}
+	.board_top.center_type .search_wrap .search_area input {height:38px;}
+	.board_top.center_type .search_wrap .search_area .btn {width:50px; height:38px;}
+	.board_top.center_type .search_wrap .search_area.wlong {max-width:calc(100vw - 82px);}
+/* 게시판 하단 */
+	.board_bottom .paging {gap:2px; margin-top:40px;}
+	.board_bottom .paging a {width:30px; height:30px; line-height:30px; font-size:14px;}
+	.board_bottom .paging .prev {margin-right:2px;}
+	.board_bottom .paging .next {margin-left:2px;}
+	.board_bottom .btn_abso {position:relative; font-size:13px; margin:40px 0 0 auto; width:120px; height:38px;}
+	.board_bottom .btns {gap:4px; margin-top:20px;}
+	.board_bottom .btns .btn {width:calc(50% - 2px); height:46px; font-size:15px;}
+/* 게시물 없음 */
+	.no_content {padding:40px 20px; border-radius:12px;}
+	.no_content:before {width:50px; height:50px; margin-bottom:16px;}
+}

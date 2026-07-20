@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                if (typeof window.initCommonScript === 'function') { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container error_wrap" id="mainContent">
+<section class="inner" aria-labelledby="total-search-title">
+
+	<div class="gbox error404_area">
+		<h1 id="total-search-title" class="tit">404 ERROR</h1>
+		<p>죄송합니다. 페이지를 찾을 수 없습니다.<br/>
+		존재하지 않는 주소를 입력하셨거나<br/>
+		요청하신 페이지의 주소가 변경, 삭제되어 찾을 수 없습니다.</p>
+		<a href="/" class="btn btn_wbb">홈으로</a>
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

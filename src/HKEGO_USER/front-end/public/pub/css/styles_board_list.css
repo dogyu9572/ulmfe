@@ -1,0 +1,105 @@
+/* 게시판 목록 */
+	.board_basic col.board_num,
+	.board_basic col.board_hit,
+	.board_basic col.board_review {width:140px;}
+	.board_basic col.board_date,
+	.board_basic col.board_writer,
+	.board_basic col.board_state,
+	.board_basic col.board_btn,
+	.board_basic col.board_edu_type {width:160px;}
+	.board_basic col.board_writer.small,
+	.board_basic col.board_file {width:120px;}
+	.board_basic table {text-align:center;}
+	.board_basic thead th,
+	.board_basic tbody td {padding:26px 0;}
+	.board_basic thead th {position:relative; color:#333D4B; font-weight:500;}
+	.board_basic thead th:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:#FAFAFA; z-index:-1;}
+	.board_basic thead th:first-child:before {border-radius:40px 0 0 40px;}
+	.board_basic thead th:last-child:before {border-radius:0 40px 40px 0;}
+	.board_basic td {position:relative; height:80px; font-size:17px; color:#4E5968; border-bottom:#E5E8EB 1px solid;}
+	.board_basic td.board_tit {text-align:left;}
+	.board_basic td.board_tit a {display:inline-block; vertical-align:top; font-size:18px; color:#191F28; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+	.board_basic .notice td.board_num {font-size:0;}
+	.board_basic .notice td.board_num:before {content:""; display:block; width:24px; height:24px; background:url('../images/icon_notice.svg') no-repeat 50% 50% / contain; margin:0 auto;}
+	.board_basic .new td.board_tit a {position:relative; padding-right:24px;}
+	.board_basic .new td.board_tit a:after {content:"N"; position:absolute; top:50%; right:0; width:20px; height:20px; line-height:20px; text-align:center; font-size:12px; color:#fff; font-weight:500; border-radius:4px; background:var(--c_iden); transform:translateY(-50%);}
+	.board_basic .state {display:inline-block; vertical-align:top; padding:4px 12px; border-radius:20px;}
+	.board_basic .state.ing {background:#ddd;}
+	.board_basic .state.end {background:var(--c_iden); color:#fff;}
+	.board_basic .review {display:inline-block; vertical-align:top; font-size:14px; line-height:20px; padding:4px 8px; border-radius:4px;}
+	.board_basic .review.ing {color:#6B7684; background:#F2F4F6;}
+	.board_basic .review.end {color:#00A6D9; background:#00A6D91A;}
+	.board_basic td.board_edu_type span {display:block; font-size:16px; font-weight:600; line-height:28px; height:30px; width:80px; border:1px solid; border-radius:15px; text-align:center; margin:0 auto;}
+	.board_basic td.board_edu_type.type1 span {color:#00A6D9; background:#EAF7FF; border-color:#00A6D91A;}
+	.board_basic td.board_edu_type.type2 span {color:#58B431; background:#F6FFEE; border-color:#58B4311A;}
+	.board_basic td.board_edu_type.type3 span {color:#F5A200; background:#FFFAEC; border-color:#F5A2001A;}
+	.board_basic .btn {display:inline-block; width:auto; height:auto; padding:4px 20px;}
+	.board_basic i.file {display:block; width:32px; height:32px; background:url('../images/icon_file.svg') no-repeat 50% 50%; margin:0 auto; border:#E5E8EB 1px solid; border-radius:50%;}
+/* 1:1문의 */
+	.pop_password .input_password {background:#FAFAFA; border:#E5E8EB 1px solid; border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:24px;}
+	.pop_password .input_password p {font-weight:500; text-align:center;}
+	.pop_password .input_password p:before {content:""; display:block; width:40px; height:40px; background:url('/pub/images/icon_excl.svg') no-repeat 50% 50% / contain; margin:0 auto 16px;}
+	.pop_password .input_password .text {font-size:16px; padding:0 20px;}
+
+/* 반응형 */
+@media screen and (min-width:1024px){
+	.board_basic td.board_tit a:hover {text-decoration:underline;}
+}
+
+@media screen and (max-width:1023px){
+	.board_basic col.board_num,
+	.board_basic col.board_hit,
+	.board_basic col.board_review,
+	.board_basic col.board_file,
+	.board_basic col.board_btn {width:80px;}
+	.board_basic col.board_date,
+	.board_basic col.board_writer,
+	.board_basic col.board_state,
+	.board_basic col.board_edu_type {width:100px;}
+}
+
+@media screen and (max-width:767px){
+	.board_basic table {border-top:var(--c_iden) 2px solid;}
+	.board_basic thead {display:none;}
+	.board_basic table,
+	.board_basic tbody,
+	.board_basic td {display:block;}
+	.board_basic thead th,
+	.board_basic tbody td {padding:0; border:0; height:auto;}
+	.board_basic tr {position:relative; display:flex; flex-wrap:wrap; gap:6px 0; border-bottom:#ddd 1px solid; padding:16px 0 16px 62px;}
+	.board_basic td.board_num {position:absolute; top:50%; left:0; width:62px; transform:translateY(-50%); font-size:12px;}
+	.board_basic td.board_edu_type {width:100%;}
+	.board_basic td.board_edu_type span {width:60px; height:24px; line-height:22px; font-size:12px; margin:0;}
+	.board_basic td.board_tit {width:auto; max-width:calc(100% - 30px); min-width:calc(100% - 85px); font-weight:600; display:flex; padding-right:10px;}
+	.board_basic td.board_tit a {line-height:20px; padding:0; font-size:14px;}
+	.board_basic td.board_date,
+	.board_basic td.board_hit,
+	.board_basic td.board_writer {font-size:12px; display:flex; gap:4px;}
+	.board_basic td.board_hit,
+	.board_basic td.board_writer + .board_date {margin-left:13px;}
+	.board_basic td.board_date:before,
+	.board_basic td.board_hit:before,
+	.board_basic td.board_writer:before {color:#333D4B; font-weight:500;}
+	.board_basic td.board_date:before {content:"등록일";}
+	.board_basic td.board_hit:before {content:"조회수";}
+	.board_basic td.board_writer:before {content:"작성자";}
+	.board_basic td.board_hit:after,
+	.board_basic td.board_writer + .board_date:after {content:""; position:absolute; top:50%; left:-7px; width:1px; height:12px; background:#E5E8EB; transform:translateY(-50%);}
+	.board_basic .notice td.board_num:before {width:18px; height:18px;}
+	.board_basic .new td.board_tit a {padding-right:20px;}
+	.board_basic .new td.board_tit a:after {width:16px; height:16px; line-height:16px; font-size:10px;}
+	.board_basic .state {position:absolute; bottom:10px; right:0; padding:2px 10px;}
+	.board_basic .board_review {position: absolute; bottom:10px; right:0;}
+	.board_basic .review {font-size:13px; padding:2px 10px;}
+	.board_basic .board_file {padding:0;}
+	.board_basic i.file {width:20px; height:20px; background-size:50%;}
+	.board_basic .board_btn {position:absolute; bottom:5px; right:0;}
+	.board_basic .btn {padding:2px 10px;}
+/* 1:1문의 */
+	.pop_password .input_password {border-radius:12px; padding:24px; gap:16px;}
+	.pop_password .input_password p:before {width:30px; height:30px; margin-bottom:12px;}
+	.pop_password .input_password .text {font-size:14px; padding:0 16px;}
+	
+	.border_qna tr {padding-right:;}
+	.border_qna td.board_tit {width:100%;}
+}

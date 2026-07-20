@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_program.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(3)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(3)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(3) .snb li:nth-child(4)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(3) .snb li:nth-child(4)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(3)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(3) .snb li:nth-child(4)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "질문하고, 탐구하고, 만드는 울산광역시미래교육관의 교육 프로그램을 소개합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap pb0" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="program_wrap" aria-labelledby="page-title">
+	<div class="inner">
+		<h1 id="page-title" class="subtitle"></h1>
+		<div class="page_top_box biggame_top">팀과 함께 퀘스트를 수행하며 <br/>재미와 몰입으로 배우는 대규모 모험 게임입니다.</div>
+	</div>
+	
+	<div class="gbox pb_last">
+		<div class="inner lrbox_area program_area">
+		
+			<div class="lrbox">
+				<h2 class="tit">빅게임 <br class="pc_vw">프로그램이란?</h2>
+				<div class="con">
+					<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame01.webp" alt=""></div>
+					<p>울산광역시미래교육관 3층 모험터에서 운영되는 대규모 체험형 게임 프로그램입니다.<br/>
+					재미와 몰입을 주는 퀘스트 기반의 어드벤처형 지속가능발전 교육으로, 인류가 직면한 다양한 환경적, 사회적 문제를 협력해 해결하기 위해 설계한 교육 게임입니다.<br/>
+					특정한 스토리와 공간연출을 통해 참가자들이 재미와 몰입을 느끼면서 지속가능한 발전에 대한 깊은 이해를 할 수 있도록 돕는 것을 목표로 하여 <br class="pc_vw">팀 단위 협력 활동을 통해 지속가능한 미래를 탐색합니다.</p>
+				</div>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">기본 정보</h2>
+				<div class="con">
+					<div class="tbl">
+						<table>
+							<colgroup>
+								<col class="w160"/>
+								<col class="w220"/>
+								<col class="w160"/>
+								<col class="w160"/>
+								<col>
+							</colgroup>
+							<thead>
+								<tr>
+									<th>대상</th>
+									<th>장소</th>
+									<th>수용인원</th>
+									<th>소요시간</th>
+									<th>매체</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>중학교 1학년</td>
+									<td>본관3층 ESD 모험터</td>
+									<td>60명 (동시)</td>
+									<td>150분</td>
+									<td class="tal">RFID 팔찌 + 팀테이블 + 메인스크린 연동 시스템</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">진행 방식</h2>
+				<div class="con">
+					<div class="tbl">
+						<table>
+							<colgroup>
+								<col class="w240"/>
+								<col>
+								<col class="w320"/>
+							</colgroup>
+							<thead>
+								<tr>
+									<th>단계</th>
+									<th>내용</th>
+									<th>장소</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<th>OT</th>
+									<td>인트로 영상 관람, 팀 구성, 캐릭터 선택, RFID 팔찌 등록</td>
+									<td>컨트롤타워 메인스크린 앞</td>
+								</tr>
+								<tr>
+									<th>게임 수행</th>
+									<td>4개 게임존 순환 미션 수행, 기회스톤 획득</td>
+									<td>퀴즈·조작·신체·국제회의 게임존</td>
+								</tr>
+								<tr>
+									<th>팀 테이블 전략</th>
+									<td>획득 자원 배치, 팀 간 자원 교환 및 협력</td>
+									<td>컨트롤타워 팀테이블</td>
+								</tr>
+								<tr>
+									<th>엔딩</th>
+									<td>최종 순위 발표, 기념사진 촬영(10분)</td>
+									<td>메인스크린 앞</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">게임 시스템</h2>
+				<ul class="con game_system_area flex colm">
+					<li>
+						<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame02_01.webp" alt=""></div>
+						<div class="txt">
+							<h3>RFID 팔찌 시스템</h3>
+							<p>모든 체험자는 캐릭터별 RFID 팔찌를 착용합니다.<br/>각 게임존 미션 완료 후 팔찌를 태깅하면 기회스톤이 팀테이블과 메인스크린에 실시간 반영됩니다.</p>
+						</div>
+					</li>
+					<li>
+						<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame02_02.webp" alt=""></div>
+						<div class="txt">
+							<h3>기회스톤 (초기 지급량 : 5개)</h3>
+							<p>기회스톤은 팀의 핵심 자원입니다.<br/>룰렛을 돌려 아이템을 획득하거나 다른 팀과 자원을 교환하는 데 사용합니다.</p>
+						</div>
+					</li>
+					<li>
+						<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame02_03.webp" alt=""></div>
+						<div class="txt">
+							<h3>팀테이블 전략</h3>
+							<p>획득한 자원을 프로젝트 슬롯에 배치하고 다른 팀과 아이템을 교환하며 세계 위기 달성률을 높입니다.<br/>세계 현황 지도에서 다른 팀의 진행 상황을 실시간으로 확인할 수 있습니다.</p>
+						</div>
+					</li>
+				</ul>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">게임존 소개</h2>
+				<ul class="con game_list game_zone">
+					<li><a href="javascript:void(0);" class="btn_popup" data-target="pop01"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame03_01.webp" alt=""></div><div class="txt"><h3>퀴즈게임존</h3></div></a></li>
+					<li><a href="javascript:void(0);" class="btn_popup" data-target="pop02"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame03_02.webp" alt=""></div><div class="txt"><h3>조작게임존</h3></div></a></li>
+					<li><a href="javascript:void(0);" class="btn_popup" data-target="pop03"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame03_03.webp" alt=""></div><div class="txt"><h3>신체게임존</h3></div></a></li>
+					<li><a href="javascript:void(0);" class="btn_popup" data-target="pop04"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame03_04.webp" alt=""></div><div class="txt"><h3>국제회의게임존<br/>(자원공유게임)</h3></div></a></li>
+				</ul>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">기타 시설</h2>
+				<ul class="con game_list other_list">
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame04_01.webp" alt=""></div><div class="txt"><h3>시간여행의 문</h3><p>2100년에서 2026년으로의 시간여행을 상징하는 상징 입구</p></div></li>
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame04_02.webp" alt=""></div><div class="txt"><h3>컨트롤타워</h3><p>메인스크린·팀테이블, 게임 전체 현황 모니터링</p></div></li>
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_biggame04_03.webp" alt=""></div><div class="txt"><h3>홀&휴게실</h3><p>게임 전후 휴식 공간</p></div></li>
+				</ul>
+			</div>
+			
+		</div>
+	</div>
+	
+</section>
+
+<div class="popup pop_program" id="pop01">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">퀴즈게임존</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_01_large01.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_01_large01.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt gbox">
+				<ul class="flower_dots_list">
+					<li><strong>게임</strong>SDGs 빙고게임 + 스피드 게임</li>
+					<li><strong>동시 수용인원</strong>7~8명</li>
+					<li><strong>총 게임시간</strong>20분</li>
+					<li><strong>게임 내용</strong>SDGs 17개 목표를 주제로 한 빙고게임과 스피드 퀴즈 게임을 수행합니다.<br/>미션 완료 순위에 따라 기회스톤을 차등 획득합니다.</li>
+				</ul>
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_program" id="pop02">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">조작게임존</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_02_large01.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_02_large01.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt gbox">
+				<ul class="flower_dots_list">
+					<li><strong>게임</strong>팀테이블 + SDGs 빙고게임 + 탱그램게임 + 컬러링 게임</li>
+					<li><strong>동시 수용인원</strong>7~8명</li>
+					<li><strong>총 게임시간</strong>20분</li>
+					<li><strong>게임 내용</strong>디지털 테이블에서 퍼즐·탱그램·컬러링 조작 게임을 수행합니다. 팀원과 협력해 미션을 완료하고 기회스톤을 획득합니다.</li>
+				</ul>
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_program" id="pop03">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">신체게임존</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_03_large01.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_03_large01.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt gbox">
+				<ul class="flower_dots_list">
+					<li><strong>게임</strong>레이저빔 터널 + 흔들다리 건너기 + 점프하기 + 암벽타기</li>
+					<li><strong>동시 수용인원</strong>7~8명</li>
+					<li><strong>총 게임시간</strong>20분</li>
+					<li><strong>게임 내용</strong>대지의 지속가능성을 위해 행동하다! 4개 어드벤처 미션을 순환하며 RFID 팔찌로 기록을 남깁니다.<br/>· 레이저빔 터널 : 대지의 균열을 피해 터널 통과
+						<ul class="dots">
+							<li>· 흔들다리 건너기 : 대지에 부는 바람을 피해 통과</li>
+							<li>· 점프하기 : 대지의 에너지 올리기</li>
+							<li>· 암벽타기 : 대지의 정상에 깃발 꽂기</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="popup pop_program" id="pop04">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">국제회의게임존 (자원공유게임)</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_04_large01.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_biggame03_04_large01.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt gbox">
+				<ul class="flower_dots_list">
+					<li><strong>게임</strong>자원공유게임 - UN 국제회의장</li>
+					<li><strong>동시 수용인원</strong>16명</li>
+					<li><strong>총 게임시간</strong>연습 1라운드 + 본게임 4라운드</li>
+					<li><strong>게임 내용</strong>각국 대표가 되어 지구 자원을 지키는 정책을 결정합니다. 자국의 이익과 지구 자원 보전 사이에서 최선의 선택을 찾아보세요.<br/>
+					지구는 하나의 자원 저장고입니다. 4가지 안건에 대해 A·B·C·D 정책 중 하나를 선택하고, 자국 점수와 세계 자원 점수를 동시에 관리합니다.<br/>
+					세계 자원 점수가 0점 이하가 되면 자국 점수가 무효 처리됩니다. 협력과 경쟁 사이에서 지속가능한 선택을 찾아보세요.</li>
+				</ul>
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<link rel="stylesheet" href="/pub/css/swiper.css" media="all">
+<script src="/pub/js/swiper.js"></script>
+<script src="/pub/js/popup.js"></script>
+<script src="/pub/js/popfloorSlide.js"></script>
+
+</body>
+</html>

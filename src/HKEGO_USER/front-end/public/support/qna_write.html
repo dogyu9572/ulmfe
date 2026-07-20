@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_board_public.css', '/pub/css/styles_board_public.css', '/pub/css/styles_board_write.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(6)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(6)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(6) .snb li:nth-child(2)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(6) .snb li:nth-child(2)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(6)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(6) .snb li:nth-child(2)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "울산광역시미래교육관의 새로운 소식을 전합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="board_wrap inner" aria-labelledby="page-title">
+	<h1 id="page-title" class="subtitle">1:1문의 작성</h1>
+
+	<div class="board_write">
+		<table>
+			<colgroup>
+				<col class="w1" />
+				<col width="*" />
+			</colgroup>
+			<tr>
+				<th scope="row"><label for="inputTitle">제목<span class="c_blue">*</span></label></th>
+				<td><input type="text" id="inputTitle" class="text w100p" placeholder="제목을 입력해주세요." /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="inputWriter">작성자<span class="c_blue">*</span></label></th>
+				<td><input type="text" id="inputWriter" class="text w100p" placeholder="작성자를 입력해주세요." /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="inputPassword">비밀번호<span class="c_blue">*</span></label></th>
+				<td><input type="password" id="inputPassword" class="text w100p" placeholder="영문, 숫자, 특수문자 2종류 이상을 조합하여 10자리 이상 입력해주세요. (특수문자 가능 기호  ! @ # $ % ^ & *)" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="inputContent">내용<span class="c_blue">*</span></label></th>
+				<td><textarea name="" id="inputContent" cols="30" rows="10" class="text w100p" placeholder="내용을 입력해주세요."></textarea></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="captchaArea">자동등록방지<span class="c_blue">*</span></label></th>
+				<td>
+					<div class="captcha_area">
+						<div class="obj_area">
+							<div class="obj imgfit"><img src="/pub/images/img_sample_captcha.webp" data-src="" data-captcha-image="" alt="자동등록방지 코드"></div>
+							<button type="button" class="obj btn_re" data-captcha-refresh="" aria-label="숫자 이미지 변경"></button>
+						</div>
+						<input type="text" name="captcha" id="captchaArea" class="obj text" maxlength="6" autocomplete="off">
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div class="board_bottom">
+		<div class="flex_center btns">
+			<button type="submit" id="btn_submit" class="btn btn_wbb btn_large">등록</button>
+		</div>
+	</div> <!-- //board_bottom -->
+
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

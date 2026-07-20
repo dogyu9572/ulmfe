@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_exhibit.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(2)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(2)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(2) .snb li:nth-child(3)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(2) .snb li:nth-child(3)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(2)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(2) .snb li:nth-child(3)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "지속가능한 미래를 직접 체험하는 울산광역시미래교육관의 공간을 안내합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="board_wrap inner" aria-labelledby="page-title">
+	<h1 id="page-title" class="subtitle"></h1>
+
+	<div class="exhibit_area exhibit3">
+		<h2 class="tit"><span>팀과 함께 <br/><strong class="c_purple">_퀘스트를 수행</strong>하며 <strong class="c_purple">몰입</strong>하는 곳</span></h2>
+		<div class="wbox">
+			<div class="inbox">
+				<div class="bg" aria-hidden="true"><img src="/pub/images/bg_floor_3f.webp" alt=""></div>
+				<div class="btns">
+					<svg width="1200" height="673" viewBox="0 0 1200 673" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<g class="btn btn_popup" data-target="pop01">
+							<path d="M662 330C666.418 330 670 333.582 670 338V364C670 368.418 666.418 372 662 372H625L615.707 381.293C615.317 381.683 614.683 381.683 614.293 381.293L605 372H568C563.582 372 560 368.418 560 364V338C560 333.582 563.582 330 568 330H662Z" fill="white" stroke="#9900FF" stroke-width="3px" class="bg"/>
+							<path d="M577.136 344.98H584.955V346.79H579.294V350.077H584.54V351.887H579.294V355.174H584.988V357H577.136V344.98ZM593.163 348.284C593.113 347.775 592.884 347.377 592.474 347.089C592.07 346.801 591.542 346.657 590.889 346.657C590.446 346.657 590.059 346.724 589.727 346.856C589.395 346.989 589.14 347.175 588.963 347.413C588.786 347.651 588.697 347.919 588.697 348.218C588.697 348.677 588.888 349.034 589.27 349.289C589.652 349.538 590.147 349.734 590.756 349.878L591.885 350.177C592.92 350.415 593.764 350.81 594.417 351.364C595.075 351.912 595.404 352.667 595.404 353.63C595.404 354.333 595.225 354.952 594.865 355.489C594.505 356.026 593.982 356.444 593.296 356.743C592.615 357.036 591.802 357.183 590.856 357.183C589.92 357.183 589.11 357.039 588.423 356.751C587.737 356.458 587.2 356.034 586.813 355.481C586.431 354.922 586.224 354.25 586.191 353.464H588.316C588.365 354.073 588.62 354.537 589.079 354.858C589.544 355.179 590.131 355.34 590.839 355.34C591.309 355.34 591.727 355.268 592.092 355.124C592.458 354.98 592.74 354.778 592.939 354.518C593.144 354.252 593.246 353.951 593.246 353.613C593.246 353.176 593.064 352.836 592.698 352.592C592.339 352.343 591.796 352.125 591.071 351.937L589.71 351.588C587.574 351.029 586.506 349.95 586.506 348.351C586.506 347.653 586.697 347.039 587.079 346.508C587.461 345.971 587.986 345.556 588.656 345.263C589.331 344.964 590.086 344.814 590.922 344.814C591.763 344.814 592.507 344.964 593.155 345.263C593.808 345.556 594.314 345.965 594.674 346.491C595.039 347.017 595.227 347.615 595.238 348.284H593.163ZM596.789 357V344.98H600.94C602.13 344.98 603.156 345.221 604.019 345.703C604.883 346.179 605.544 346.868 606.003 347.77C606.468 348.672 606.7 349.74 606.7 350.974C606.7 352.219 606.468 353.295 606.003 354.203C605.538 355.105 604.869 355.796 603.994 356.278C603.12 356.759 602.08 357 600.873 357H596.789ZM600.757 355.124C602.013 355.124 602.957 354.778 603.588 354.086C604.224 353.395 604.542 352.357 604.542 350.974C604.542 349.601 604.23 348.572 603.604 347.886C602.979 347.2 602.052 346.856 600.824 346.856H598.948V355.124H600.757ZM624.926 356.651H611.214V355.141H617.124V351.87H612.724V344.632H623.349V351.87H618.95V355.141H624.926V356.651ZM614.534 350.426H621.523V346.109H614.534V350.426ZM638.065 352.551H636.223V349.446H634.081V347.919H636.223V343.47H638.065V352.551ZM638.065 358.295H628.088V353.231H638.065V358.295ZM629.931 356.801H636.256V354.692H629.931V356.801ZM634.33 346.358H625.531V344.864H629.017V343.354H630.844V344.864H634.33V346.358ZM629.931 346.939C630.617 346.939 631.228 347.056 631.765 347.288C632.307 347.515 632.731 347.833 633.035 348.243C633.339 348.647 633.494 349.109 633.5 349.629C633.494 350.166 633.339 350.639 633.035 351.048C632.736 351.452 632.316 351.765 631.773 351.986C631.237 352.208 630.622 352.318 629.931 352.318C629.244 352.318 628.63 352.208 628.088 351.986C627.551 351.765 627.13 351.45 626.826 351.04C626.527 350.631 626.378 350.16 626.378 349.629C626.378 349.109 626.53 348.647 626.834 348.243C627.139 347.833 627.559 347.515 628.096 347.288C628.633 347.056 629.244 346.939 629.931 346.939ZM629.931 348.334C629.388 348.334 628.954 348.45 628.627 348.683C628.301 348.915 628.138 349.23 628.138 349.629C628.138 350.038 628.298 350.359 628.619 350.592C628.946 350.824 629.383 350.94 629.931 350.94C630.478 350.94 630.913 350.824 631.234 350.592C631.56 350.359 631.724 350.038 631.724 349.629C631.724 349.23 631.56 348.915 631.234 348.683C630.907 348.45 630.473 348.334 629.931 348.334ZM652.366 358.494H650.54V350.393H647.718V348.898H650.54V343.47H652.366V358.494ZM647.485 346.275H642.322V348.965H646.888V350.426H642.322V353.514C643.551 353.508 644.616 353.478 645.518 353.422C646.426 353.367 647.336 353.265 648.249 353.115L648.432 354.609C647.391 354.77 646.359 354.881 645.336 354.941C644.312 354.997 643.081 355.03 641.642 355.041H640.463V344.765H647.485V346.275Z" fill="#333D4B" class="text"/>
+						</g>
+					</svg>
+				</div>
+			</div>
+		</div>
+		
+		<ul class="mo_btns mo_vw color3">
+			<button class="btn btn_popup" data-target="pop01">ESD 모험터</button>
+		</ul>
+	</div>
+	
+</section>
+
+<div class="popup pop_floor" id="pop01">
+	<div class="dm"></div>
+	<div class="inbox">
+		<button type="button" class="btn_close">팝업 닫기</button>
+		<h2 class="tit">ESD 모험터</h2>
+		<div class="con">
+			<div class="imgfit swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_3f01.webp" alt=""></div>
+					<div class="swiper-slide"><img src="/pub/images/img_sample_floor_3f01.webp" alt=""></div>
+				</div>
+				<div class="pagination"></div>
+			</div>
+			<div class="txt">
+				재미와 몰입이 있는 모험형 공간입니다. 팀 단위로 미션을 수행하며 협력·사고·실천 역량을 키웁니다. 빅게임을 통해 지속가능한 미래를 향한 모험을 즐겨보세요.
+			</div>
+			<div class="btns_btm">
+				<button type="button" class="btn btn_small btn_wbb btn_clo">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<link rel="stylesheet" href="/pub/css/swiper.css" media="all">
+<script src="/pub/js/swiper.js"></script>
+<script src="/pub/js/popup.js"></script>
+<script src="/pub/js/popfloorSlide.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_board_public.css', '/pub/css/styles_gallery_list.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(5)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(5)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(5) .snb li:nth-child(3)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(5) .snb li:nth-child(3)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(5)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(5) .snb li:nth-child(3)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "울산광역시미래교육관의 새로운 소식을 전합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="board_wrap inner" aria-labelledby="page-title">
+	<h1 id="page-title" class="subtitle"></h1>
+
+	<div class="board_top">
+		<div class="flex left">
+			<div class="total">총 <strong>100</strong>건</div>
+		</div>
+		
+		<form action="" method="get" class="search_wrap">
+			<fieldset>
+				<legend class="sound_only">게시글 검색</legend>
+				
+				<label for="search-condition" class="sound_only">검색 조건 선택</label>
+				<select name="search_condition" id="search-condition">
+					<option value="all">전체</option>
+					<option value="title">제목</option>
+					<option value="content">내용</option>
+				</select>
+				
+				<div class="search_area">
+					<label for="search-keyword" class="sound_only">검색어 입력</label>
+					<input type="text" id="search-keyword" name="search_keyword" placeholder="검색어를 입력해주세요.">
+					<button type="submit" class="btn">검색</button>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+
+	<ul class="gallery_basic type_small">
+		<li>
+			<a href="/news/event_view.html">
+				<span class="imgfit"><img src="/pub/images/img_sample_event.webp" alt=""></span>
+				<span class="txt">
+					<h3 class="tit">제8기 시민참여예산위원회 위원 공개모집</h3>
+					<span class="date"><span class="sound_only">작성일:</span>YYYY.MM.DD</span>
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="/news/event_view.html">
+				<span class="imgfit"><img src="/pub/images/img_sample_event.webp" alt=""></span>
+				<span class="txt">
+					<h3 class="tit">제8기 시민참여예산위원회 위원 공개모집</h3>
+					<span class="date"><span class="sound_only">작성일:</span>YYYY.MM.DD</span>
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="/news/event_view.html">
+				<span class="imgfit"><img src="/pub/images/img_sample_event.webp" alt=""></span>
+				<span class="txt">
+					<h3 class="tit">제8기 시민참여예산위원회 위원 공개모집</h3>
+					<span class="date"><span class="sound_only">작성일:</span>YYYY.MM.DD</span>
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="/news/event_view.html">
+				<span class="imgfit"><img src="/pub/images/img_sample_event.webp" alt=""></span>
+				<span class="txt">
+					<h3 class="tit">제8기 시민참여예산위원회 위원 공개모집</h3>
+					<span class="date"><span class="sound_only">작성일:</span>YYYY.MM.DD</span>
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="/news/event_view.html">
+				<span class="imgfit"><img src="/pub/images/img_sample_event.webp" alt=""></span>
+				<span class="txt">
+					<h3 class="tit">제8기 시민참여예산위원회 위원 공개모집</h3>
+					<span class="date"><span class="sound_only">작성일:</span>YYYY.MM.DD</span>
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="/news/event_view.html">
+				<span class="imgfit"><img src="/pub/images/no_image.svg" alt=""></span>
+				<span class="txt">
+					<h3 class="tit">제8기 시민참여예산위원회 위원 공개모집</h3>
+					<span class="date"><span class="sound_only">작성일:</span>YYYY.MM.DD</span>
+				</span>
+			</a>
+		</li>
+	</ul>
+	
+	<div class="board_bottom">
+		<nav class="paging" aria-label="게시판 페이지 이동">
+			<a href="#this" class="arrow two first" aria-label="첫 페이지로 이동">처음</a>
+			<a href="#this" class="arrow one prev" aria-label="이전 페이지로 이동">이전</a>
+			
+			<a href="#this" class="on" aria-current="page" aria-label="현재 1페이지">1</a>
+			<a href="#this" aria-label="2페이지로 이동">2</a>
+			<a href="#this" aria-label="3페이지로 이동">3</a>
+			<a href="#this" aria-label="4페이지로 이동">4</a>
+			<a href="#this" aria-label="5페이지로 이동">5</a>
+			
+			<a href="#this" class="arrow one next" aria-label="다음 페이지로 이동">다음</a>
+			<a href="#this" class="arrow two last" aria-label="마지막 페이지로 이동">맨끝</a>
+		</nav>
+	</div>
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

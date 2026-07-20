@@ -1,0 +1,73 @@
+/* 갤러리 목록 */
+	.gallery_basic {display:flex; flex-wrap:wrap; gap:80px;}
+	.gallery_basic li {width:calc((100% - 160px)/3);}
+	.gallery_basic li a {display:block;}
+	.gallery_basic li .imgfit {display:block; border:#E5E8EB 1px solid; border-radius:16px; overflow:hidden;}
+	.gallery_basic li .txt {display:block; padding-top:24px;}
+	.gallery_basic li .imgfit img {transition:2s;}
+	.gallery_basic li .tit {font-size:22px; font-weight:600; margin-bottom:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+	.gallery_basic li .date {font-size:17px; color:#6B7684; margin-top:8px;}
+/* 갤러리 이미지 셋팅 */
+	.gallery_basic.type_large li .imgfit {aspect-ratio:4/5;}
+	.gallery_basic.type_small li .imgfit {aspect-ratio:30/19;}
+	.gallery_basic.type_gallery li .imgfit {aspect-ratio:4/3;}
+	.gallery_basic.type_gallery li .tit {overflow:hidden; text-overflow:ellipsis; white-space:normal; word-wrap:break-word; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;}
+/* 갤러리 사진,동영상 타입 */
+	.gallery_basic .imgarea {position:relative; display:block; padding-top:4px;}
+	.gallery_basic .imgarea .type {position:absolute; top:0; left:28px; display:flex; align-items:center; gap:8px; font-size:16px; color:#fff; font-weight:600; line-height:38px; padding:0 24px; border-radius:8px; z-index:1;}
+	.gallery_basic .imgarea .type:before,
+	.gallery_basic .imgarea .type:after {content:""; position:absolute; top:0;}
+	.gallery_basic .imgarea .type:before {left:-4px; width:10px; height:4px; background:inherit;}
+	.gallery_basic .imgarea .type:after {left:-8px; height:8px; border:transparent 4px solid; border-radius:50%; transform:rotate(45deg);}
+	.gallery_basic .imgarea .type i {width:20px; height:20px; background:no-repeat 50% 50% / contain;}
+	.gallery_basic .imgarea .type.photo {background:#58B431;}
+	.gallery_basic .imgarea .type.video {background:#E83819;}
+	.gallery_basic .imgarea .type.photo i {background-image:url('/pub/images/icon_photo.svg');}
+	.gallery_basic .imgarea .type.video i {background-image:url('/pub/images/icon_video.svg');}
+	.gallery_basic .imgarea .type.photo:after {border-top-color:#00973B; border-left-color:#00973B;}
+	.gallery_basic .imgarea .type.video:after {border-top-color:#E5001E; border-left-color:#E5001E;}
+/* 갤러리 내용 팝업 */	
+	.pop_gallery .gallery_for,
+	.pop_gallery .gallery_nav {width:100%; overflow:hidden;}
+	.pop_gallery .gallery_for {position:relative; border-radius:16px; margin-bottom:16px;}
+	.pop_gallery .gallery_for .pagination {position:absolute; bottom:16px; left:0; width:100%; height:8px; display:flex; justify-content:center; align-items:center; gap:8px; z-index:1;}
+	.pop_gallery .gallery_for .pagination .swiper-pagination-bullet {width:8px; height:8px; background:#191F2833; opacity:1; margin:0;}
+	.pop_gallery .gallery_for .pagination .swiper-pagination-bullet-active {background:#FABD00;}
+	.pop_gallery .gallery_nav .swiper-slide {position:relative; border-radius:8px; overflow:hidden;}
+	.pop_gallery .gallery_nav .swiper-slide:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; border:#58B431 2px solid; border-radius:inherit; opacity:0; transition:.2s linear; display: block;}
+	.pop_gallery .gallery_nav .swiper-slide-thumb-active:before {opacity:1;}
+
+/* 반응형 */
+@media screen and (min-width:1024px){
+	.gallery_basic li a:hover .imgfit img {transform:scale(1.1); transition:4s;}
+}
+
+@media screen and (max-width:1023px){
+/* 갤러리 목록 */
+	.gallery_basic {gap:40px 20px;}
+	.gallery_basic li {width:calc((100% - 40px)/3);}
+	.gallery_basic li .txt {padding-top:16px;}
+	.gallery_basic li .tit {font-size:18px;}
+	.gallery_basic li .date {font-size:15px; margin-top:6px;}
+/* 갤러리 사진,동영상 타입 */
+	.gallery_basic .imgarea .type {left:20px; gap:6px; font-size:14px; line-height:34px; padding:0 16px;}
+}
+
+@media screen and (max-width:767px){
+/* 갤러리 목록 */
+	.gallery_basic {gap:20px 10px;}
+	.gallery_basic li {width:calc(50% - 5px);}
+	.gallery_basic li .imgfit {border-radius:12px;}
+	.gallery_basic li .txt {padding-top:10px;}
+	.gallery_basic li .tit {font-size:15px; margin-bottom:5px;}
+	.gallery_basic li .date {font-size:13px; margin-top:4px;}
+/* 갤러리 사진,동영상 타입 */
+	.gallery_basic .imgarea .type {left:16px; gap:4px; font-size:12px; line-height:30px; padding:0 12px;}
+	.gallery_basic .imgarea .type:before {left:-3px; width:8px; height:3px;}
+	.gallery_basic .imgarea .type:after {left:-6px; height:6px;}
+	.gallery_basic .imgarea .type i {width:16px; height:16px;}
+/* 갤러리 내용 팝업 */
+	.pop_gallery .gallery_for {border-radius:12px; margin-bottom:12px;}
+	.pop_gallery .gallery_for .pagination {bottom:12px; height:6px; gap:6px;}
+	.pop_gallery .gallery_for .pagination .swiper-pagination-bullet {width:6px; height:6px;}
+}

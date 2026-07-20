@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+    <script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_about.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript();
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(1)');
+                                    const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(1)');
+                                    const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(1) .snb li:nth-child(6)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(1) .snb li:nth-child(6)');
+                                    const asideTarget = document.querySelector('.aside div:nth-of-type(1)'); 
+                                    const asideSnbTarget = document.querySelector('.aside div:nth-of-type(1) .snb li:nth-child(6)');
+
+                                    if (gnbTarget) gnbTarget.classList.add('on');
+                                    if (sitemapTarget) sitemapTarget.classList.add('on');
+                                    if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+                                    if (asideTarget) asideTarget.classList.add('on');
+                                    if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+                                    const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+                                    const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+                                    const pText = "울산광역시미래교육관 홈페이지를 방문해주신 여러분을 진심으로 환영합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="about_wrap inner" aria-labelledby="page-title">
+    <h1 id="page-title" class="subtitle"></h1>
+
+    <div class="map_area" id="map"></div>
+	<div class="map_text">
+		<h2 class="sound_only">울산미래교육관 오시는 길 정보</h2>
+		<div class="logo" aria-hidden="true"></div>
+		<div class="info">
+			<ul>
+				<li class="i1"><h3>도로명</h3><p>울산광역시 북구 무룡로 1119-6 (울산광역시미래교육관 / 구. 울산인성교육센터)</p></li>
+				<li class="i2"><h3>지번</h3><p>울산광역시 북구 정자동 321 (구. 강동초등학교)</p></li>
+				<li class="i3"><h3>TEL</h3><p>052 - 000 - 0000</p></li>
+				<li class="i4"><h3>FAX</h3><p>052 - 000 - 0000</p></li>
+			</ul>
+			<div class="map_links">
+				<a href="https://kko.to/8jnytuFNwu" target="_blank" class="btn btn_naver">네이버지도</a>
+				<a href="https://naver.me/5ECiWuYd" target="_blank" class="btn btn_kakao">카카오맵</a>
+			</div>
+		</div>
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=fb0bc87a6e3abc550a07197cacf991f0&libraries=services"></script>
+<script>
+    (function () {
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(35.5975, 129.3730),
+            level: 3
+        };
+
+        var map = new kakao.maps.Map(container, options);
+
+        var geocoder = new kakao.maps.services.Geocoder();
+        var address = '울산광역시 북구 무룡로 1119-6';
+
+        geocoder.addressSearch(address, function (result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+                var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                map.setCenter(coords);
+                var imageSrc = '/pub/images/img_marker.svg';
+                var imageSize = new kakao.maps.Size(197, 84);
+                var imageOption = { offset: new kakao.maps.Point(98, 84) };
+                var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+                var marker = new kakao.maps.Marker({
+                    map: map,
+                    position: coords,
+                    image: markerImage
+                });
+            } else {
+                console.error('주소 검색 실패:', status);
+            }
+        });
+    })();
+</script>
+
+</body>
+</html>

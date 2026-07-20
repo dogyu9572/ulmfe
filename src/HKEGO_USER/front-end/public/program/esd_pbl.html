@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_program.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(3)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(3)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(3) .snb li:nth-child(1)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(3) .snb li:nth-child(1)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(3)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(3) .snb li:nth-child(1)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "질문하고, 탐구하고, 만드는 울산광역시미래교육관의 교육 프로그램을 소개합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap pb0" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="program_wrap" aria-labelledby="page-title">
+	<div class="inner">
+		<h1 id="page-title" class="subtitle"></h1>
+		<div class="page_top_box esd_pbl_top">울산광역시미래교육관 교육의 핵심, <br class="pc_vw">지속가능발전교육과 프로젝트 학습을 소개합니다.</div>
+	</div>
+	
+	<div class="gbox pb_last">
+		<div class="inner lrbox_area program_area">
+		
+			<div class="lrbox">
+				<h2 class="tit">ESD <br class="pc_vw">(지속가능발전교육)란?</h2>
+				<div class="con">
+					<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl01.webp" alt=""></div>
+					<p>사회, 환경, 미래의 지속가능한 발전을 주제로, 일자리와 지역 성장, 자원과 환경, 기후위기 등 현재 인류가 직면한 문제를 학습하고 실천으로 이끄는 교육입니다.<br/>UN의 지속가능발전목표(SDGs) 17개 목표와 연계하여 운영됩니다.</p>
+				</div>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">PBL <br class="pc_vw">(프로젝트학습)이란?</h2>
+				<div class="con">
+					<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl02.webp" alt=""></div>
+					<p>학교교육과정과의 연계교육에 중점을 두고, 실제 변화를 만들어내는 프로젝트학습으로 접근합니다.<br/>스토리텔링 기반의 사건 제시부터 탐색·해결·정리까지 4단계로 구성됩니다.</p>
+				</div>
+			</div>
+			
+			<div class="lrbox">
+				<h2 class="tit">프로그램 유형 <br class="pc_vw">4가지</h2>
+				<ul class="con program_types">
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl03_1.webp" alt=""></div>
+						<div class="txt">
+							<span>사건탐구형</span>
+							<h3>사건의 원인 · 결과를 중심으로 탐구</h3>
+							<a href="/program/elementary.html" class="btn_link">사건탐구 프로그램</a>
+						</div>
+					</li>
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl03_2.webp" alt=""></div>
+						<div class="txt">
+							<span>미션형</span>
+							<h3>스토리 속 다양한 미션을 해결</h3>
+							<a href="/program/mission.html" class="btn_link">미션 프로그램</a>
+						</div>
+					</li>
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl03_3.webp" alt=""></div>
+						<div class="txt">
+							<span>어드벤처형</span>
+							<h3>재미와 몰입을 줄 수 있는 퀘스트 기반</h3>
+							<a href="/program/biggame.html" class="btn_link">빅게임 프로그램</a>
+						</div>
+					</li>
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl03_4.webp" alt=""></div>
+						<div class="txt">
+							<span>체험형</span>
+							<h3>방학 기간 특별 체험으로 새로운 경험</h3>
+							<a href="/program/special.html" class="btn_link">방학/주말 특별 프로그램</a>
+						</div>
+					</li>
+					<li><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_esd_pbl03_5.webp" alt=""></div>
+						<div class="txt">
+							<span>자유 체험형</span>
+							<h3>사용자가 직접 설계하고 참여</h3>
+							<a href="/program/free.html" class="btn_link">자유 체험 프로그램</a>
+						</div>
+					</li>
+				</ul>
+			</div>
+			
+		</div>
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+<script src="/pub/js/program_h3_height.js"></script>
+
+</body>
+</html>

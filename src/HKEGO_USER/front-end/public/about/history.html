@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+    <script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_about.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript();
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(1)');
+                                    const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(1)');
+                                    const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(1) .snb li:nth-child(3)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(1) .snb li:nth-child(3)');
+                                    const asideTarget = document.querySelector('.aside div:nth-of-type(1)'); 
+                                    const asideSnbTarget = document.querySelector('.aside div:nth-of-type(1) .snb li:nth-child(3)');
+
+                                    if (gnbTarget) gnbTarget.classList.add('on');
+                                    if (sitemapTarget) sitemapTarget.classList.add('on');
+                                    if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+                                    if (asideTarget) asideTarget.classList.add('on');
+                                    if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+                                    const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+                                    const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+                                    const pText = "울산광역시미래교육관 홈페이지를 방문해주신 여러분을 진심으로 환영합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="about_wrap inner" aria-labelledby="page-title">
+    <h1 id="page-title" class="subtitle"></h1>
+
+	<div class="page_top_box history_top mb0"><strong>울산광역시미래교육관이 걸어온 길</strong><p>그리고 앞으로 만들어 갈 미래를 함께 나눕니다.</p></div>
+	
+	<div class="history_wrap">
+		<h2 class="sound_only">연혁 목록</h2>
+		<div class="line" aria-hidden="true"><div class="bar"></div></div>
+		<ul class="list">
+			<li><h3>2026</h3>
+				<ul class="history_content">
+					<li><strong>11월</strong><p>울산광역시미래교육관 개관 예정</p><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_history202611.webp" alt=""></div></li>
+				</ul>
+			</li>
+			<li><h3>2025</h3>
+				<ul class="history_content">
+					<li><strong>8월</strong><p>프로젝트 수업 자료 개발 결과 보고서 발간</p><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_history202508.webp" alt=""></div></li>
+				</ul>
+			</li>
+			<li><h3>2022</h3>
+				<ul class="history_content">
+					<li><strong>9월</strong><p>울산광역시미래교육관 전시 · 체험 콘텐츠 설계 및 제작 · 설치 사업 착수</p><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_history202209.webp" alt=""></div></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+    
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const bar = document.querySelector('.history_wrap .line .bar');
+    const historyItems = document.querySelectorAll('.history_wrap .list > li');
+
+    function updateProgressBar() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        
+        let progress = 0;
+
+        if (scrollHeight > 0) {
+            if (scrollTop + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+                progress = 100;
+            } else {
+                const middleOfViewport = scrollTop + (window.innerHeight / 2);
+                const lineWrap = document.querySelector('.history_wrap');
+                const startOffset = lineWrap.offsetTop;
+                const totalHeight = lineWrap.offsetHeight;
+
+                if (middleOfViewport >= startOffset) {
+                    progress = ((middleOfViewport - startOffset) / totalHeight) * 100;
+                    progress = Math.min(Math.max(progress, 0), 100);
+                } else {
+                    progress = 0;
+                }
+            }
+        }
+
+        bar.style.height = `${progress}%`;
+    }
+
+    const observerOptions = {
+        root: null,
+        rootMargin: '-49% 0px -49% 0px', 
+        threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('on');
+            }
+        });
+    }, observerOptions);
+
+    historyItems.forEach(item => observer.observe(item));
+
+    let isScrolling = false;
+    window.addEventListener('scroll', () => {
+        if (!isScrolling) {
+            window.requestAnimationFrame(() => {
+                updateProgressBar();
+                isScrolling = false;
+            });
+            isScrolling = true;
+        }
+    });
+
+    updateProgressBar();
+});
+</script>
+
+</body>
+</html>

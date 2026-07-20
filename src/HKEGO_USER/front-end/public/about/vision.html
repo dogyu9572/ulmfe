@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+    <script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_about.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript();
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(1)');
+                                    const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(1)');
+                                    const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(1) .snb li:nth-child(2)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(1) .snb li:nth-child(2)');
+                                    const asideTarget = document.querySelector('.aside div:nth-of-type(1)'); 
+                                    const asideSnbTarget = document.querySelector('.aside div:nth-of-type(1) .snb li:nth-child(2)');
+
+                                    if (gnbTarget) gnbTarget.classList.add('on');
+                                    if (sitemapTarget) sitemapTarget.classList.add('on');
+                                    if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+                                    if (asideTarget) asideTarget.classList.add('on');
+                                    if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+                                    const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+                                    const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+                                    const pText = "울산광역시미래교육관 홈페이지를 방문해주신 여러분을 진심으로 환영합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="about_wrap" aria-labelledby="page-title">
+    <h1 id="page-title" class="subtitle"></h1>
+
+    <div class="mission_vision01">
+		<div class="inner">
+			<div class="inbox">
+				<h2 class="ctit">울산광역시미래교육관이 나아가는 방향을 소개합니다</h2>
+				<div class="flex_center">
+					<div class="tit">지속가능성을 위한 전방위적 박물관 접근</div>
+				</div>
+				<div class="chart_area">
+					<h3 class="center flex_center">지속가능성에 대한 질문과 탐색이 실천으로 이어지는 전시게임</h3>
+					<ul>
+						<li class="i1 left"><span>01</span><h4>이야기형 콘텐츠</h4><p>지속가능성을 위한 행동으로 <br class="pc_vw"/>이끄는 스토리텔링</p></li>
+						<li class="i2 left"><span>02</span><h4>확장형 콘텐츠</h4><p>지역에서 전지구적 문제로 <br class="pc_vw"/>확장되는 테마</p></li>
+						<li class="i3 left"><span>03</span><h4>통합형 콘텐츠</h4><p>지역, 국가, 환경, 세대, 계층의 <br class="pc_vw"/>다양한 관점 반영</p></li>
+						<li class="i4 right"><span>04</span><h4>지속가능한 전시</h4><p>지속가능성의 가치를 <br class="pc_vw"/>재료와 마감으로 연출</p></li>
+						<li class="i5 right"><span>05</span><h4>상호작용형 콘텐츠</h4><p>체험자의 선택과 반응에 따라 <br class="pc_vw"/>전개가 달라지는 참여형 전시</p></li>
+						<li class="i6 right"><span>06</span><h4>패턴형 콘텐츠</h4><p>질문 · 탐색 · 실천으로 <br class="pc_vw"/>이어지는 체험 구성</p></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+    </div>
+
+    <div class="mission_vision02 gbox">
+		<div class="inner">
+			<h2 class="ctit">미션 & 비전</h2>
+			<ul class="missvis">
+				<li class="i1"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_mission_vision03_01.webp" alt=""></div>
+					<div class="txt"><div class="tit"><h3>미션</h3><span aria-hidden="true">Mission</span></div><p>지속가능한 삶을 누리는 시민을 육성합니다.</p></div>
+				</li>
+				<li class="i2"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_mission_vision03_02.webp" alt=""></div>
+					<div class="txt"><div class="tit"><h3>비전</h3><span aria-hidden="true">Vision</span></div><p>지속가능성을 꿈꾸며 내일을 열다.<br/>Dreaming of sustainability, Opening the future</p></div>
+				</li>
+			</ul>
+			
+			<h2 class="ctit">교육 목표</h2>
+			<ul class="edu_goals">
+				<li class="c1"><h3>가치 목표</h3><strong>인류의 삶과 미래에지속가능성을 부여하는 교육</strong><p>삶의 방식과 미래의 방향을 지속가능하게 바꾸는 교육적 가치를 추구합니다.</p></li>
+				<li class="c2"><h3>역량 목표</h3><strong>지속가능성의 인식을 넘어 행동으로 이끄는 교육</strong><p>아는 것에서 그치지 않고 실제 삶에서 실천하는 역량을 키웁니다.</p></li>
+			</ul>
+		</div>
+    </div>
+
+    <div class="mission_vision03">
+		<div class="inner">
+			<h2 class="ctit">핵심 가치</h2>
+			<ul class="flex core_values">
+				<li class="i1"><span>POINT 01</span><h3>사회 · 환경 · 미래의 지속가능한 발전</h3><p>일자리, 자원과 환경, 팬데믹 등 <br class="pc_vw"/>인류가 직면한 문제를 탐구하고 실천을 도출합니다.</p></li>
+				<li class="i2"><span>POINT 02</span><h3>학교수업 연계 프로젝트 학습</h3><p>학교 교육 과정과 연계하여 <br class="pc_vw"/>실제 변화를 만드는 프로젝트 학습으로 접근합니다.</p></li>
+				<li class="i3"><span>POINT 03</span><h3>미래형 공간 융합 · 첨단 콘텐츠</h3><p>아날로그와 디지털이 융합된 첨단 콘텐츠를 <br class="pc_vw"/>미래형 공간에 구성합니다.</p></li>
+			</ul>
+
+			<h2 class="ctit">운영방향</h2>
+			<ul class="flex operational_direction">
+				<li class="i1">울산 미래교육의 가치를 <br class="pc_vw"/>실현하는 공간</li>
+				<li class="i2">지속가능발전교육(ESD)의 <br class="pc_vw"/>가치를 인식하고 실천할 수 있는 공간</li>
+				<li class="i3">융합 프로젝트 학습 기반 교육으로 <br class="pc_vw"/>학교 교육 과정 연계 지원</li>
+				<li class="i4">지역사회가 참여하는 <br class="pc_vw"/>학습지원 네트워크 구축 및 연계 교육</li>
+			</ul>
+		</div>
+    </div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

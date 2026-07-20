@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+    <script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_about.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript();
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(1)');
+                                    const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(1)');
+                                    const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(1) .snb li:nth-child(5)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(1) .snb li:nth-child(5)');
+                                    const asideTarget = document.querySelector('.aside div:nth-of-type(1)'); 
+                                    const asideSnbTarget = document.querySelector('.aside div:nth-of-type(1) .snb li:nth-child(5)');
+
+                                    if (gnbTarget) gnbTarget.classList.add('on');
+                                    if (sitemapTarget) sitemapTarget.classList.add('on');
+                                    if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+                                    if (asideTarget) asideTarget.classList.add('on');
+                                    if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+                                    const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+                                    const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+                                    const pText = "울산광역시미래교육관 홈페이지를 방문해주신 여러분을 진심으로 환영합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="about_wrap inner" aria-labelledby="page-title">
+    <h1 id="page-title" class="subtitle"></h1>
+
+	<div class="page_top_box ci_top mb0">
+		<strong>울산광역시미래교육관의 CI(Corporate Identity)는 <br class="pc_vw">기관의 정체성과 비전을 담은 통합 이미지 시스템입니다.</strong>
+		<p>각각의 요소가 모여 울산광역시미래교육관만의 고유한 이미지를 만들어냅니다.</p>
+		<div class="btns">
+			<a href="#this" class="btn btn_wbb btn_download">CI 다운로드</a>
+			<a href="#this" class="btn btn_wgg btn_download">CI 소개서 다운로드</a>
+		</div>
+	</div>
+	
+	<div class="lrbox_area tit_slim ci_wrap">
+		<h2 class="sound_only">심벌마크, 로고타입, 시그니처 양식</h2>
+		
+		<div class="lrbox">
+			<h3 class="tit">심벌마크</h3>
+			<div class="con gbox symbolmark"><img src="/pub/images/img_symbol.svg" alt="심벌마크"></div>
+		</div>
+		
+		<div class="lrbox">
+			<h3 class="tit">로고타입</h3>
+			<ul class="con ci_list">
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type01_01.svg" alt="로고타입 - 국문형"></div><p>국문형</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type01_02.svg" alt="로고타입 - 영문형 A"></div><p>영문형 A</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type01_03.svg" alt="로고타입 - 영문형 B"></div><p>영문형 B</p></li>
+			</ul>
+		</div>
+		
+		<div class="lrbox">
+			<h3 class="tit">시그니처</h3>
+			<ul class="con ci_list">
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type02_01.svg" alt="시그니처 - 국영문 상하조합"></div><p>국영문 상하조합</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type02_02.svg" alt="시그니처 - 국문 상하조합"></div><p>국문 상하조합</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type02_03.svg" alt="시그니처 - 영문 상하조합"></div><p>영문 상하조합</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type02_04.svg" alt="시그니처 - 국영문 좌우조합"></div><p>국영문 좌우조합</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type02_05.svg" alt="시그니처 - 국문 좌우조합"></div><p>국문 좌우조합</p></li>
+				<li><div class="imgfit"><img src="/pub/images/img_ci_type02_06.svg" alt="시그니처 - 영문 좌우조합"></div><p>영문 좌우조합</p></li>
+			</ul>
+		</div>
+		
+	</div>
+    
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

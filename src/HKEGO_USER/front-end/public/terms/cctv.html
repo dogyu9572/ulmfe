@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_terms.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                if (typeof window.initCommonScript === 'function') { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container terms_wrap" id="mainContent">
+<section class="inner" aria-labelledby="total-search-title">
+	<h1 id="total-search-title" class="subtitle">약관 및 정책</h1>
+
+	<div class="aside_wrap no_image">
+		<nav class="aside">
+			<ul class="snb">
+				<li><a href="/terms/policy.html">이용약관</a></li>
+				<li><a href="/terms/privacy.html"><strong>개인정보처리방침</strong></a></li>
+				<li class="no_before"><a href="/terms/no_email.html">이메일 무단수집거부</a></li>
+				<li class="on"><a href="/terms/cctv.html">영상정보처리기기 운영방침</a></li>
+			</ul>
+		</nav>
+	</div>
+
+	<div class="gbox terms_box">
+		<div class="tit"><h2>울산광역시미래교육관 영상정보처리기기 운영·관리 방침</h2><span>시행일: 2025년 1월 1일</span></div>
+		
+		<p>울산광역시미래교육관(이하 "기관"이라 합니다)은 개인정보보호법 제25조 제7항에 따라 영상정보처리기기 운영·관리 방침을 수립하여 공개합니다.</p>
+		
+		<h3>제1조 (영상정보처리기기 설치 근거 및 목적)</h3>
+		<p>기관은 다음의 목적으로 영상정보처리기기를 설치·운영합니다.</p>
+		<ol>
+			<li>시설 안전 및 화재 예방</li>
+			<li>범죄 예방 및 시설 내 질서 유지</li>
+			<li>이용자 및 직원의 안전 보호</li>
+		</ol>
+
+		<h3>제2조 (처리하는 개인정보 항목)</h3>
+		<ol>
+			<li>설치 대수: 총 20대</li>
+			<li>설치 위치 및 촬영 범위
+				<ul>
+					<li>- 1층 출입구 및 로비: 3대 (출입자 동선 촬영)</li>
+					<li>- 1층 강의실 복도: 2대 (복도 전체 촬영)</li>
+					<li>- 2층 강의실 복도: 2대 (복도 전체 촬영)</li>
+					<li>- 3층 강의실 복도: 2대 (복도 전체 촬영)</li>
+					<li>- 주차장: 5대 (주차 구역 전체 촬영)</li>
+					<li>- 비상계단: 4대 (각 층 계단 입구)</li>
+					<li>- 야외 주변: 2대 (건물 외부 진입로)</li>
+				</ul>
+			</li>
+		</ol>
+		
+		<h3>제3조 (촬영시간, 보관기간, 보관장소, 처리방법)</h3>
+		<ol>
+			<li>촬영시간: 24시간 연속 촬영</li>
+			<li>보관기간: 촬영일로부터 30일</li>
+			<li>보관장소: 기관 내 서버실(CCTV 전용 DVR/NVR)</li>
+			<li>처리방법: 보관기간 종료 후 자동 덮어쓰기 방식으로 삭제</li>
+		</ol>
+
+		<h3>제4조 (영상정보 확인 방법 및 장소)</h3>
+		<ol>
+			<li>확인 방법: 관리자 전용 모니터를 통해 확인</li>
+			<li>확인 장소: 기관 내 관제실(운영팀 사무실)</li>
+		</ol>
+
+		<h3>제5조 (정보주체의 영상정보 열람 등 요구에 대한 조치)</h3>
+		<ol>
+			<li>이용자(정보주체)는 기관이 처리하는 영상정보에 대하여 열람 또는 존재 확인을 요청할 수 있습니다.</li>
+			<li>열람 등 요청은 개인정보 보호책임자에게 서면 또는 이메일로 신청하며, 기관은 10일 이내에 처리합니다.</li>
+			<li>요청한 정보가 본인이 촬영된 영상이 아니거나 제3자의 사생활을 침해할 우려가 있는 경우 열람을 제한할 수 있습니다.</li>
+		</ol>
+
+		<h3>제6조 (영상정보의 안전성 확보조치)</h3>
+		<ol>
+			<li>기관은 영상정보의 안전한 관리를 위하여 다음의 조치를 이행합니다.</li>
+			<li>영상정보에 대한 접근 권한 최소화 및 접근 기록 관리</li>
+			<li>영상정보처리기기 잠금장치 설치 및 운영</li>
+			<li>영상정보 무단 열람·유출 방지를 위한 내부 관리계획 수립</li>
+		</ol>
+
+		<h3>제7조 (영상정보처리기기 운영·관리 담당부서 및 책임자)</h3>
+		<p>영상정보처리기기의 운영·관리에 대한 책임을 지는 담당자는 다음과 같습니다.</p>
+		<ul class="dots">
+			<li>담당부서: 운영팀</li>
+			<li>책임자 성명: 홍길동</li>
+			<li>직책: 운영팀장</li>
+			<li>연락처: 052-000-0000</li>
+			<li>이메일: cctv@ulmiraeedu.or.kr</li>
+		</ul>
+		
+		<div class="end_notice">부칙: 이 약관은 2025년 1월 1일부터 시행합니다.</div>
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_board_public.css', '/pub/css/styles_library.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(8)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(8)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(8) .snb li:nth-child(2)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(8) .snb li:nth-child(2)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(8)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(8) .snb li:nth-child(2)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="library_wrap inner" aria-labelledby="page-title">
+	<h1 id="page-title" class="subtitle"></h1>
+
+	<div class="board_top center_type">
+		<form action="/library/search_list.html" method="get" class="search_wrap">
+            <fieldset>
+                <legend class="sound_only">게시글 검색</legend>
+                
+                <label for="search-condition" class="sound_only">검색 조건 선택</label>
+                <select name="search_condition" id="search-condition">
+                    <option value="all">전체</option>
+                    <option value="title">제목</option>
+                    <option value="content">내용</option>
+                </select>
+                
+                <div class="search_area">
+                    <label for="search-keyword" class="sound_only">검색어 입력</label>
+                    <input type="text" id="search-keyword" name="search_keyword" placeholder="검색어를 입력해주세요.">
+                    <button type="submit" class="btn">검색</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+	
+	<div class="board_top">
+		<div class="total w100p"><strong>키워드</strong>에 대한 검색결과 총 <strong>123</strong>건</div>
+	</div>
+	
+	<!-- 내용이 없는 경우 -->
+	<div class="no_content">검색된 내용이 없습니다.</div>
+	<!-- 내용이 있는 경우 -->
+	<ul class="flex book_list">
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+		<li>
+			<a href="/library/search_view.html">
+				<span aria-hidden="true" class="imgfit"><img src="/pub/images/img_sample_library.webp" alt="">
+					<span class="hover">
+						<span>자세히 보기</span>
+						<p>『빈센트 반 고흐, 세상을 노랗게 물들이다』는 아이들이 빈센트 반 고흐의 삶을 배울 수 있도록 눈높이를 맞춰 소개한 책이다. 살아생전 2000점이 넘는 그림을 그렸지만 단 한 점 밖에 팔리지 않았던 불운한 화가, 동서양을 통틀어 가장 사랑받는 화가인 고흐. 그런 고흐의 삶과 작품 속에 담긴 철학과 예술혼을 자연스럽게 보여준다.</p>
+						<ul class="writer_info flex colm">
+							<li><strong>출판사</strong>비룡소</li>
+							<li><strong>지은이</strong>유은실 소설</li>
+						</ul>
+					</span>
+				</span>
+				<p>빈센트 반 고흐, 세상을 노랗게 물들이다</p>
+			</a>
+		</li>
+	</ul>
+    
+    <div class="board_bottom">
+        <nav class="paging" aria-label="게시판 페이지 이동">
+            <a href="#this" class="arrow two first" aria-label="첫 페이지로 이동">처음</a>
+            <a href="#this" class="arrow one prev" aria-label="이전 페이지로 이동">이전</a>
+            
+            <a href="#this" class="on" aria-current="page" aria-label="현재 1페이지">1</a>
+            <a href="#this" aria-label="2페이지로 이동">2</a>
+            <a href="#this" aria-label="3페이지로 이동">3</a>
+            <a href="#this" aria-label="4페이지로 이동">4</a>
+            <a href="#this" aria-label="5페이지로 이동">5</a>
+            
+            <a href="#this" class="arrow one next" aria-label="다음 페이지로 이동">다음</a>
+            <a href="#this" class="arrow two last" aria-label="마지막 페이지로 이동">맨끝</a>
+        </nav>
+    </div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

@@ -1,0 +1,461 @@
+/* 인사말 */
+	.about_top {background-image:url('/pub/images/bg_about_top.webp'); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:16px;}
+	.about_top .dda {position:relative;}
+	.about_top .dda:before,
+	.about_top .dda:after {content:""; position:absolute; top:8px; width:10px; aspect-ratio:5/6; background:url('/pub/images/icon_dda.svg') no-repeat 50% 50% / contain;}
+	.about_top .dda:before {left:-18px;}
+	.about_top .dda:after {right:-18px; transform:rotate(180deg);}
+	.about_top p {font-size:24px; font-weight:500; line-height:1.5; text-align:center;}
+	.about_area {text-align:center; padding-top:64px;}
+	.about_area .tit {line-height:1.5;}
+	.about_area .tit strong {display:block; font-size:24px; font-weight:600; margin-bottom:32px;}
+	.about_area .tit p {font-size:20px; color:#333D4B;}
+	.about_area .ibox {display:flex; gap:24px; margin:80px 0;}
+	.about_area .ibox li {width:calc((100% - 48px)/3); color:#333D4B; padding:32px; border-radius:16px; box-shadow:0 4px 20px 0 rgba(0, 0, 0, 0.10);}
+	.about_area .ibox li:before {content:""; display:block; width:64px; height:64px; background:#F9FAFB no-repeat 50% 50%; border-radius:50%; margin:0 auto 16px;}
+	.about_area .ibox li.i1:before {background-image:url('/pub/images/icon_about01.svg');}
+	.about_area .ibox li.i2:before {background-image:url('/pub/images/icon_about02.svg');}
+	.about_area .ibox li.i3:before {background-image:url('/pub/images/icon_about03.svg');}
+	.about_area .btm p {font-size:20px; color:#333D4B; line-height:1.5;}
+	.about_area .btm .sign {display:flex; justify-content:center; align-items:center; font-size:24px; font-weight:600; margin-top:24px;}
+/* 미션 및 비전 */
+	.ctit {font-size:32px; font-weight:600; line-height:1.45; text-align:center; margin-bottom:24px;}
+	.ctit ~ .ctit {margin-top:120px;}
+	.mission_vision01 {padding-bottom:80px;}
+	.mission_vision01 .inbox {padding:80px 148px; border:#E5E8EB 1px solid; border-radius:34px;}
+	.mission_vision01 .tit {font-size:22px; color:#fff; font-weight:600; padding:6px 40px; background:#004C88; border-radius:23px;}
+	.mission_vision01 .chart_area {position:relative; padding:43px 0; margin-top:50px;}
+	.mission_vision01 .center {position:absolute; top:50%; left:50%; width:280px; aspect-ratio:1/1; font-size:24px; color:#fff; font-weight:600; line-height:1.5; text-align:center; padding:25px; transform:translate(-50%,-50%);}
+	.mission_vision01 .center:before,
+	.mission_vision01 .center:after {content:""; position:absolute; top:50%; left:50%; border-radius:50%; aspect-ratio:1/1; transform:translate(-50%,-50%); z-index:-1;}
+	.mission_vision01 .center:before {width:560px; background:#EAF7FF; border:#00A6D966 1px solid;}
+	.mission_vision01 .center:after {width:100%; background:#00A6D9 url('/pub/images/bg_mission_vision01.svg') no-repeat 100% 50%;}
+	.mission_vision01 ul {display:flex; flex-wrap:wrap; justify-content:space-between; gap:24px calc(50% - 440px);}
+	.mission_vision01 li {position:relative; width:440px; height:142px; background:#fff; border:#00A6D9 1px solid; border-radius:71px; padding:24px 40px;}
+	.mission_vision01 li:before {content:""; position:absolute; top:0; left:40px; width:48px; height:100%; background:no-repeat 50% 50% / contain;}
+	.mission_vision01 li span {position:absolute; top:50%; right:32px; width:34px; line-height:34px; aspect-ratio:1/1; text-align:center; font-size:16px; color:#fff; font-weight:600; border-radius:50%; background:#0075BA; transform:translateY(-50%);}
+	.mission_vision01 li h4 {font-size:20px; color:#0075BA; font-weight:600; line-height:1.5; margin-bottom:8px;}
+	.mission_vision01 li p {color:#333D4B;}
+	.mission_vision01 li.left {padding-right:90px; text-align:right;}
+	.mission_vision01 li.right {padding-left:90px; text-align:left;}
+	.mission_vision01 li.right:before {left:auto; right:40px;}
+	.mission_vision01 li.right span {left:32px;}
+	.mission_vision01 li.i1 {order:1; margin-left:40px;}
+	.mission_vision01 li.i2 {order:3;}
+	.mission_vision01 li.i3 {order:5; margin-left:40px;}
+	.mission_vision01 li.i4 {order:2; margin-right:40px;}
+	.mission_vision01 li.i5 {order:4;}
+	.mission_vision01 li.i6 {order:6; margin-right:40px;}
+	.mission_vision01 li.i1:before {background-image:url('/pub/images/icon_mission_vision01_01.svg');}
+	.mission_vision01 li.i2:before {background-image:url('/pub/images/icon_mission_vision01_02.svg');}
+	.mission_vision01 li.i3:before {background-image:url('/pub/images/icon_mission_vision01_03.svg');}
+	.mission_vision01 li.i4:before {background-image:url('/pub/images/icon_mission_vision01_04.svg');}
+	.mission_vision01 li.i5:before {background-image:url('/pub/images/icon_mission_vision01_05.svg'); width:50px;}
+	.mission_vision01 li.i6:before {background-image:url('/pub/images/icon_mission_vision01_06.svg');}
+	.mission_vision02 {padding:120px 0;}
+	.mission_vision02 ul {display:flex; gap:16px;}
+	.mission_vision02 .missvis {flex-direction:column;}
+	.mission_vision02 .missvis li {display:flex; background:#fff; border-radius:16px; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04); overflow:hidden;}
+	.mission_vision02 .missvis .imgfit {width:760px;}
+	.mission_vision02 .missvis .txt {width:calc(100% - 760px); padding-left:72px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;}
+	.mission_vision02 .missvis .txt:before {content:""; display:block; width:40px; height:36px; background:no-repeat 0 0 / contain; margin-bottom:16px;}
+	.mission_vision02 .missvis .tit {display:flex; align-items:baseline; gap:8px;}
+	.mission_vision02 .missvis .tit h3 {font-size:30px; line-height:1.2;}
+	.mission_vision02 .missvis .tit span {font-size:20px; font-weight:600; line-height:1.5;}
+	.mission_vision02 .missvis p {font-size:20px; color:#333D4B; line-height:1.5; margin-top:8px;}
+	.mission_vision02 .missvis .i1 .txt:before {background-image:url('/pub/images/icon_mission_vision02_01.svg');}
+	.mission_vision02 .missvis .i1 .tit h3 {color:#00973B;}
+	.mission_vision02 .missvis .i1 .tit span {color:#58B431cc;}
+	.mission_vision02 .missvis .i2 .txt:before {background-image:url('/pub/images/icon_mission_vision02_02.svg');}
+	.mission_vision02 .missvis .i2 .tit h3 {color:#0075BA;}
+	.mission_vision02 .missvis .i2 .tit span {color:#00A6D9cc;}
+	.mission_vision02 .edu_goals li {width:calc(50% - 8px); background:#fff; border:#E5E8EB 1px solid; border-radius:16px; padding:40px; display:flex; flex-direction:column; align-items:flex-start;}
+	.mission_vision02 .edu_goals h3 {font-size:20px; color:#fff; font-weight:600; line-height:38px; padding:0 24px; border-radius:20px;}
+	.mission_vision02 .edu_goals strong {font-size:24px; font-weight:600; line-height:1.5; margin:16px 0 8px;}
+	.mission_vision02 .edu_goals p {font-size:20px; color:#333D4B; line-height:1.5;}
+	.mission_vision02 .edu_goals .c1 h3 {background:#58B431;}
+	.mission_vision02 .edu_goals .c2 h3 {background:#00A6D9;}
+	.mission_vision03 {padding-top:120px;}
+	.mission_vision03 .ctit {margin-bottom:40px;}
+	.mission_vision03 .core_values {gap:44px;}
+	.mission_vision03 .core_values li {width:calc((100% - 88px)/3); aspect-ratio:1/1; border-radius:16px; padding:56px 40px; text-align:center; display:flex; flex-direction:column; align-items:center; background:no-repeat 50% 50% / cover;}
+	.mission_vision03 .core_values span {font-size:20px; color:#fff; font-weight:600; line-height:38px; height:38px; padding:0 24px; border-radius:20px; background:#58B431;}
+	.mission_vision03 .core_values h3 {font-size:24px; color:#fff; font-weight:600; line-height:1.5; margin:16px 0 4px;}
+	.mission_vision03 .core_values p {color:#fff; font-weight:500;}
+	.mission_vision03 .core_values .i1 {background-image:url('/pub/images/img_core_values_01.webp');}
+	.mission_vision03 .core_values .i2 {background-image:url('/pub/images/img_core_values_02.webp');}
+	.mission_vision03 .core_values .i3 {background-image:url('/pub/images/img_core_values_03.webp');}
+	.mission_vision03 .operational_direction {gap:16px;}
+	.mission_vision03 .operational_direction li {width:calc((100% - 48px)/4); height:264px; background:#F9FAFB no-repeat right 32px bottom 32px; border:#E5E8EB 1px solid; border-radius:16px; padding:32px; font-size:20px; color:#333D4B; font-weight:600; line-height:1.5;}
+	.mission_vision03 .operational_direction .i1 {background-image:url('/pub/images/img_operational_direction01.svg');}
+	.mission_vision03 .operational_direction .i2 {background-image:url('/pub/images/img_operational_direction02.svg');}
+	.mission_vision03 .operational_direction .i3 {background-image:url('/pub/images/img_operational_direction03.svg');}
+	.mission_vision03 .operational_direction .i4 {background-image:url('/pub/images/img_operational_direction04.svg');}
+/* 연혁 */
+	.history_top {background-image:url('/pub/images/bg_history_top.webp'); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:16px;}
+	.history_top p {font-size:24px; font-weight:500; line-height:1.5;}
+	.history_wrap {position:relative; padding-top:140px;}
+	.history_wrap .line {position:absolute; top:0; left:50%; width:2px; height:100%; background:#E5E8EB; transform:translateX(-50%);}
+	.history_wrap .line .bar {position:absolute; top:0; left:0; width:100%; background:#00973B; transition:.1s ease;}
+	.history_wrap .list {display:flex; flex-direction:column; gap:64px;}
+	.history_wrap .list > li {display:flex;}
+	.history_wrap .list h3 {font-size:36px; color:#00973B; line-height:1.2; text-align:right; padding:0 34px; width:50%;}
+	.history_wrap .list .history_content {position:relative; display:flex; flex-direction:column; gap:24px; width:50%; padding:6px 0 6px 76px;}
+	.history_wrap .list .history_content:before,
+	.history_wrap .list .history_content:after {content:""; position:absolute;}
+	.history_wrap .list .history_content:before {top:21px; left:0; width:52px; height:1px; background:#E5E8EB;}
+	.history_wrap .list .history_content:after {top:11px; left:-10px; width:20px; aspect-ratio:1/1; border-radius:50%; background:#fff; border:#58B431 5px solid;}
+	.history_wrap .list .history_content li {position:relative; padding-left:52px; font-size:20px; color:#333D4B; line-height:1.5; display:flex; flex-direction:column; align-items:flex-start; gap:16px;}
+	.history_wrap .list .history_content strong {position:absolute; top:0; left:0; font-weight:600;}
+	.history_wrap .list .history_content .imgfit {width:550px; max-width:100%; aspect-ratio:55/31; border-radius:12px;}
+	.history_wrap .list li:nth-child(2n) {flex-direction:row-reverse;}
+	.history_wrap .list li:nth-child(2n) h3 {text-align:left;}
+	.history_wrap .list li:nth-child(2n) .history_content {padding-left:0; padding-right:76px;}
+	.history_wrap .list li:nth-child(2n) .history_content:before {left:auto; right:0;}
+	.history_wrap .list li:nth-child(2n) .history_content:after {left:auto; right:-10px;}
+	.history_wrap .list li:nth-child(2n) li {text-align:right; padding-left:0; padding-right:52px; align-items:flex-end;}
+	.history_wrap .list li:nth-child(2n) strong {left:auto; right:0;}
+/* 조직도 */
+	.organization_chart {border:#58B431 1px solid; border-radius:16px; padding:24px 24px 64px; margin-bottom:120px;}
+	.organization_chart .flex {justify-content:flex-end; margin-bottom:42px;}
+	.organization_chart .excl {font-size:16px; color:#6B7684; line-height:1.4; padding-left:32px; line-height:24px; background:url('/pub/images/icon_excl_blue.svg') no-repeat 0 0;}
+	.organization_chart .boss {font-size:22px; color:#fff; font-weight:600; line-height:160px; height:160px; width:160px; margin:0 auto; background:#00A6D9 url('/pub/images/bg_organization_chart_boss.svg') no-repeat 100% 100%; border-radius:50%; text-align:center;}
+	.organization_chart .teams {position:relative; display:flex; justify-content:center; gap:120px; width:100%; max-width:1220px; margin:0 auto; padding-top:50px; margin-top:50px;}
+	.organization_chart .teams:before {content:""; position:absolute; top:-50px; left:50%; width:1px; height:50px; background:#E5E8EB;}
+	.organization_chart .teams li {position:relative; color:#333D4B; font-weight:600; line-height:70px; height:70px; width:300px; text-align:center; border-radius:35px;}
+	.organization_chart .teams li:before,
+	.organization_chart .teams li:after {content:""; position:absolute; top:-50px; left:50%; background:#E5E8EB;}
+	.organization_chart .teams li:before {width:100%; height:1px;}
+	.organization_chart .teams li:after {width:1px; height:50px;}
+	.organization_chart .teams .c1 {background:#FFEFC0;}
+	.organization_chart .teams .c2 {background:#DDF9CB;}
+	.organization_chart .teams .c3 {background:#E6F2F9;}
+	.organization_chart .teams .c2:before {transform:translateX(-50%);}
+	.organization_chart .teams .c3:before {left:auto; right:50%;}
+	.organization_list .tbl thead th {background:#FAFAFA;}
+/* CI */
+	.ci_top {background-image:url('/pub/images/bg_ci_top.webp'); display:flex; flex-direction:column; justify-content:center; align-items:flex-start; padding:64px 80px;}
+	.ci_top p {font-size:20px; font-weight:400; line-height:1.5; margin-top:16px;}
+	.ci_top .btns {display:flex; gap:16px; margin-top:40px;}
+	.ci_top .btns .btn {width:280px; height:62px; line-height:62px; font-size:20px; font-weight:600; border-radius:32px;}
+	.ci_wrap {padding-top:120px;}
+	.symbolmark,
+	.ci_list li .imgfit {border:#E5E8EB 1px solid; border-radius:16px;}
+	.symbolmark {height:320px; padding:70px; text-align:center;}
+	.symbolmark img {max-height:100%;}
+	.ci_list {display:flex; flex-wrap:wrap; gap:48px 24px;}
+	.ci_list li {width:calc((100% - 48px)/3);}
+	.ci_list li .imgfit {height:196px; padding:46px 40px; margin-bottom:16px;}
+	.ci_list li .imgfit img {width:auto; height:auto; object-fit:contain;}
+	.ci_list li p {font-size:20px; color:#4E5968; font-weight:500; line-height:1.5;}
+/* 오시는 길 */
+	.map_area {width:100%; height:550px; border-radius:16px; overflow:hidden;}
+	.map_text {position:relative; margin-top:24px; box-shadow:0 0 12px 0 rgba(0, 0, 0, 0.10); border-radius:16px; padding:40px 64px; display:flex;}
+	.map_text .logo {width:251px; aspect-ratio:251/60; background:url('/pub/images/logo_location.svg') no-repeat 50% 50% / contain;}
+	.map_text .info {position:relative; width:calc(100% - 315px); border-left:#E5E8EB 1px solid; padding-left:64px; margin-left:64px;}
+	.map_text .info ul {display:flex; flex-direction:column; gap:8px;}
+	.map_text .info li {position:relative; padding-left:97px;}
+	.map_text .info li h3 {position:absolute; top:0; left:0; font-weight:600; background:no-repeat 0 50%; padding-left:34px;}
+	.map_text .info li h3:before {content:""; position:absolute; top:50%; left:0; width:26px; aspect-ratio:1/1; border-radius:50%; background:#00A6D9 no-repeat 50% 50% / contain; transform:translateY(-50%);}
+	.map_text .info li p {color:#333D4B;}
+	.map_text .info li.i1 h3:before {background-image:url('/pub/images/icon_map_info01.svg');}
+	.map_text .info li.i2 h3:before {background-image:url('/pub/images/icon_map_info02.svg');}
+	.map_text .info li.i3 h3:before {background-image:url('/pub/images/icon_map_info03.svg');}
+	.map_text .info li.i4 h3:before {background-image:url('/pub/images/icon_map_info04.svg');}
+	.map_text .map_links {position:absolute; bottom:0; right:0; display:flex; gap:12px;}
+	.map_text .map_links .btn {display:flex; justify-content:center; align-items:center; gap:8px; height:50px; line-height:50px; width:180px; font-size:17px; font-weight:600;}
+	.map_text .map_links .btn:before {content:""; display:block; width:14px; aspect-ratio:7/10; background:no-repeat 50% 50% / contain;}
+	.map_text .map_links .btn_naver {color:#fff; background:#00C300;}
+	.map_text .map_links .btn_kakao {color:#333D4B; background:#FFE812;}
+	.map_text .map_links .btn_naver:before {background-image:url('/pub/images/btn_naver.svg');}
+	.map_text .map_links .btn_kakao:before {background-image:url('/pub/images/btn_kakao.png');}
+
+/* 반응형 */
+@media screen and (max-width:1600px){
+/* 미션 및 비전 */
+	.mission_vision01 .inbox {padding:80px 60px;}
+	.mission_vision02 .missvis .imgfit {width:50%;}
+	.mission_vision02 .missvis .txt {width:50%; padding-left:40px;}
+	.mission_vision03 .core_values li {padding:48px 24px;}
+}
+
+@media screen and (max-width:1279px){
+/* 인사말 */
+	.about_top p {font-size:20px;}
+	.about_area .tit strong {font-size:22px; margin-bottom:28px;}
+	.about_area .tit p {font-size:18px;}
+	.about_area .ibox {gap:20px;}
+	.about_area .ibox li {width:calc((100% - 40px)/3);}
+	.about_area .btm p {font-size:18px;}
+	.about_area .btm .sign {font-size:22px; margin-top:20px;}
+	.about_area .btm .sign img {width:180px;}
+/* 미션 및 비전 */
+	.ctit {font-size:28px;}
+	.ctit ~ .ctit {margin-top:100px;}
+	.mission_vision01 .center {width:240px; font-size:20px;}
+	.mission_vision01 .center:before {width:500px;}
+	.mission_vision01 ul {gap:20px calc(50% - 360px);}
+	.mission_vision01 li {width:360px; padding:24px 80px;}
+	.mission_vision01 li:before {left:20px;}
+	.mission_vision01 li span {right:20px;}
+	.mission_vision01 li.left {padding-right:70px;}
+	.mission_vision01 li.right {padding-left:70px;}
+	.mission_vision01 li.right:before {right:20px;}
+	.mission_vision01 li.right span {left:20px;}
+	.mission_vision01 li.i1,
+	.mission_vision01 li.i3 {margin-left:20px;}
+	.mission_vision01 li.i4,
+	.mission_vision01 li.i6 {margin-right:20px;}
+	.mission_vision02 {padding:100px 0;}
+	.mission_vision02 .missvis .tit h3 {font-size:26px;}
+	.mission_vision02 .missvis .tit span {font-size:18px;}
+	.mission_vision02 .missvis p {font-size:18px;}
+	.mission_vision02 .edu_goals h3 {font-size:18px;}
+	.mission_vision02 .edu_goals strong {font-size:20px;}
+	.mission_vision02 .edu_goals p {font-size:18px;}
+	.mission_vision03 {padding-top:100px;}
+	.mission_vision03 .core_values span {font-size:18px;}
+	.mission_vision03 .core_values h3 {font-size:18px;}
+	.mission_vision03 .operational_direction li {padding:24px; font-size:18px; background-position:right 24px bottom 24px;}
+/* 연혁 */
+	.history_top p {font-size:20px;}
+	.history_wrap {padding-top:120px;}
+	.history_wrap .list .history_content {padding:6px 0 6px 50px;}
+	.history_wrap .list .history_content li {font-size:18px;}
+	.history_wrap .list li:nth-child(2n) .history_content {padding-right:50px;}
+/* CI */
+	.ci_top {padding:56px 60px;}
+	.ci_top p {font-size:18px;}
+	.ci_top .btns {margin-top:32px;}
+	.ci_top .btns .btn {width:260px; height:56px; line-height:56px; font-size:18px;}
+	.ci_wrap {padding-top:100px;}
+	.symbolmark {height:280px; padding:50px;}
+	.ci_list {gap:48px 20px;}
+	.ci_list li {width:calc((100% - 40px)/3);}
+	.ci_list li .imgfit {height:180px; padding:40px 32px;}
+	.ci_list li p {font-size:18px;}
+/* 오시는 길 */
+	.map_area {height:500px;}
+	.map_text {padding:32px 48px;}
+	.map_text .logo {width:220px;}
+	.map_text .info {width:calc(100% - 276px); padding-left:56px; margin-left:56px;}
+	.map_text .map_links {gap:8px;}
+	.map_text .map_links .btn {height:48px; line-height:48px; width:160px; font-size:16px;}
+}
+
+@media screen and (max-width:1023px){
+/* 인사말 */
+	.about_top {gap:12px;}
+	.about_top .dda:before,
+	.about_top .dda:after {top:6px;}
+	.about_top p {font-size:18px;}
+	.about_area {padding-top:56px;}
+	.about_area .tit strong {font-size:20px; margin-bottom:24px;}
+	.about_area .tit p {font-size:16px;}
+	.about_area .ibox {gap:16px; margin:60px 0;}
+	.about_area .ibox li {width:calc((100% - 32px)/3); padding:24px; border-radius:12px;}
+	.about_area .ibox li:before {width:56px; height:56px; margin-bottom:12px; background-size:50%;}
+	.about_area .btm p {font-size:16px;}
+	.about_area .btm .sign {font-size:20px; margin-top:16px;}
+	.about_area .btm .sign img {width:140px;}
+/* 미션 및 비전 */
+	.ctit {font-size:24px; margin-bottom:20px;}
+	.ctit ~ .ctit {margin-top:80px;}
+	.mission_vision01 {padding-bottom:60px;}
+	.mission_vision01 .inbox {padding:60px 20px;}
+	.mission_vision01 .tit {font-size:18px; padding:6px 30px;}
+	.mission_vision01 .chart_area {padding:30px 0; margin-top:40px;}
+	.mission_vision01 .center {width:200px; font-size:16px; padding:30px;}
+	.mission_vision01 .center:before {width:400px;}
+	.mission_vision01 ul {gap:12px calc(50% - 270px);}
+	.mission_vision01 li {width:270px; padding:20px 60px;}
+	.mission_vision01 li:before {left:10px; width:40px;}
+	.mission_vision01 li span {right:10px; width:30px; line-height:30px; font-size:14px;}
+	.mission_vision01 li h4 {font-size:18px; margin-bottom:6px;}
+	.mission_vision01 li.left {padding-right:50px;}
+	.mission_vision01 li.right {padding-left:50px;}
+	.mission_vision01 li.right:before {right:10px;}
+	.mission_vision01 li.right span {left:10px;}
+	.mission_vision01 li.i1,
+	.mission_vision01 li.i3 {margin-left:10px;}
+	.mission_vision01 li.i4,
+	.mission_vision01 li.i6 {margin-right:10px;}
+	.mission_vision01 li.i5:before {width:42px;}
+	.mission_vision02 {padding:80px 0;}
+	.mission_vision02 ul {gap:12px;}
+	.mission_vision02 .missvis li {border-radius:12px;}
+	.mission_vision02 .missvis .txt {padding:20px 20px 20px 30px;}
+	.mission_vision02 .missvis .txt:before {width:32px; height:32px; margin-bottom:12px;}
+	.mission_vision02 .missvis .tit h3 {font-size:22px;}
+	.mission_vision02 .missvis .tit span {font-size:16px;}
+	.mission_vision02 .missvis p {font-size:16px;}
+	.mission_vision02 .edu_goals li {width:calc(50% - 6px); border-radius:12px; padding:30px;}
+	.mission_vision02 .edu_goals h3 {font-size:16px; line-height:34px; padding:0 20px;}
+	.mission_vision02 .edu_goals strong {font-size:18px; margin:12px 0 6px;}
+	.mission_vision02 .edu_goals p {font-size:16px;}
+	.mission_vision03 {padding-top:80px;}
+	.mission_vision03 .ctit {margin-bottom:32px;}
+	.mission_vision03 .core_values {gap:30px;}
+	.mission_vision03 .core_values li {width:calc((100% - 60px)/3); border-radius:12px; padding:32px 12px;}
+	.mission_vision03 .core_values span {font-size:16px; line-height:32px; height:32px; padding:0 20px;}
+	.mission_vision03 .core_values h3 {font-size:16px; margin:12px 0 4px;}
+	.mission_vision03 .operational_direction {gap:12px;}
+	.mission_vision03 .operational_direction li {width:calc((100% - 36px)/4); height:230px; border-radius:12px; padding:20px; font-size:16px; background-position:right 20px bottom 20px;}
+/* 연혁 */
+	.history_top {gap:12px;}
+	.history_top p {font-size:18px;}
+	.history_wrap {padding-top:100px;}
+	.history_wrap .list {gap:56px;}
+	.history_wrap .list h3 {font-size:30px; padding:0 30px;}
+	.history_wrap .list .history_content {gap:20px; padding:6px 0 6px 40px;}
+	.history_wrap .list .history_content:before {top:17px; width:30px;}
+	.history_wrap .list .history_content:after {top:7px;}
+	.history_wrap .list .history_content li {padding-left:40px; font-size:16px; gap:12px;}
+	.history_wrap .list li:nth-child(2n) .history_content {padding-right:40px;}
+	.history_wrap .list li:nth-child(2n) li {padding-right:40px;}
+/* 조직도 */
+	.organization_chart {border-radius:12px; padding:20px 20px 56px; margin-bottom:100px;}
+	.organization_chart .flex {margin-bottom:32px;}
+	.organization_chart .excl {font-size:15px;}
+	.organization_chart .boss {font-size:20px; line-height:140px; height:140px; width:140px;}
+	.organization_chart .teams {gap:60px; padding-top:40px; margin-top:40px;}
+	.organization_chart .teams:before {top:-40px; height:40px;}
+	.organization_chart .teams li {line-height:60px; height:60px;}
+	.organization_chart .teams li:before,
+	.organization_chart .teams li:after {top:-40px;}
+	.organization_chart .teams li:after {height:40px;}
+/* CI */
+	.ci_top {padding:40px;}
+	.ci_top p {font-size:16px; margin-top:12px;}
+	.ci_top .btns {gap:12px; margin-top:24px;}
+	.ci_top .btns .btn {width:220px; height:48px; line-height:48px; font-size:16px;}
+	.ci_wrap {padding-top:80px;}
+	.symbolmark {height:240px; padding:40px;}
+	.ci_list {gap:32px 16px;}
+	.ci_list li {width:calc((100% - 32px)/3);}
+	.ci_list li .imgfit {height:140px; padding:30px 24px; margin-bottom:12px;}
+	.ci_list li p {font-size:16px;}
+/* 오시는 길 */
+	.map_area {height:400px; border-radius:12px;}
+	.map_text {margin-top:20px; border-radius:12px; padding:24px 32px;}
+	.map_text .logo {width:180px;}
+	.map_text .info {width:calc(100% - 210px); padding-left:30px; margin-left:30px;}
+	.map_text .info li {padding-left:80px;}
+	.map_text .info li h3 {padding-left:30px;}
+	.map_text .info li h3:before {width:22px;}
+	.map_text .map_links {position:relative; justify-content:flex-end; margin-top:24px;}
+	.map_text .map_links .btn {gap:6px; height:40px; line-height:40px; width:140px; font-size:14px;}
+}
+
+@media screen and (max-width:767px){
+/* 인사말 */
+	.about_top {gap:8px;}
+	.about_top .dda:before,
+	.about_top .dda:after {top:6px; width:8px;}
+	.about_top .dda:before {left:-14px;}
+	.about_top .dda:after {right:-14px;}
+	.about_top p {font-size:13px;}
+	.about_area {padding-top:32px;}
+	.about_area .tit strong {font-size:16px; margin-bottom:16px;}
+	.about_area .tit p {font-size:14px;}
+	.about_area .ibox {gap:12px; flex-direction:column; margin:32px 0;}
+	.about_area .ibox li {position:relative; width:100%; padding:16px 16px 16px 72px; text-align:left; min-height:72px;}
+	.about_area .ibox li:before {position:absolute; top:16px; left:16px; width:40px; height:40px; margin-bottom:0;}
+	.about_area .btm p {font-size:14px;}
+	.about_area .btm .sign {font-size:16px; margin-top:12px;}
+	.about_area .btm .sign img {width:100px;}
+/* 미션 및 비전 */
+	.ctit {font-size:18px; margin-bottom:16px;}
+	.ctit ~ .ctit {margin-top:50px;}
+	.mission_vision01 {padding-bottom:50px;}
+	.mission_vision01 .inbox {padding:30px 16px;}
+	.mission_vision01 .tit {font-size:15px; padding:6px 20px;}
+	.mission_vision01 .chart_area {padding:20px 0; margin-top:32px;}
+	.mission_vision01 .center {position:relative; top:0; left:0; width:180px; font-size:14px; padding:24px; transform:none; margin:0 auto 48px;}
+	.mission_vision01 .center:before {width:240px;}
+	.mission_vision01 li {width:100%; height:auto; padding:20px 50px; order:0 !important; text-align:left !important;}
+	.mission_vision01 li:before {left:auto; right:16px; width:30px;}
+	.mission_vision01 li span {right:auto; left:16px; width:24px; line-height:24px; font-size:12px;}
+	.mission_vision01 li h4 {font-size:15px; margin-bottom:4px;}
+	.mission_vision01 li.right:before {right:16px;}
+	.mission_vision01 li.right span {left:16px;}
+	.mission_vision01 li.i1,
+	.mission_vision01 li.i3 {margin-left:0;}
+	.mission_vision01 li.i4,
+	.mission_vision01 li.i6 {margin-right:0;}
+	.mission_vision01 li.i5:before {width:32px;}
+	.mission_vision02 {padding:50px 0;}
+	.mission_vision02 .missvis li {flex-direction:column;}
+	.mission_vision02 .missvis .imgfit {width:100%;}
+	.mission_vision02 .missvis .txt {width:100%; padding:20px;}
+	.mission_vision02 .missvis .txt:before {width:24px; height:24px; margin-bottom:8px;}
+	.mission_vision02 .missvis .tit {gap:6px;}
+	.mission_vision02 .missvis .tit h3 {font-size:18px;}
+	.mission_vision02 .missvis .tit span {font-size:14px;}
+	.mission_vision02 .missvis p {font-size:14px; margin-top:6px;}
+	.mission_vision02 .edu_goals {flex-direction:column;}
+	.mission_vision02 .edu_goals li {width:100%; padding:24px;}
+	.mission_vision02 .edu_goals h3 {font-size:13px; line-height:30px; padding:0 16px;}
+	.mission_vision02 .edu_goals strong {font-size:16px; margin:8px 0 4px;}
+	.mission_vision02 .edu_goals p {font-size:13px;}
+	.mission_vision03 {padding-top:50px;}
+	.mission_vision03 .ctit {margin-bottom:24px;}
+	.mission_vision03 .core_values {gap:12px; flex-direction:column;}
+	.mission_vision03 .core_values li {width:100%; padding:24px 16px; aspect-ratio:3/2;}
+	.mission_vision03 .core_values span {font-size:13px; line-height:30px; height:30px; padding:0 16px;}
+	.mission_vision03 .core_values h3 {font-size:16px; margin:8px 0 4px;}
+	.mission_vision03 .operational_direction {flex-direction:column;}
+	.mission_vision03 .operational_direction li {width:100%; height:auto; min-height:72px; padding:16px 72px 16px 16px; font-size:13px; background-position:right 16px center; background-size:40px;}
+/* 연혁 */
+	.history_top p {font-size:14px;}
+	.history_wrap {padding-top:50px;}
+	.history_wrap .line {left:10px; transform:none;}
+	.history_wrap .list {gap:48px;}
+	.history_wrap .list > li {flex-direction:column !important;}
+	.history_wrap .list h3 {font-size:24px; padding:0 22px; width:auto; text-align:left;}
+	.history_wrap .list .history_content {gap:16px; padding:4px 0 4px 36px; width:100%;}
+	.history_wrap .list .history_content:before {top:13px; left:10px; width:20px;}
+	.history_wrap .list .history_content:after {top:5px; left:3px; width:16px; border-width:4px;}
+	.history_wrap .list .history_content li {padding-left:32px; font-size:14px; gap:8px;}
+	.history_wrap .list li:nth-child(2n) .history_content {padding-right:0; padding-left:36px;}
+	.history_wrap .list li:nth-child(2n) .history_content:before {left:10px; right:auto;}
+	.history_wrap .list li:nth-child(2n) .history_content:after {right:auto; left:3px;}
+	.history_wrap .list li:nth-child(2n) li {padding-right:0; padding-left:32px; align-items:flex-start;}
+	.history_wrap .list li:nth-child(2n) strong {left:0; right:auto;}
+/* 조직도 */
+	.organization_chart {padding:16px 16px 32px; margin-bottom:50px;}
+	.organization_chart .flex {margin-bottom:24px;}
+	.organization_chart .excl {font-size:13px; padding-left:28px; line-height:22px; background-size:22px;}
+	.organization_chart .boss {font-size:18px; line-height:100px; height:100px; width:100px;}
+	.organization_chart .teams {gap:10px; padding-top:24px; margin-top:24px;}
+	.organization_chart .teams:before {top:-24px; height:24px;}
+	.organization_chart .teams li {line-height:40px; height:40px; width:calc((100% - 20px)/3);}
+	.organization_chart .teams li:before,
+	.organization_chart .teams li:after {top:-24px;}
+	.organization_chart .teams li:after {height:24px;}
+	.mo_organization1 {width:20%;}
+	.mo_organization2 {width:35%;}
+	.organization_list .tbl td {padding:18px 12px;}
+/* CI */
+	.ci_top {padding:24px; background-position:75% 50%;}
+	.ci_top p {font-size:13px; margin-top:8px;}
+	.ci_top .btns {flex-direction:column; gap:6px; margin-top:16px; width:100%;}
+	.ci_top .btns .btn {width:100%; height:36px; line-height:36px; font-size:13px;}
+	.ci_wrap {padding-top:50px;}
+	.symbolmark {height:200px; padding:24px;}
+	.ci_list {gap:16px; flex-direction:column;}
+	.ci_list li {width:100%;}
+	.ci_list li .imgfit {height:120px; padding:20px 30px; margin-bottom:8px;}
+	.ci_list li p {font-size:13px;}
+/* 오시는 길 */
+	.map_area {height:240px;}
+	.map_text {margin-top:16px; padding:16px 24px; flex-direction:column;}
+	.map_text .logo {width:100%; height:40px; background-size:auto 40px;}
+	.map_text .info {width:100%; padding:24px 0 0; margin:24px 0 0; border-left:0; border-top:#E5E8EB 1px solid;}
+	.map_text .info li {padding-left:70px;}
+	.map_text .info li h3 {padding-left:26px;}
+	.map_text .info li h3:before {width:20px;}
+	.map_text .map_links {gap:4px;}
+	.map_text .map_links .btn {gap:4px; width:calc(50% - 2px); font-size:13px;}
+	.map_text .map_links .btn:before {width:10px;}
+}

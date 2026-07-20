@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_program.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(3)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(3)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(3) .snb li:nth-child(2)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(3) .snb li:nth-child(2)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(3)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(3) .snb li:nth-child(2)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "질문하고, 탐구하고, 만드는 울산광역시미래교육관의 교육 프로그램을 소개합니다."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="program_wrap inner" aria-labelledby="page-title">
+	<h1 id="page-title" class="sound_only"></h1>
+	
+	<div class="program_view">
+		<div class="program_top">
+			<div class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary_b01.webp" alt=""></div>
+			<div class="txt">
+				<h2>모두를 위한 가게, 나도 사장님</h2>
+				<ul class="pentagon_list">
+					<li><strong>대상</strong>초등학교 5학년</li>
+					<li><strong>시간</strong>총 190분(오리엔테이션 10분 + 퀘스트 탐색 100분 + <br class="pc_vw">사건해결(메이커) 60분 + 정리·일반화 20분)</li>
+					<li><strong>장소</strong>ESD체험터, 공작실1</li>
+					<li><strong>매체</strong>모둠별 태블릿 PC 1대(5~6명) + 자체개발 학습지원시스템 앱</li>
+				</ul>
+			</div>
+		</div>
+		
+		<div class="program_con">
+			<h2 class="sound_only">프로그램 상세 내용</h2>	
+			
+			<div class="box">
+				<h3>프로그램 소개</h3>
+				<div class="glbox">다양한 문화가 공존하는 다문화 가게 사장님이 되어 가는 여정을 통해, 다문화 사회에서 필요한 배려와 협업적 태도를 창업 활동이라는 주제로 체험하고 탐색합니다.</div>
+			</div>
+
+			<div class="box">
+				<h3>연계 SDGs</h3>
+				<div class="glbox">양질의 일자리와 경제성장 · 산업·혁신·사회기반시설 · 불평등 감소 · 도시와 공동체 · 지속가능한 생산과 소비 ·  정의·평화·효과적 제도 · 지구촌 협력</div>
+			</div>
+			
+			<div class="box">
+				<h3>활동목표</h3>
+				<ul class="glbox flower_dots_list">
+					<li>세계의 다양한 나라의 생활 모습을 이해할 수 있다</li>
+					<li>다문화 사회에서 외국인과 함께 일할 때 필요한 배려를 고민하고 실천할 수 있다</li>
+					<li>세계로 진출한 한국 기업에 대해 알아보고 함께 성장하는 우리나라를 기대할 수 있다</li>
+					<li>장애인, 어린이, 외국인 누구도 소외되지 않는 배려심을 키울 수 있다</li>
+				</ul>
+			</div>
+			
+			<div class="box">
+				<h3>퀘스트 구성</h3>
+				<ul class="glbox quest_step">
+					<li><div class="round"><span>QUEST</span><strong>1</strong></div><p>세계 출장, 창업 아이템을 찾아라</p></li>
+					<li><div class="round"><span>QUEST</span><strong>2</strong></div><p>너, 내 동료가 돼라!</p></li>
+					<li><div class="round"><span>QUEST</span><strong>3</strong></div><p>유 퀴즈 인 더 월드, 나라의 보물을 찾아라</p></li>
+					<li><div class="round"><span>QUEST</span><strong>4</strong></div><p>Welcome, 누구나 쇼핑</p></li>
+				</ul>
+			</div>
+			
+			<div class="box">
+				<h3>활동 결과물</h3>
+				<ul class="glbox activity_results_area">
+					<li><i class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary_b02.webp" alt=""></i><p>다문화 인증마크 병따개</p></li>
+					<li><i class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary_b03.webp" alt=""></i><p>다문화 비즈팔찌</p></li>
+				</ul>
+			</div>
+			
+		</div>
+		
+		<div class="program_btm">
+			<div class="tit">
+				<h2>다른 프로그램도 만나보세요!</h2>
+				<div class="control">
+					<div class="paging"></div>
+					<button type="button" class="arrow prev">이전</button>
+					<button type="button" class="arrow next">다음</button>
+				</div>
+			</div>
+			<div class="con program_list program_slide swiper">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary02_1.webp" alt=""></div>
+						<div class="txt">
+							<h3>살고 싶은 곳, 울산</h3>
+							<a href="/program/elementary1.html" class="btn_link">자세히 보기</a>
+						</div>
+					</div>
+					<div class="swiper-slide"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary02_2.webp" alt=""></div>
+						<div class="txt">
+							<h3>모두를 위한 가게, 나도 사장님</h3>
+							<a href="/program/elementary2.html" class="btn_link">자세히 보기</a>
+						</div>
+					</div>
+					<div class="swiper-slide"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary02_3.webp" alt=""></div>
+						<div class="txt">
+							<h3>몽돌이 데굴데굴</h3>
+							<a href="/program/elementary3.html" class="btn_link">자세히 보기</a>
+						</div>
+					</div>
+					<div class="swiper-slide"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary02_4.webp" alt=""></div>
+						<div class="txt">
+							<h3>유포석보 복원 프로젝트</h3>
+							<a href="/program/elementary4.html" class="btn_link">자세히 보기</a>
+						</div>
+					</div>
+					<div class="swiper-slide"><div class="imgfit" aria-hidden="true"><img src="/pub/images/img_elementary02_5.webp" alt=""></div>
+						<div class="txt">
+							<h3>지구를 구하는 요리사</h3>
+							<a href="/program/elementary5.html" class="btn_link">자세히 보기</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<link rel="stylesheet" href="/pub/css/swiper.css" media="all">
+<script src="/pub/js/swiper.js"></script>
+<script src="/pub/js/other_program_slide.js"></script>
+<script src="/pub/js/program_h3_height.js"></script>
+
+</body>
+</html>

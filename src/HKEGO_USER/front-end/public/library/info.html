@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_library.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                const header = document.querySelector('header');
+                                const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
+
+                                if (window.initCommonScript && hasGnb) { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    
+                                    const gnbTarget = header.querySelector('.gnb .list > li:nth-child(8)');
+									const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(8)');
+									const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(8) .snb li:nth-child(1)');
+									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(8) .snb li:nth-child(1)');
+									const asideTarget = document.querySelector('.aside div:nth-of-type(8)'); 
+									const asideSnbTarget = document.querySelector('.aside div:nth-of-type(8) .snb li:nth-child(1)');
+
+									if (gnbTarget) gnbTarget.classList.add('on');
+									if (sitemapTarget) sitemapTarget.classList.add('on');
+									if (snbTarget) snbTarget.classList.add('on');
+									if (sitemapSnbTarget) sitemapSnbTarget.classList.add('on');
+									if (asideTarget) asideTarget.classList.add('on');
+									if (asideSnbTarget) asideSnbTarget.classList.add('on');
+
+									const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
+									const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
+
+									const pText = "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요."; 
+
+                                    const titEl = document.querySelector('.aside_wrap .tit');
+                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const gnbNameEl = document.getElementById('gnbName');
+                                    const snbNameEl = document.getElementById('snbName');
+                                    const asideNameEl = document.getElementById('asideName');
+                                    const boardTitleEl = document.getElementById('page-title');
+
+                                    if (titEl) titEl.textContent = gnbText;
+                                    if (pEl) pEl.textContent = pText; 
+                                    if (gnbNameEl) gnbNameEl.textContent = gnbText;
+                                    if (snbNameEl) snbNameEl.textContent = snbText;
+                                    if (asideNameEl) asideNameEl.textContent = snbText;
+                                    if (boardTitleEl) boardTitleEl.textContent = snbText;
+                                    
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<div data-include="/pub/inc/aside.html"></div>
+<section class="library_wrap" aria-labelledby="page-title">
+	<h1 id="page-title" class="subtitle"></h1>
+
+	<div class="inner">
+		<div class="page_top_box library_top">울산광역시미래교육관 도서관은 <br class="pc_vw">학생과 시민 모두가 지속가능한 삶의 주인공으로 성장할 수 있도록, <br class="pc_vw">누구나 자유롭게 지식과 정보에 접근할 수 있는 열린 환경을 제공하기 위해 최선을 다하고 있습니다.</div>
+	</div>
+	
+	<div class="gbox library_info_area">
+		<div class="inner">
+			<div class="lrbox_area">
+			
+				<div class="lrbox">
+					<h2 class="tit">이용안내</h2>
+					<div class="con">
+						<ul class="user_infobox">
+							<li class="c1"><h3 class="tt">운영시간</h3><span>개관 후 안내</span></li>
+							<li class="c2"><h3 class="tt">휴관일</h3><span>매주 수요일 / 공휴일</span></li>
+							<li class="c3"><h3 class="tt">문의</h3><span>052-###-####</span></li>
+						</ul>
+					</div>
+				</div>
+			
+				<div class="lrbox">
+					<h2 class="tit">이용절차</h2>
+					<div class="con">
+						<div class="stit"><h3>일반방문</h3> <span>(자유열람)</span></div>
+						<ol class="info_step type1">
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_a01.svg" alt=""></i><span>STEP 01</span><h4>입장</h4><p>1층 로비 도서분실방지 게이트 통과</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_a02.svg" alt=""></i><span>STEP 02</span><h4>소지품 보관</h4><p>1층 물품보관소 전자개폐식 락커 이용</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_a03.svg" alt=""></i><span>STEP 03</span><h4>자료 검색</h4><p>정보검색대에서 소장 자료 검색 및 위치 출력</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_a04.svg" alt=""></i><span>STEP 04</span><h4>자유 열람</h4><p>1층 또는 2층 개방형 서가 · 열람실에서 자유롭게 열람</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_a05.svg" alt=""></i><span>STEP 05</span><h4>대출 · 반납</h4><p>안내데스크 또는 무인대출반납기 이용</p></li>
+						</ol>
+						
+						<div class="stit"><h3>단체방문</h3> <span>(사건탐구 프로그램 연계 이용 - 사후 심화 자료 탐색)</span></div>
+						<ol class="info_step type2">
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_b01.svg" alt=""></i><span>STEP 01</span><h4>예약</h4><p>교육청 홈페이지 예약 (개관 후 별도 안내)</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_b02.svg" alt=""></i><span>STEP 02</span><h4>입장 · 오리엔테이션</h4><p>1층 무대에서 이용안내 및 OT 진행</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_b03.svg" alt=""></i><span>STEP 03</span><h4>자료 탐색</h4><p>프로젝트 수업 주제 관련 자료 탐색 및 열람</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_b04.svg" alt=""></i><span>STEP 04</span><h4>심화 활동(선택)</h4><p>회의실에서 소그룹 토론 · 탐구 활동</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_b05.svg" alt=""></i><span>STEP 05</span><h4>마무리</h4><p>대출 · 반납 후 퇴장</p></li>
+						</ol>
+
+						<div class="stit"><h3>단체방문</h3> <span>(미션 프로그램 연계 이용)</span></div>
+						<ol class="info_step type3">
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_c01.svg" alt=""></i><span>STEP 01</span><h4>1층 무대</h4><p>미션 스토리 제시<br/>영상 관람 (10분)</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_c02.svg" alt=""></i><span>STEP 02</span><h4>1~2층 열람실</h4><p>팀별 미션, 동선 확인<br/>(20분)</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_c03.svg" alt=""></i><span>STEP 03</span><h4>ESD체험터 이동</h4><p>각 존 미션 수행<br/>(100분)</p></li>
+							<li><i aria-hidden="true"><img src="/pub/images/icon_info_step_c01.svg" alt=""></i><span>STEP 04</span><h4>1층 무대 복귀</h4><p>회의실에서 소그룹<br class="pc_vw"/>토론 · 탐SDGs 히어로즈 완성 · 마무리 (10분)구 활동</p></li>
+						</ol>
+					</div>
+				</div>
+			
+				<div class="lrbox">
+					<h2 class="tit">시설현황</h2>
+					<div class="con facility_status_area">
+						<div class="imgbox flex_center"><img src="/pub/images/img_facility_status.webp" alt=""></div>
+						<div class="tbl">
+							<table>
+								<caption>시설현황 목록</caption>
+								<thead>
+									<tr>
+										<th>시설</th>
+										<th>위치</th>
+										<th>내용</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<th>안내데스크</th>
+										<td>1층 로비</td>
+										<td class="tal">대출 · 반납 안내, 운영자 PC</td>
+									</tr>
+									<tr>
+										<th>무인대출반납기</th>
+										<td>1층 로비 1층 · 2층 각 1대</td>
+										<td class="tal">셀프 대출 · 반납 가능</td>
+									</tr>
+									<tr>
+										<th>정보검색대</th>
+										<td>1층 로비</td>
+										<td class="tal">소장 자료 검색 및 위치 출력</td>
+									</tr>
+									<tr>
+										<th>물품보관소</th>
+										<td>1층 로비</td>
+										<td class="tal">전자개폐식 락커 120개</td>
+									</tr>
+									<tr>
+										<th>개방형 서가 · 열람실</th>
+										<td>1층 (30명) / 2층 (60명)</td>
+										<td class="tal">자유 열람 공간</td>
+									</tr>
+									<tr>
+										<th>무대</th>
+										<td>1층</td>
+										<td class="tal">소규모 공연 · 강연 · OT</td>
+									</tr>
+									<tr>
+										<th>강동초 기록실</th>
+										<td>2층</td>
+										<td class="tal">강동초 역사 · 기록사진 전시</td>
+									</tr>
+									<tr>
+										<th>회의실 1 · 2</th>
+										<td>2층</td>
+										<td class="tal">각 10명, 65인치 모니터</td>
+									</tr>
+									<tr>
+										<th>도서분실방지 게이트</th>
+										<td>1층 · 2층 출입구</td>
+										<td class="tal">자료 분실 방지 · 이용자 카운팅</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			
+				<div class="lrbox">
+					<h2 class="tit">이용 시 주의사항</h2>
+					<div class="con library_info_excl">
+						<ul class="list">
+							<li class="i1">도서 대출 · 반납은 안내데스크 또는 무인대출반납기를 이용해 주세요.</li>
+							<li class="i2">소지품은 1층 물품보관소 락커에 <br class="pc_vw">보관하실 수 있습니다.</li>
+							<li class="i3">음식물 반입은 삼가 주시기 바랍니다.</li>
+							<li class="i4">도서 분실 방지를 위해 출입 시 <br class="pc_vw">게이트를 통과해 주세요.</li>
+							<li class="i5">회의실 이용은 사전 예약 후 <br class="pc_vw">이용 가능합니다. (개관 후 별도 안내)</li>
+						</ul>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+</body>
+</html>

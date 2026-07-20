@@ -1,0 +1,70 @@
+/* 전시소개 */
+	.exhibit_area {position:relative; border-radius:20px; padding:40px;}
+	.exhibit_area .tit {font-size:36px; font-weight:600; line-height:1.4; margin-bottom:40px; text-align:center; display:flex; justify-content:center; align-items:center; z-index:2;}
+	.exhibit_area .wbox {background:#fff; border-radius:16px; padding:26px;}
+	.exhibit_area .inbox {position:relative; width:100%; max-width:1200px; margin:0 auto; text-align: center;}
+	.exhibit_area .btns {position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;}
+	.exhibit_area .btns svg {max-width:100%; height:auto;}
+	.exhibit_area .btns .btn {cursor:pointer;}
+	.exhibit_area .btns rect,
+	.exhibit_area .btns path {transition:.2s linear;}
+	.exhibit_area.exhibit1 {background:#F6FFEE;}
+	.exhibit_area.exhibit2 {background:#EAF7FF;}
+	.exhibit_area.exhibit3 {background:#F6EAFF;}
+	.exhibit_area.exhibit4 {background:#FFEBF6;}
+	.exhibit_area.exhibit5 {background:#FFFAEC;}
+/* 전시소개 팝업 */
+	.pop_floor .time {display:flex; align-items:center; gap:8px; margin-top:16px; background:#EAF7FF; border-radius:12px; padding:16px 24px; font-size:16px; line-height:22px;}
+	.pop_floor .time strong {position:relative; color:#0075BA; font-weight:600; padding-left:26px;}
+	.pop_floor .time strong:before {content:""; position:absolute; top:0; left:0; width:22px; height:22px; background:#0075BA; mask:url('/pub/images/icon_time.svg') no-repeat 50% 50% / contain; -webkit-mask:url('/pub/images/icon_time.svg') no-repeat 50% 50% / contain;}
+	.pop_floor .time span {color:#333D4B; font-weight:500;}
+
+/* ------------------------------ PC Guide ------------------------------ */
+@media screen and (max-width:1279px){
+/* 전시소개 */
+	.exhibit_area .tit {font-size:32px; margin-bottom:32px;}
+}
+
+/* ------------------------------ Hover ------------------------------ */
+@media screen and (min-width:1024px){
+	.exhibit_area .btns .btn:hover .bg,
+	.exhibit_area .btns .btn:hover .dot {fill:#fff;}
+	.exhibit_area.exhibit1 .btns .btn:hover .bg {fill:#58B431;}
+	.exhibit_area.exhibit1 .btns .btn:hover .text {fill:#fff;}
+	.exhibit_area.exhibit2 .btns .btn:hover .bg {fill:#00A6D9;}
+	.exhibit_area.exhibit2 .btns .btn:hover .text {fill:#fff;}
+	.exhibit_area.exhibit3 .btns .btn:hover .bg {fill:#9900FF;}
+	.exhibit_area.exhibit3 .btns .btn:hover .text {fill:#fff;}
+	.exhibit_area.exhibit4 .btns .btn:hover .bg {fill:#E11785;}
+	.exhibit_area.exhibit4 .btns .btn:hover .text {fill:#fff;}
+	.exhibit_area.exhibit5 .btns .btn:hover .bg {fill:#F5A200;}
+	.exhibit_area.exhibit5 .btns .btn:hover .text {fill:#fff;}
+}
+
+/* ------------------------------ Tablet PC ------------------------------ */
+@media screen and (max-width:1023px){
+/* 전시소개 */
+	.exhibit_area {border-radius:16px; padding:30px;}
+	.exhibit_area .tit {font-size:28px; margin-bottom:28px;}
+	.exhibit_area .wbox {border-radius:12px; padding:20px;}
+}
+
+/* ------------------------------ Mobile ------------------------------ */
+@media screen and (max-width:767px){
+/* 전시소개 */
+	.exhibit_area {border-radius:12px; padding:24px;}
+	.exhibit_area .tit {font-size:18px; margin-bottom:16px;}
+	.exhibit_area .wbox {padding:16px;}
+/* 전시소개 팝업 */
+	.pop_floor .time {margin-top:12px; padding:12px 16px; font-size:14px; line-height:20px;}
+	.pop_floor .time strong {padding-left:24px;}
+	.pop_floor .time strong:before {width:18px; height:18px;}
+/* 모바일용 팝업 버튼 */
+	.mo_btns.mo_vw {display: flex !important; flex-wrap: wrap; gap:8px; margin-top:24px;}
+	.mo_btns button {width:calc(50% - 4px); height:40px; border:2px solid; border-radius:10px; background: #fff; white-space:normal; padding:0 5px;  font-size:13px;}
+	.mo_btns.color1 button {border-color:#58B431;}
+	.mo_btns.color2 button {border-color:#00A6D9;}
+	.mo_btns.color3 button {border-color:#9900FF;}
+	.mo_btns.color4 button {border-color:#E11785;}
+	.mo_btns.color5 button {border-color:#F5A200;}
+}
