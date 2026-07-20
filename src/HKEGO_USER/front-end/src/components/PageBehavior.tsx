@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import type { LegacyEffect } from '@/lib/legacyPages'
+import type { PageBehaviorName } from '@/content/pageRegistry'
 
-type LegacyPageEffectsProps = { effect?: LegacyEffect }
+type PageBehaviorProps = { behavior?: PageBehaviorName }
 
 function matchHeightByRow(selector: string) {
 	const items = Array.from(document.querySelectorAll<HTMLElement>(selector))
@@ -16,9 +16,32 @@ function matchHeightByRow(selector: string) {
 	})
 }
 
-export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
+export default function PageBehavior({ behavior }: PageBehaviorProps) {
 	useEffect(() => {
-		if (effect === 'location-map') {
+		if (behavior === 'faq') {
+			const questions = Array.from(document.querySelectorAll<HTMLButtonElement>('.faq_wrap .question'))
+			const onClick = (event: Event) => {
+				const question = event.currentTarget as HTMLButtonElement
+				const box = question.closest('.box')
+				if (!box) return
+				const wasOpen = box.classList.contains('on')
+				document.querySelectorAll('.faq_wrap .box.on').forEach((item) => {
+					item.classList.remove('on')
+					item.querySelector('.question')?.setAttribute('aria-expanded', 'false')
+				})
+				if (!wasOpen) {
+					box.classList.add('on')
+					question.setAttribute('aria-expanded', 'true')
+				}
+			}
+			questions.forEach((question) => {
+				question.setAttribute('aria-expanded', 'false')
+				question.addEventListener('click', onClick)
+			})
+			return () => questions.forEach((question) => question.removeEventListener('click', onClick))
+		}
+
+		if (behavior === 'location-map') {
 			type Coordinate = object
 			type KakaoMap = { setCenter: (coordinate: Coordinate) => void }
 			type KakaoMaps = {
@@ -86,7 +109,7 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 			}
 		}
 
-		if (effect === 'popup') {
+		if (behavior === 'popup') {
 			type Slider = { destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void }
 			type SliderConstructor = new (element: Element, options: Record<string, unknown>) => Slider
 			let sliders: Slider[] = []
@@ -102,6 +125,23 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 					loop: true,
 					pagination: { el: element.querySelector('.pagination'), clickable: true }
 				}))
+				const galleryNavigation = document.querySelector('.pop_gallery .gallery_nav')
+				const galleryMain = document.querySelector('.pop_gallery .gallery_for')
+				if (galleryNavigation && galleryMain) {
+					const navigationSlider = new Swiper(galleryNavigation, {
+						spaceBetween: 8,
+						freeMode: true,
+						watchSlidesProgress: true,
+						slidesPerView: 3,
+						breakpoints: { 768: { slidesPerView: 4, spaceBetween: 10 }, 1024: { slidesPerView: 6, spaceBetween: 12 } }
+					})
+					sliders.push(navigationSlider)
+					sliders.push(new Swiper(galleryMain, {
+						spaceBetween: 10,
+						pagination: { el: galleryMain.querySelector('.pagination'), clickable: true },
+						thumbs: { swiper: navigationSlider }
+					}))
+				}
 			}
 			const onClick = (event: MouseEvent) => {
 				const target = event.target as Element
@@ -112,6 +152,8 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 					if (popup) {
 						lastFocused = openButton
 						popup.classList.add('open')
+						popup.setAttribute('aria-hidden', 'false')
+						popup.setAttribute('style', 'visibility: visible; opacity: 1; pointer-events: auto; user-select: auto;')
 						popup.querySelector<HTMLElement>('.btn_close')?.focus()
 					}
 					return
@@ -120,6 +162,8 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 				if (closeButton) {
 					const popup = closeButton.closest('.popup')
 					popup?.classList.remove('open')
+					popup?.setAttribute('aria-hidden', 'true')
+					popup?.removeAttribute('style')
 					lastFocused?.focus()
 				}
 			}
@@ -127,6 +171,8 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 				if (event.key !== 'Escape') return
 				const popup = document.querySelector('.popup.open')
 				popup?.classList.remove('open')
+				popup?.setAttribute('aria-hidden', 'true')
+				popup?.removeAttribute('style')
 				lastFocused?.focus()
 			}
 			initializeSliders()
@@ -136,12 +182,11 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 				if (retryTimer) clearTimeout(retryTimer)
 				document.removeEventListener('click', onClick)
 				window.removeEventListener('keydown', onKeyDown)
-				document.querySelectorAll('.popup.open').forEach((popup) => popup.classList.remove('open'))
 				sliders.forEach((slider) => slider.destroy(true, true))
 			}
 		}
 
-		if (effect === 'program-slider') {
+		if (behavior === 'program-slider') {
 			type Slider = { destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void }
 			type SliderConstructor = new (element: string, options: Record<string, unknown>) => Slider
 			let slider: Slider | null = null
@@ -188,7 +233,69 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 			}
 		}
 
-		if (effect === 'program-height') {
+		if (behavior === 'library-sliders') {
+			type Slider = { destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void }
+			type SliderConstructor = new (element: string, options: Record<string, unknown>) => Slider
+			let sliders: Slider[] = []
+			let retryTimer: ReturnType<typeof setTimeout> | undefined
+			const renderPaging = (_slider: Slider, current: number, total: number) => `<strong>${String(current).padStart(2, '0')}</strong>/<span>${String(total).padStart(2, '0')}</span>`
+			const initialize = () => {
+				const Swiper = (window as typeof window & { Swiper?: SliderConstructor }).Swiper
+				if (!Swiper) {
+					retryTimer = setTimeout(initialize, 50)
+					return
+				}
+				if (document.querySelector('.book_slide')) sliders.push(new Swiper('.book_slide', {
+					slidesPerView: 2, spaceBetween: 10,
+					navigation: { nextEl: '.book_slide .arrow.next', prevEl: '.book_slide .arrow.prev' },
+					pagination: { el: '.book_slide .paging', type: 'custom', renderCustom: renderPaging },
+					breakpoints: { 768: { slidesPerView: 4, spaceBetween: 16 }, 1024: { slidesPerView: 3, spaceBetween: 20 }, 1280: { slidesPerView: 4, spaceBetween: 30 } }
+				}))
+				if (document.querySelector('.new_book_slide')) sliders.push(new Swiper('.new_book_slide', {
+					slidesPerView: 2, spaceBetween: 10,
+					navigation: { nextEl: '.new_book_slide .arrow.next', prevEl: '.new_book_slide .arrow.prev' },
+					pagination: { el: '.new_book_slide .paging', type: 'custom', renderCustom: renderPaging },
+					breakpoints: { 768: { slidesPerView: 4, spaceBetween: 20 }, 1024: { slidesPerView: 4, spaceBetween: 30 }, 1280: { slidesPerView: 4, spaceBetween: 40 } }
+				}))
+			}
+			initialize()
+			return () => {
+				if (retryTimer) clearTimeout(retryTimer)
+				sliders.forEach((slider) => slider.destroy(true, true))
+			}
+		}
+
+		if (behavior === 'library-month') {
+			const dateDisplay = document.querySelector<HTMLElement>('.month_select strong')
+			const previous = document.querySelector<HTMLButtonElement>('.month_select .arrow.prev')
+			const next = document.querySelector<HTMLButtonElement>('.month_select .arrow.next')
+			if (!dateDisplay || !previous || !next) return
+			const currentDate = new Date()
+			const update = () => { dateDisplay.textContent = `${currentDate.getFullYear()}. ${String(currentDate.getMonth() + 1).padStart(2, '0')}` }
+			const showPrevious = () => { currentDate.setMonth(currentDate.getMonth() - 1); update() }
+			const showNext = () => { currentDate.setMonth(currentDate.getMonth() + 1); update() }
+			update()
+			previous.addEventListener('click', showPrevious)
+			next.addEventListener('click', showNext)
+			return () => {
+				previous.removeEventListener('click', showPrevious)
+				next.removeEventListener('click', showNext)
+			}
+		}
+
+		if (behavior === 'total-search-tabs') {
+			const tabs = Array.from(document.querySelectorAll<HTMLLIElement>('.tabs_total_search li'))
+			const boxes = Array.from(document.querySelectorAll<HTMLElement>('.total_search_contents .box'))
+			const handlers = tabs.map((tab, index) => () => {
+				tabs.forEach((item) => item.classList.remove('on'))
+				tab.classList.add('on')
+				boxes.forEach((box, boxIndex) => { box.style.display = index === 0 || boxIndex === index - 1 ? 'block' : 'none' })
+			})
+			tabs.forEach((tab, index) => tab.querySelector('button')?.addEventListener('click', handlers[index]))
+			return () => tabs.forEach((tab, index) => tab.querySelector('button')?.removeEventListener('click', handlers[index]))
+		}
+
+		if (behavior === 'program-height') {
 			let resizeTimer: ReturnType<typeof setTimeout>
 			const update = () => {
 				matchHeightByRow('.program_types li h3')
@@ -207,7 +314,7 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 			}
 		}
 
-		if (effect === 'history') {
+		if (behavior === 'history') {
 			const bar = document.querySelector<HTMLElement>('.history_wrap .line .bar')
 			const lineWrap = document.querySelector<HTMLElement>('.history_wrap')
 			const items = document.querySelectorAll('.history_wrap .list > li')
@@ -234,7 +341,7 @@ export default function LegacyPageEffects({ effect }: LegacyPageEffectsProps) {
 				window.removeEventListener('scroll', onScroll)
 			}
 		}
-	}, [effect])
+	}, [behavior])
 
-	return null
+	return <span hidden data-page-behavior={behavior || 'none'} />
 }

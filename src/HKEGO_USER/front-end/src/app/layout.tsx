@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import UserAccessLogger from './UserAccessLogger'
 
@@ -33,16 +34,15 @@ export default function RootLayout({
 			<head>
 				<link rel="preload" href="/pub/css/font/Pretendard-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
 				<link rel="preload" href="/pub/css/font/Pretendard-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-				<link rel="stylesheet" href="/pub/css/font.css" precedence="legacy-base" />
-				<link rel="stylesheet" href="/pub/css/styles.css" precedence="legacy-base" />
-				<link rel="stylesheet" href="/pub/css/styles_main.css" precedence="legacy-base" />
-				<script src="/pub/js/swiper.js" />
-				<script src="/pub/js/legacy-header.js" defer />
+				<link rel="stylesheet" href="/pub/css/font.css" precedence="base-styles" />
+				<link rel="stylesheet" href="/pub/css/styles.css" precedence="base-styles" />
+				<link rel="stylesheet" href="/pub/css/styles_main.css" precedence="base-styles" />
 			</head>
 			<body>
 				<div className="blind_link"><a href="#mainContent">본문 바로가기</a></div>
 				<UserAccessLogger />
 				{children}
+				<Script src="/pub/js/swiper.js" strategy="afterInteractive" />
 			</body>
 		</html>
 	)

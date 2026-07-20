@@ -4,7 +4,7 @@ import SiteHeader from '@/components/SiteHeader'
 export default function NotFound() {
 	return (
 		<>
-			<link rel="stylesheet" href="/pub/css/styles_sub.css" precedence="legacy-subpage" />
+			<link rel="stylesheet" href="/pub/css/styles_sub.css" precedence="subpage-styles" />
 			<SiteHeader />
 			<main className="container error_wrap" id="mainContent">
 				<section className="inner" aria-labelledby="error-title">

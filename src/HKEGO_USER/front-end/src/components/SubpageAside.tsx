@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { resolveSiteHref, SITE_MENUS } from './siteNavigation'
+import { SITE_MENUS } from './siteNavigation'
 
 type SubpageAsideProps = {
 	menuIndex: number
@@ -27,10 +27,9 @@ export default function SubpageAside({ menuIndex, currentHref, title, descriptio
 					<button type="button" className="btn" aria-expanded={open} onClick={() => setOpen((value) => !value)}>{title}</button>
 					<div className={`sub${menuIndex + 1} on`}>
 						<ul className="snb">
-							{menu.children.map((child) => {
-								const href = resolveSiteHref(child.href)
-								return <li className={currentHref === href ? 'on' : ''} key={child.href}><a href={href}>{child.label}</a></li>
-							})}
+							{menu.children.map((child) => (
+								<li className={currentHref === child.href ? 'on' : ''} key={child.href}><a href={child.href}>{child.label}</a></li>
+							))}
 						</ul>
 					</div>
 				</nav>

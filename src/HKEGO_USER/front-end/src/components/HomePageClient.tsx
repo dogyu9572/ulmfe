@@ -190,9 +190,9 @@ export default function HomePageClient() {
 							<div className="txt"><h2 className="tit">자주 찾는 메뉴</h2><p>울산광역시 미래교육관의 <br />자주 찾는 메뉴들을 만나보세요!</p></div>
 							<ul className="links">
 								<li className="i1"><a href="/program/reserve"><i aria-hidden="true" />예약 안내</a></li>
-								<li className="i2"><a href="/about/location.html"><i aria-hidden="true" />오시는 길</a></li>
-								<li className="i3"><a href="/exhibit/floor_1f.html"><i aria-hidden="true" />전시 소개</a></li>
-								<li className="i4"><a href="/support/faq.html"><i aria-hidden="true" />FAQ</a></li>
+								<li className="i2"><a href="/about/location"><i aria-hidden="true" />오시는 길</a></li>
+								<li className="i3"><a href="/exhibit/floor_1f"><i aria-hidden="true" />전시 소개</a></li>
+								<li className="i4"><a href="/support/faq"><i aria-hidden="true" />FAQ</a></li>
 							</ul>
 						</div>
 						<div className="right flex">
@@ -228,21 +228,21 @@ export default function HomePageClient() {
 									<button type="button" className="arrow prev">이전</button><button type="button" className="arrow next">다음</button>
 								</div>
 								<div ref={exhibitRef} className="mc03a_slide swiper"><div className="swiper-wrapper">
-									{EXHIBITS.map((_, index) => <div className="swiper-slide" key={index}><a href="/news/exhibit_view.html"><img src="/pub/images/img_sample_mc03_a.webp" alt="" /><h3>울산미래교육관 기관 상징 공모</h3></a></div>)}
+									{EXHIBITS.map((_, index) => <div className="swiper-slide" key={index}><a href="/news/exhibit_view"><img src="/pub/images/img_sample_mc03_a.webp" alt="" /><h3>울산미래교육관 기관 상징 공모</h3></a></div>)}
 								</div></div>
 							</div>
 							<div className="right">
-								<h2 className="mtit">공지사항</h2><a href="/news/notice.html" className="btn_more">더보기</a>
+								<h2 className="mtit">공지사항</h2><a href="/news/notice" className="btn_more">더보기</a>
 								<ul className="main_notice">
-									{NOTICES.map((_, index) => <li key={index}><a href="/news/notice_view.html"><span className="imgfit"><img src="/pub/images/img_sample_mc03_b.webp" alt="" /></span><span className="txt"><h3>공무원 사칭 피해 주의하세요!</h3><p>최근 교육청 직원으로 속여 대량 발주를 미끼로 접근한 뒤, &quot;물품 대금을 대신 입금해달라&quot;며 돈을 가로채는 사기 피해가 발생하고 있습니다. 울산광역시교육청은 공식 절차 없이 물품납품, 결제액 대납 등을 요구하지 않습니다.</p><span className="date">2026-06-10</span></span></a></li>)}
+									{NOTICES.map((_, index) => <li key={index}><a href="/news/notice_view"><span className="imgfit"><img src="/pub/images/img_sample_mc03_b.webp" alt="" /></span><span className="txt"><h3>공무원 사칭 피해 주의하세요!</h3><p>최근 교육청 직원으로 속여 대량 발주를 미끼로 접근한 뒤, &quot;물품 대금을 대신 입금해달라&quot;며 돈을 가로채는 사기 피해가 발생하고 있습니다. 울산광역시교육청은 공식 절차 없이 물품납품, 결제액 대납 등을 요구하지 않습니다.</p><span className="date">2026-06-10</span></span></a></li>)}
 								</ul>
 							</div>
 						</div>
 						<div className="flex">
 							<div className="left">
-								<h2 className="mtit">갤러리</h2><a href="/gallery/index.html" className="btn_more">더보기</a>
+								<h2 className="mtit">갤러리</h2><a href="/gallery/index" className="btn_more">더보기</a>
 								<div ref={galleryRef} className="main_gallery swiper"><div className="swiper-wrapper">
-									{GALLERY_ITEMS.map((_, index) => <div className="swiper-slide" key={index}><a href="/gallery/view.html"><span className="imgfit"><img src="/pub/images/img_sample_mc03_c.webp" alt="" /></span><span className="txt"><h3>울산 미래 마을 디자이너를 찾아라!</h3><span className="date">2026-06-12</span></span></a></div>)}
+									{GALLERY_ITEMS.map((_, index) => <div className="swiper-slide" key={index}><a href="/gallery/index"><span className="imgfit"><img src="/pub/images/img_sample_mc03_c.webp" alt="" /></span><span className="txt"><h3>울산 미래 마을 디자이너를 찾아라!</h3><span className="date">2026-06-12</span></span></a></div>)}
 								</div></div>
 							</div>
 							<div className="right">

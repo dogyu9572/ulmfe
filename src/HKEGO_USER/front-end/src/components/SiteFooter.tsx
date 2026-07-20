@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { resolveSiteHref } from './siteNavigation'
 
 const RESERVATION_URL = 'https://use.go.kr/booking/index.do;jsessionid=18A242975D5071CBE5C0B679CB59722B'
 
@@ -42,10 +41,10 @@ export default function SiteFooter() {
 					<div className="top">
 						<div className="logo" aria-hidden="true" />
 						<ul className="links">
-							<li><a href={resolveSiteHref('/terms/policy.html')}>이용약관</a></li>
-							<li><a href={resolveSiteHref('/terms/privacy.html')}><strong>개인정보처리방침</strong></a></li>
-							<li><a href={resolveSiteHref('/terms/no_email.html')}>이메일 무단수집거부</a></li>
-							<li><a href={resolveSiteHref('/terms/cctv.html')}>영상정보처리기기 운영방침</a></li>
+							<li><a href="/terms/policy">이용약관</a></li>
+							<li><a href="/terms/privacy"><strong>개인정보처리방침</strong></a></li>
+							<li><a href="/terms/no_email">이메일 무단수집거부</a></li>
+							<li><a href="/terms/cctv">영상정보처리기기 운영방침</a></li>
 						</ul>
 					</div>
 					<div className="btm">

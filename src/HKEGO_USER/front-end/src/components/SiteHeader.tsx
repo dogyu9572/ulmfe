@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { resolveSiteHref, SITE_MENUS } from './siteNavigation'
+import { SITE_MENUS } from './siteNavigation'
 
 export default function SiteHeader() {
 	const pathname = usePathname()
@@ -86,10 +86,7 @@ export default function SiteHeader() {
 			<div className="gnb">
 				<ul className="list">
 					{SITE_MENUS.map((menu, index) => {
-						const menuActive = menu.children.some((child) => {
-							const resolved = resolveSiteHref(child.href)
-							return navigationPath === resolved || navigationPath === child.href
-						})
+						const menuActive = menu.children.some((child) => navigationPath === child.href)
 						return (
 						<li
 							className={`menu${menuActive ? ' on' : ''}${focusedMenu === index ? ' focus_open' : ''}`}
@@ -101,12 +98,12 @@ export default function SiteHeader() {
 								if (!event.currentTarget.contains(event.relatedTarget)) setFocusedMenu(null)
 							}}
 						>
-							<a href={resolveSiteHref(menu.href)}>{menu.label}</a>
+							<a href={menu.href}>{menu.label}</a>
 							<div className="snb">
 								<div className="tit">{menu.label}</div>
 								<ul>
 									{menu.children.map((child) => (
-										<li className={navigationPath === resolveSiteHref(child.href) || navigationPath === child.href ? 'on' : ''} key={child.href}><a href={resolveSiteHref(child.href)}>{child.label}</a></li>
+										<li className={navigationPath === child.href ? 'on' : ''} key={child.href}><a href={child.href}>{child.label}</a></li>
 									))}
 								</ul>
 							</div>
@@ -138,11 +135,11 @@ export default function SiteHeader() {
 			<div className="sitemap" aria-hidden={!menuOpen}>
 				<ul className="list inner">
 					{SITE_MENUS.map((menu, index) => {
-						const menuActive = menu.children.some((child) => navigationPath === resolveSiteHref(child.href) || navigationPath === child.href)
+						const menuActive = menu.children.some((child) => navigationPath === child.href)
 						return (
 						<li className={`menu${menuActive ? ' on' : ''}${mobileMenu === index ? ' open' : ''}`} key={menu.label}>
 							<a
-								href={resolveSiteHref(menu.href)}
+								href={menu.href}
 								aria-expanded={mobileMenu === index}
 								onClick={(event) => {
 									if (window.innerWidth > 1023) return
@@ -154,7 +151,7 @@ export default function SiteHeader() {
 							</a>
 							<ul className="snb">
 								{menu.children.map((child) => (
-									<li className={navigationPath === resolveSiteHref(child.href) || navigationPath === child.href ? 'on' : ''} key={child.href}><a href={resolveSiteHref(child.href)}>{child.label}</a></li>
+									<li className={navigationPath === child.href ? 'on' : ''} key={child.href}><a href={child.href}>{child.label}</a></li>
 								))}
 							</ul>
 						</li>
