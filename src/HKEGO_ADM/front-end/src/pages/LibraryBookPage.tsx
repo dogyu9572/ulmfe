@@ -21,6 +21,11 @@ type CodeDetail = {
 	useYn: string
 }
 
+type SessionInfo = {
+	adminId: string
+	adminName: string
+}
+
 type LibraryBook = {
 	bookSn: number | null
 	bookMngNo: string
@@ -113,6 +118,7 @@ const renderYnToggle = (
 )
 
 const monthOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+const newBookYearOptions = Array.from({ length: 201 }, (_, i) => String(2100 - i))
 
 export const LibraryBookPage: React.FC = () => {
 	const [list, setList] = useState<LibraryBook[]>([])
@@ -137,6 +143,7 @@ export const LibraryBookPage: React.FC = () => {
 	const [selectedBookSns, setSelectedBookSns] = useState<Set<number>>(new Set())
 
 	const [categoryOptions, setCategoryOptions] = useState<CodeDetail[]>([])
+	const [currentAdmin, setCurrentAdmin] = useState<SessionInfo>({ adminId: '', adminName: '' })
 	const [thumbMap, setThumbMap] = useState<Record<string, string>>({})
 	const [bookImageFile, setBookImageFile] = useState<File | null>(null)
 	const [bookImagePreviewUrl, setBookImagePreviewUrl] = useState('')
@@ -236,9 +243,28 @@ export const LibraryBookPage: React.FC = () => {
 		}
 	}, [])
 
+	const fetchSession = useCallback(async () => {
+		try {
+			const res = await fetch(`${BACKEND}/api/admin/auth/session`, { credentials: 'include' })
+			const result: ApiResponse<SessionInfo> = await res.json()
+			if (result.success && result.data) {
+				setCurrentAdmin({
+					adminId: result.data.adminId ?? '',
+					adminName: result.data.adminName ?? ''
+				})
+			}
+		} catch {
+			// 공통 인증 흐름에서 세션 오류를 처리합니다.
+		}
+	}, [])
+
 	useEffect(() => {
 		void fetchCategories()
 	}, [fetchCategories])
+
+	useEffect(() => {
+		void fetchSession()
+	}, [fetchSession])
 
 	useEffect(() => {
 		void fetchList(page)
@@ -270,7 +296,11 @@ export const LibraryBookPage: React.FC = () => {
 
 	const openNewPopup = () => {
 		setPopupMode('new')
-		setForm({ ...defaultForm, regYmd: new Date().toISOString().slice(0, 10) })
+		setForm({
+			...defaultForm,
+			regYmd: new Date().toISOString().slice(0, 10),
+			wrtrNm: currentAdmin.adminName || currentAdmin.adminId
+		})
 		resetImageState()
 		setError(null)
 		setPopupError(null)
@@ -319,6 +349,13 @@ export const LibraryBookPage: React.FC = () => {
 	}
 
 	const handleImageChange = (file: File | null) => {
+		if (file && !['image/jpeg', 'image/png'].includes(file.type)) {
+			setPopupError('도서 이미지는 JPG/PNG 형식만 업로드할 수 있습니다.')
+			setBookImageFile(null)
+			if (fileInputRef.current) fileInputRef.current.value = ''
+			return
+		}
+		setPopupError(null)
 		setBookImageFile(file)
 		if (objectUrlRef.current) {
 			window.URL.revokeObjectURL(objectUrlRef.current)
@@ -375,6 +412,7 @@ export const LibraryBookPage: React.FC = () => {
 			const body = {
 				...form,
 				bookImgAtchFileId: imageFiId,
+				wrtrNm: form.wrtrNm || currentAdmin.adminName || currentAdmin.adminId,
 				rcmdtnClsfCd: form.rcmdtnYn === 'Y' ? form.rcmdtnClsfCd : '',
 				relatedBookSns: (form.relatedBooks ?? []).map((book) => book.bookSn).filter((v): v is number => v != null)
 			}
@@ -791,7 +829,7 @@ export const LibraryBookPage: React.FC = () => {
 									<button type="button" className="admin-list-btn-sky" onClick={() => fileInputRef.current?.click()}>
 										파일 선택
 									</button>
-									<span className="muted">{bookImageDisplayName || 'JPG/PNG 형식 업로드 가능'}</span>
+									<span className="muted">{bookImageDisplayName || '도서 이미지는 0000*0000 size, JPG/PNG 형식 업로드 가능'}</span>
 								</div>
 							</td>
 						</tr>
@@ -879,11 +917,7 @@ export const LibraryBookPage: React.FC = () => {
 							<th>새로 들어온 도서</th>
 							<td>
 								<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-									<input
-										type="number"
-										min={1900}
-										max={2100}
-										placeholder="연도"
+									<select
 										value={form.newBookYr || ''}
 										onChange={(e) => {
 											const nextYear = e.target.value
@@ -893,7 +927,10 @@ export const LibraryBookPage: React.FC = () => {
 												newBookMm: nextYear.trim() ? form.newBookMm : ''
 											})
 										}}
-									/>
+									>
+										<option value="">연도전체</option>
+										{newBookYearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}
+									</select>
 									<select
 										value={form.newBookMm || ''}
 										disabled={!form.newBookYr}
@@ -936,18 +973,11 @@ export const LibraryBookPage: React.FC = () => {
 							<th>등록일</th>
 							<td><input type="date" value={form.regYmd || ''} onChange={(e) => setForm({ ...form, regYmd: e.target.value })} /></td>
 							<th>작성자</th>
-							<td><input type="text" value={form.wrtrNm || ''} onChange={(e) => setForm({ ...form, wrtrNm: e.target.value })} /></td>
+							<td>{form.wrtrNm || currentAdmin.adminName || currentAdmin.adminId || '-'}</td>
 						</tr>
 						<tr>
 							<th>조회수</th>
-							<td>
-								<input
-									type="number"
-									min={0}
-									value={form.inqCnt ?? 0}
-									onChange={(e) => setForm({ ...form, inqCnt: Number(e.target.value) || 0 })}
-								/>
-							</td>
+							<td>{form.inqCnt ?? 0}</td>
 							<th />
 							<td />
 						</tr>

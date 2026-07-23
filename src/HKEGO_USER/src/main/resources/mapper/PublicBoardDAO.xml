@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicBoardDAO">
+	<sql id="postColumns">
+		B.BBS_ID AS BOARD_ID,
+		B.PST_SN AS POST_ID,
+		B.PST_TTL AS TITLE,
+		B.PST_CN AS CONTENT,
+		B.WRTR_NM AS WRITER_NAME,
+		CASE WHEN B.BBS_ID = 'LRNSUP' THEN B.ETC1 ELSE B.CTGR_CD END AS CATEGORY_CODE,
+		CASE
+			WHEN B.BBS_ID = 'LRNSUP' THEN
+				CASE B.ETC1
+					WHEN 'PRE' THEN '사전학습'
+					WHEN 'MAIN' THEN '본학습'
+					WHEN 'POST' THEN '사후학습'
+					ELSE B.ETC1
+				END
+			ELSE C.CD_DTL_NM
+		END AS CATEGORY_NAME,
+		B.NTC_YN AS NOTICE_YN,
+		B.UPEND_FIX_YN AS PINNED_YN,
+		CASE
+			WHEN M.NEW_YN = 'Y'
+				AND TIMESTAMPDIFF(HOUR, B.REG_DT, NOW()) &lt;= COALESCE(M.NEW_NMTM, 0)
+			THEN 'Y'
+			ELSE 'N'
+		END AS NEW_YN,
+		B.LNKG_URL_ADDR AS LINK_URL,
+		B.PSTG_YMD AS PUBLISHED_DATE,
+		B.ATCH_FILE_MNG_NO AS ATTACHMENT_FILE_ID,
+		B.THMB_FILE_ID AS THUMBNAIL_FILE_ID,
+		(
+			SELECT F.ATCH_FILE_PATH_NM
+			FROM ATCH_FILE_INFO F
+			WHERE F.ATCH_FILE_MNG_NO = B.THMB_FILE_ID
+			ORDER BY F.FILE_SEQ ASC
+			LIMIT 1
+		) AS THUMBNAIL_URL,
+		B.VOD_FILE_ID AS VIDEO_FILE_ID,
+		CASE
+			WHEN B.BBS_ID = 'LRNSUP' AND B.ETC2 = 'VIDEO' THEN B.ETC5
+			ELSE (
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = B.VOD_FILE_ID
+				ORDER BY F.FILE_SEQ ASC
+				LIMIT 1
+			)
+		END AS VIDEO_URL,
+		COALESCE(B.INQ_CNT, 0) AS VIEW_COUNT,
+		B.REG_DT AS REGISTERED_AT,
+		B.MDFCN_DT AS MODIFIED_AT
+	</sql>
+
+	<sql id="publicPostWhere">
+		WHERE B.BBS_ID = #{boardId}
+			AND (B.BBS_ID = 'LRNSUP' OR M.BBS_ID IS NOT NULL)
+			AND B.USE_YN = 'Y'
+			AND (B.PSTG_YMD IS NULL OR B.PSTG_YMD = '' OR B.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+		<if test="programType != null and programType != ''">
+			AND B.ETC3 = #{programType}
+		</if>
+		<if test="category != null and category != ''">
+			<choose>
+				<when test="boardId == 'LRNSUP'">
+					AND B.ETC1 = #{category}
+				</when>
+				<otherwise>
+					AND B.CTGR_CD = #{category}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="keyword != null and keyword != ''">
+			<choose>
+				<when test="searchType == 'title'">
+					AND B.PST_TTL LIKE CONCAT('%', #{keyword}, '%')
+				</when>
+				<when test="searchType == 'content'">
+					AND B.PST_CN LIKE CONCAT('%', #{keyword}, '%')
+				</when>
+				<otherwise>
+					AND (B.PST_TTL LIKE CONCAT('%', #{keyword}, '%') OR B.PST_CN LIKE CONCAT('%', #{keyword}, '%'))
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectPosts" resultType="egovframework.let.usr.service.vo.PublicBoardPostVO">
+		SELECT <include refid="postColumns"/>
+		FROM BBS_ARTICLE B
+		LEFT JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = M.CTGR_CD_ID
+			AND C.CD_DTL_ID = B.CTGR_CD
+			AND C.USE_YN = 'Y'
+		<include refid="publicPostWhere"/>
+		ORDER BY
+			CASE WHEN B.UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END,
+			B.PSTG_YMD DESC,
+			B.REG_DT DESC,
+			B.PST_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="countPosts" resultType="int">
+		SELECT COUNT(*)
+		FROM BBS_ARTICLE B
+		LEFT JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		<include refid="publicPostWhere"/>
+	</select>
+
+	<select id="selectCategories" resultType="egovframework.let.usr.service.vo.PublicBoardCategoryVO">
+		SELECT
+			B.CTGR_CD AS CATEGORY_CODE,
+			COALESCE(MAX(C.CD_DTL_NM), B.CTGR_CD) AS CATEGORY_NAME
+		FROM BBS_ARTICLE B
+		LEFT JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = M.CTGR_CD_ID
+			AND C.CD_DTL_ID = B.CTGR_CD
+			AND C.USE_YN = 'Y'
+		WHERE B.BBS_ID = #{boardId}
+			AND M.BBS_ID IS NOT NULL
+			AND B.USE_YN = 'Y'
+			AND B.CTGR_CD IS NOT NULL
+			AND B.CTGR_CD != ''
+			AND (B.PSTG_YMD IS NULL OR B.PSTG_YMD = '' OR B.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+		GROUP BY B.CTGR_CD
+		ORDER BY CATEGORY_NAME, CATEGORY_CODE
+	</select>
+
+	<select id="selectPost" resultType="egovframework.let.usr.service.vo.PublicBoardPostVO">
+		SELECT <include refid="postColumns"/>
+		FROM BBS_ARTICLE B
+		LEFT JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = M.CTGR_CD_ID
+			AND C.CD_DTL_ID = B.CTGR_CD
+			AND C.USE_YN = 'Y'
+		WHERE B.BBS_ID = #{boardId}
+			AND B.PST_SN = #{postId}
+			AND (B.BBS_ID = 'LRNSUP' OR M.BBS_ID IS NOT NULL)
+			AND B.USE_YN = 'Y'
+			AND (B.PSTG_YMD IS NULL OR B.PSTG_YMD = '' OR B.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+	</select>
+
+	<select id="selectPostNavigation" resultType="egovframework.let.usr.service.vo.PublicBoardPostVO">
+		SELECT
+			N.PREVIOUS_POST_ID,
+			N.PREVIOUS_POST_TITLE,
+			N.NEXT_POST_ID,
+			N.NEXT_POST_TITLE
+		FROM (
+			SELECT
+				B.PST_SN,
+				LAG(B.PST_SN) OVER (
+					ORDER BY CASE WHEN B.UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END,
+						B.PSTG_YMD DESC, B.REG_DT DESC, B.PST_SN DESC
+				) AS PREVIOUS_POST_ID,
+				LAG(B.PST_TTL) OVER (
+					ORDER BY CASE WHEN B.UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END,
+						B.PSTG_YMD DESC, B.REG_DT DESC, B.PST_SN DESC
+				) AS PREVIOUS_POST_TITLE,
+				LEAD(B.PST_SN) OVER (
+					ORDER BY CASE WHEN B.UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END,
+						B.PSTG_YMD DESC, B.REG_DT DESC, B.PST_SN DESC
+				) AS NEXT_POST_ID,
+				LEAD(B.PST_TTL) OVER (
+					ORDER BY CASE WHEN B.UPEND_FIX_YN = 'Y' THEN 0 ELSE 1 END,
+						B.PSTG_YMD DESC, B.REG_DT DESC, B.PST_SN DESC
+				) AS NEXT_POST_TITLE
+			FROM BBS_ARTICLE B
+			LEFT JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+			WHERE B.BBS_ID = #{boardId}
+				AND (B.BBS_ID = 'LRNSUP' OR M.BBS_ID IS NOT NULL)
+				AND B.USE_YN = 'Y'
+				AND (B.PSTG_YMD IS NULL OR B.PSTG_YMD = '' OR B.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+				AND (
+					#{boardId} != 'LRNSUP'
+					OR B.ETC3 = (
+						SELECT CURRENT_POST.ETC3
+						FROM BBS_ARTICLE CURRENT_POST
+						WHERE CURRENT_POST.BBS_ID = #{boardId}
+							AND CURRENT_POST.PST_SN = #{postId}
+					)
+				)
+		) N
+		WHERE N.PST_SN = #{postId}
+	</select>
+
+	<update id="increaseViewCount">
+		UPDATE BBS_ARTICLE
+		SET INQ_CNT = COALESCE(INQ_CNT, 0) + 1
+		WHERE BBS_ID = #{boardId}
+			AND PST_SN = #{postId}
+			AND USE_YN = 'Y'
+	</update>
+</mapper>

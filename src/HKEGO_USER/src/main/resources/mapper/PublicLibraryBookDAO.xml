@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicLibraryBookDAO">
+	<sql id="bookColumns">
+		B.BOOK_SN AS BOOK_ID,
+		B.BOOK_MNG_NO AS BOOK_MANAGEMENT_NUMBER,
+		B.BOOK_NM AS TITLE,
+		(
+			SELECT F.ATCH_FILE_PATH_NM
+			FROM ATCH_FILE_INFO F
+			WHERE F.ATCH_FILE_MNG_NO = B.BOOK_IMG_ATCH_FILE_ID
+			ORDER BY F.FILE_SEQ ASC
+			LIMIT 1
+		) AS IMAGE_URL,
+		B.AUT_NM AS AUTHOR_NAME,
+		B.PBLCO_NM AS PUBLISHER_NAME,
+		B.PBLCN_YR AS PUBLICATION_YEAR,
+		B.CLNO AS CALL_NUMBER,
+		B.BOOK_PSTN_NM AS LOCATION_NAME,
+		B.BOOK_CN AS DESCRIPTION,
+		B.RCMDTN_YN AS RECOMMENDED_YN,
+		B.RCMDTN_CLSF_CD AS RECOMMENDATION_CATEGORY_CODE,
+		C.CD_DTL_NM AS RECOMMENDATION_CATEGORY_NAME,
+		B.RCMDTN_SORT_SEQ AS RECOMMENDATION_SORT_SEQUENCE,
+		B.NEW_BOOK_YR AS NEW_BOOK_YEAR,
+		B.NEW_BOOK_MM AS NEW_BOOK_MONTH,
+		B.REG_YMD AS REGISTERED_DATE,
+		COALESCE(B.INQ_CNT, 0) AS VIEW_COUNT
+	</sql>
+
+	<sql id="bookFrom">
+		FROM LIB_BOOK B
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = 'COM046'
+			AND C.CD_DTL_ID = B.RCMDTN_CLSF_CD
+	</sql>
+
+	<sql id="publicBookWhere">
+		WHERE B.DEL_DT IS NULL
+			AND B.EXPSR_YN = 'Y'
+		<if test='recommendedYn == "Y"'>
+			AND B.RCMDTN_YN = 'Y'
+		</if>
+		<if test="category != null and category != ''">
+			AND B.RCMDTN_CLSF_CD = #{category}
+		</if>
+		<if test="newOnly">
+			AND B.NEW_BOOK_YR IS NOT NULL
+			AND B.NEW_BOOK_YR != ''
+		</if>
+		<if test="newBookYear != null and newBookYear != ''">
+			AND B.NEW_BOOK_YR = #{newBookYear}
+		</if>
+		<if test="newBookMonth != null and newBookMonth != ''">
+			AND B.NEW_BOOK_MM = #{newBookMonth}
+		</if>
+		<if test="keyword != null and keyword != ''">
+			<choose>
+				<when test="searchType == 'title'">
+					AND B.BOOK_NM LIKE CONCAT('%', #{keyword}, '%')
+				</when>
+				<when test="searchType == 'content'">
+					AND B.BOOK_CN LIKE CONCAT('%', #{keyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+						B.BOOK_NM LIKE CONCAT('%', #{keyword}, '%')
+						OR B.BOOK_CN LIKE CONCAT('%', #{keyword}, '%')
+						OR B.AUT_NM LIKE CONCAT('%', #{keyword}, '%')
+						OR B.PBLCO_NM LIKE CONCAT('%', #{keyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectBooks" resultType="egovframework.let.usr.service.vo.PublicLibraryBookVO">
+		SELECT <include refid="bookColumns"/>
+		<include refid="bookFrom"/>
+		<include refid="publicBookWhere"/>
+		ORDER BY
+		<choose>
+			<when test='recommendedYn == "Y"'>
+				B.RCMDTN_SORT_SEQ DESC,
+			</when>
+		</choose>
+			B.REG_YMD DESC, B.BOOK_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="countBooks" resultType="int">
+		SELECT COUNT(*)
+		<include refid="bookFrom"/>
+		<include refid="publicBookWhere"/>
+	</select>
+
+	<select id="selectBook" parameterType="int" resultType="egovframework.let.usr.service.vo.PublicLibraryBookVO">
+		SELECT <include refid="bookColumns"/>
+		<include refid="bookFrom"/>
+		WHERE B.BOOK_SN = #{value}
+			AND B.DEL_DT IS NULL
+			AND B.EXPSR_YN = 'Y'
+	</select>
+
+	<select id="selectRelatedBooks" parameterType="int" resultType="egovframework.let.usr.service.vo.PublicLibraryBookVO">
+		SELECT <include refid="bookColumns"/>
+		FROM LIB_BOOK_REL R
+		INNER JOIN LIB_BOOK B ON B.BOOK_SN = R.REL_BOOK_SN
+		LEFT JOIN CMMN_CD_DTL C
+			ON C.CD_ID = 'COM046'
+			AND C.CD_DTL_ID = B.RCMDTN_CLSF_CD
+		WHERE R.BOOK_SN = #{value}
+			AND B.DEL_DT IS NULL
+			AND B.EXPSR_YN = 'Y'
+		ORDER BY B.REG_YMD DESC, B.BOOK_SN DESC
+	</select>
+
+	<select id="selectRecommendationCategories" resultType="egovframework.let.usr.service.vo.PublicBoardCategoryVO">
+		SELECT
+			C.CD_DTL_ID AS CATEGORY_CODE,
+			C.CD_DTL_NM AS CATEGORY_NAME
+		FROM CMMN_CD_DTL C
+		WHERE C.CD_ID = 'COM046'
+			AND C.USE_YN = 'Y'
+		ORDER BY C.SORT_SEQ ASC, C.CD_DTL_ID ASC
+	</select>
+</mapper>

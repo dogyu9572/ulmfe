@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "next dev --webpack --port 3014 --hostname 0.0.0.0",
-		"dev:server": "next dev --webpack --port 9132 --hostname 127.0.0.1",
+		"dev:server": "NODE_OPTIONS=--max-old-space-size=768 next dev --webpack --port 9132 --hostname 127.0.0.1",
 		"build": "next build",
 		"start": "next start --port 3014 --hostname 0.0.0.0",
 		"lint": "next lint"

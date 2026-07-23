@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicFileDAO">
+	<sql id="fileColumns">
+		ATCH_FILE_MNG_NO AS FILE_ID,
+		FILE_SEQ,
+		ORGNL_FILE_NM AS ORIGINAL_FILE_NAME,
+		STRG_FILE_NM AS STORED_FILE_NAME,
+		ATCH_FILE_PATH_NM AS FILE_URL,
+		FILE_SZ AS FILE_SIZE,
+		FILE_EXTN_NM AS FILE_EXTENSION,
+		FILE_TYPE_NM AS CONTENT_TYPE,
+		REG_DT AS REGISTERED_AT
+	</sql>
+
+	<select id="selectFiles" resultType="egovframework.let.usr.service.vo.PublicFileInfoVO">
+		SELECT <include refid="fileColumns"/>
+		FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{value}
+		ORDER BY FILE_SEQ ASC
+	</select>
+
+	<select id="selectFile" resultType="egovframework.let.usr.service.vo.PublicFileInfoVO">
+		SELECT <include refid="fileColumns"/>
+		FROM ATCH_FILE_INFO
+		WHERE ATCH_FILE_MNG_NO = #{fileId}
+			AND FILE_SEQ = #{fileSeq}
+		LIMIT 1
+	</select>
+</mapper>

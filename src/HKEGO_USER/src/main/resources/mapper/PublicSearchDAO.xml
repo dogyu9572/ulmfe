@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicSearchDAO">
+	<select id="searchPages" parameterType="string" resultType="egovframework.let.usr.service.vo.PublicSearchPageVO">
+		SELECT
+			S.SRCH_PAGE_SN AS SEARCH_PAGE_ID,
+			S.MENU_1DEPTH_NM AS MENU1_DEPTH_NAME,
+			S.MENU_2DEPTH_NM AS MENU2_DEPTH_NAME,
+			S.MENU_3DEPTH_NM AS MENU3_DEPTH_NAME,
+			S.PAGE_TTL AS TITLE,
+			S.PAGE_CN AS CONTENT,
+			S.PAGE_URL AS PAGE_URL
+		FROM HMPG_SEARCH_PAGE S
+		WHERE S.DEL_YN = 'N'
+			AND (
+				S.PAGE_TTL LIKE CONCAT('%', #{value}, '%')
+				OR S.PAGE_CN LIKE CONCAT('%', #{value}, '%')
+				OR S.MENU_1DEPTH_NM LIKE CONCAT('%', #{value}, '%')
+				OR S.MENU_2DEPTH_NM LIKE CONCAT('%', #{value}, '%')
+				OR S.MENU_3DEPTH_NM LIKE CONCAT('%', #{value}, '%')
+			)
+		ORDER BY S.MENU_1DEPTH_NM, S.MENU_2DEPTH_NM, S.MENU_3DEPTH_NM, S.REG_DT DESC, S.SRCH_PAGE_SN DESC
+		LIMIT 500
+	</select>
+</mapper>

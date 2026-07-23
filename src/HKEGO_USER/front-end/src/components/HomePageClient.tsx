@@ -1,11 +1,16 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import type { PublicBoardPost, PublicMainBanner, PublicPopup } from '@/lib/publicApi'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
 
 type SwiperInstance = {
 	autoplay?: { running: boolean; start: () => void; stop: () => void }
+	realIndex?: number
+	slideNext?: () => void
+	slidePrev?: () => void
 	destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void
 }
 
@@ -17,23 +22,66 @@ declare global {
 	}
 }
 
-const EXHIBITS = Array.from({ length: 4 })
-const NOTICES = Array.from({ length: 3 })
-const GALLERY_ITEMS = Array.from({ length: 3 })
-const EVENTS = Array.from({ length: 2 })
+function safeBannerHref(value: string | null) {
+	const href = value?.trim() || ''
+	return /^(https?:\/\/|\/(?!\/)|#)/i.test(href) ? href : ''
+}
 
-export default function HomePageClient() {
+function isInternalHref(href: string) {
+	return href.startsWith('/')
+}
+
+function formatDate(value: string | null) {
+	return value ? value.slice(0, 10).replaceAll('-', '.') : ''
+}
+
+function plainText(value: string | null) {
+	return (value || '')
+		.replace(/<[^>]*>/g, ' ')
+		.replace(/&nbsp;/gi, ' ')
+		.replace(/&amp;/gi, '&')
+		.replace(/&lt;/gi, '<')
+		.replace(/&gt;/gi, '>')
+		.replace(/\s+/g, ' ')
+		.trim()
+}
+
+type HomePageClientProps = {
+	initialBanners: PublicMainBanner[]
+	initialExhibits: PublicBoardPost[]
+	initialNotices: PublicBoardPost[]
+	initialGalleryItems: PublicBoardPost[]
+	initialEvents: PublicBoardPost[]
+	initialPopups: PublicPopup[]
+	initialPopupOpen: boolean
+}
+
+export default function HomePageClient({
+	initialBanners,
+	initialExhibits,
+	initialNotices,
+	initialGalleryItems,
+	initialEvents,
+	initialPopups,
+	initialPopupOpen
+}: HomePageClientProps) {
 	const [mainPlaying, setMainPlaying] = useState(true)
+	const [activeBannerIndex, setActiveBannerIndex] = useState(0)
 	const [exhibitPlaying, setExhibitPlaying] = useState(true)
 	const [eventPlaying, setEventPlaying] = useState(true)
+	const [popupOpen, setPopupOpen] = useState(initialPopupOpen)
+	const [activePopupIndex, setActivePopupIndex] = useState(0)
 	const visualRef = useRef<HTMLDivElement>(null)
 	const exhibitRef = useRef<HTMLDivElement>(null)
 	const galleryRef = useRef<HTMLDivElement>(null)
 	const eventRef = useRef<HTMLDivElement>(null)
+	const popupRef = useRef<HTMLDivElement>(null)
+	const popupCloseRef = useRef<HTMLButtonElement>(null)
 	const progressRef = useRef<HTMLDivElement>(null)
 	const mainSwiperRef = useRef<SwiperInstance | null>(null)
 	const exhibitSwiperRef = useRef<SwiperInstance | null>(null)
 	const eventSwiperRef = useRef<SwiperInstance | null>(null)
+	const popupSwiperRef = useRef<SwiperInstance | null>(null)
 
 	useEffect(() => {
 		let cancelled = false
@@ -64,25 +112,33 @@ export default function HomePageClient() {
 			}
 			if (!visualRef.current || !exhibitRef.current || !galleryRef.current || !eventRef.current) return
 
-			const mainSwiper = new Swiper(visualRef.current, {
-				loop: true,
-				autoplay: { delay: 5000, disableOnInteraction: false },
-				navigation: { nextEl: '.mvisual_wrap .arrow.next', prevEl: '.mvisual_wrap .arrow.prev' },
-				pagination: {
-					el: '.mvisual_wrap .paging',
-					type: 'custom',
-					renderCustom: (_swiper: SwiperInstance, current: number, total: number) => `<strong>${current}</strong>/<span>${total}</span>`
-				},
-				on: {
-					init: startProgress,
-					slideChangeTransitionStart: resetProgress,
-					slideChangeTransitionEnd: (swiper: SwiperInstance) => {
-						if (swiper.autoplay?.running) startProgress()
+			let mainSwiper: SwiperInstance | null = null
+			if (initialBanners.length > 0) {
+				mainSwiper = new Swiper(visualRef.current, {
+					loop: initialBanners.length > 1,
+					autoplay: { delay: 5000, disableOnInteraction: false },
+					navigation: { nextEl: '.mvisual_wrap .arrow.next', prevEl: '.mvisual_wrap .arrow.prev' },
+					pagination: {
+						el: '.mvisual_wrap .paging',
+						type: 'custom',
+						renderCustom: (_swiper: SwiperInstance, current: number, total: number) => `<strong>${current}</strong>/<span>${total}</span>`
+					},
+					on: {
+						init: (swiper: SwiperInstance) => {
+							setActiveBannerIndex(swiper.realIndex ?? 0)
+							startProgress()
+						},
+						slideChangeTransitionStart: resetProgress,
+						slideChangeTransitionEnd: (swiper: SwiperInstance) => {
+							setActiveBannerIndex(swiper.realIndex ?? 0)
+							if (swiper.autoplay?.running) startProgress()
+						}
 					}
-				}
-			})
-			const exhibitSwiper = new Swiper(exhibitRef.current, {
-				loop: true,
+				})
+			}
+			let exhibitSwiper: SwiperInstance | null = null
+			if (initialExhibits.length > 0) exhibitSwiper = new Swiper(exhibitRef.current, {
+				loop: initialExhibits.length > 3,
 				autoplay: { delay: 3000, disableOnInteraction: false },
 				navigation: { nextEl: '.mc03 .left .arrow.next', prevEl: '.mc03 .left .arrow.prev' },
 				slidesPerView: 1,
@@ -92,8 +148,9 @@ export default function HomePageClient() {
 					1024: { slidesPerView: 3, spaceBetween: 24 }
 				}
 			})
-			const gallerySwiper = new Swiper(galleryRef.current, {
-				loop: true,
+			let gallerySwiper: SwiperInstance | null = null
+			if (initialGalleryItems.length > 0) gallerySwiper = new Swiper(galleryRef.current, {
+				loop: initialGalleryItems.length > 3,
 				autoplay: { delay: 3000, disableOnInteraction: false },
 				slidesPerView: 1,
 				spaceBetween: 12,
@@ -103,8 +160,9 @@ export default function HomePageClient() {
 					1600: { slidesPerView: 3, spaceBetween: 24 }
 				}
 			})
-			const eventSwiper = new Swiper(eventRef.current, {
-				loop: true,
+			let eventSwiper: SwiperInstance | null = null
+			if (initialEvents.length > 0) eventSwiper = new Swiper(eventRef.current, {
+				loop: initialEvents.length > 1,
 				autoplay: { delay: 3000, disableOnInteraction: false },
 				navigation: { nextEl: '.mc03 .right .arrow.next', prevEl: '.mc03 .right .arrow.prev' },
 				pagination: {
@@ -116,7 +174,8 @@ export default function HomePageClient() {
 			mainSwiperRef.current = mainSwiper
 			exhibitSwiperRef.current = exhibitSwiper
 			eventSwiperRef.current = eventSwiper
-			instances = [mainSwiper, exhibitSwiper, gallerySwiper, eventSwiper]
+			instances = [exhibitSwiper, gallerySwiper, eventSwiper].filter((instance): instance is SwiperInstance => instance !== null)
+			if (mainSwiper) instances.unshift(mainSwiper)
 		}
 
 		initialize()
@@ -128,7 +187,53 @@ export default function HomePageClient() {
 			exhibitSwiperRef.current = null
 			eventSwiperRef.current = null
 		}
-	}, [])
+	}, [initialBanners, initialEvents, initialExhibits, initialGalleryItems])
+
+	useEffect(() => {
+		if (!popupOpen || !popupRef.current) return
+		let cancelled = false
+		let retryTimer: ReturnType<typeof setTimeout> | undefined
+		const initialize = () => {
+			if (cancelled || !popupRef.current) return
+			const Swiper = window.Swiper
+			if (!Swiper) {
+				retryTimer = setTimeout(initialize, 50)
+				return
+			}
+			popupSwiperRef.current = new Swiper(popupRef.current, {
+				loop: initialPopups.length > 1,
+				autoplay: initialPopups.length > 1 ? { delay: 3000, disableOnInteraction: false } : false,
+				pagination: {
+					el: '.pop_slide_wrap .paging',
+					type: 'custom',
+					renderCustom: (_swiper: SwiperInstance, current: number, total: number) => `${current}/${total}`
+				},
+				on: {
+					init: (swiper: SwiperInstance) => setActivePopupIndex(swiper.realIndex ?? 0),
+					slideChangeTransitionEnd: (swiper: SwiperInstance) => setActivePopupIndex(swiper.realIndex ?? 0)
+				}
+			})
+			requestAnimationFrame(() => popupCloseRef.current?.focus())
+		}
+		initialize()
+		return () => {
+			cancelled = true
+			if (retryTimer) clearTimeout(retryTimer)
+			popupSwiperRef.current?.destroy(true, true)
+			popupSwiperRef.current = null
+		}
+	}, [initialPopups.length, popupOpen])
+
+	useEffect(() => {
+		if (!popupOpen) return
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') setPopupOpen(false)
+			else if (event.key === 'ArrowRight') popupSwiperRef.current?.slideNext?.()
+			else if (event.key === 'ArrowLeft') popupSwiperRef.current?.slidePrev?.()
+		}
+		document.addEventListener('keydown', handleKeyDown)
+		return () => document.removeEventListener('keydown', handleKeyDown)
+	}, [popupOpen])
 
 	const toggleAutoplay = (
 		ref: { current: SwiperInstance | null },
@@ -156,6 +261,21 @@ export default function HomePageClient() {
 		}
 	}
 
+	const activeBanner = initialBanners[activeBannerIndex] ?? initialBanners[0]
+	const activePopup = initialPopups[activePopupIndex] ?? initialPopups[0]
+	const popupPositionStyle: CSSProperties = {}
+	if (activePopup?.width && activePopup.width > 0) popupPositionStyle.width = activePopup.width
+	if (activePopup && (activePopup.positionX !== null || activePopup.positionY !== null)) {
+		if (activePopup.positionX !== null) popupPositionStyle.left = activePopup.positionX
+		if (activePopup.positionY !== null) popupPositionStyle.top = activePopup.positionY
+		popupPositionStyle.transform = `translate(${activePopup.positionX === null ? '-50%' : '0'}, ${activePopup.positionY === null ? '-50%' : '0'})`
+	}
+	const closePopupsToday = () => {
+		const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+		document.cookie = `ulmfeMainPopupClosed=Y; path=/; expires=${expires.toUTCString()}; SameSite=Lax`
+		setPopupOpen(false)
+	}
+
 	return (
 		<>
 			<h1 className="sound_only">울산광역시미래교육관</h1>
@@ -164,14 +284,32 @@ export default function HomePageClient() {
 				<section className="mvisual_wrap">
 					<div ref={visualRef} className="mvisual swiper">
 						<div className="swiper-wrapper">
-							<div className="swiper-slide"><img src="/pub/images/mvisual01.webp" alt="" /></div>
-							<div className="swiper-slide"><img src="/pub/images/mvisual01.webp" alt="" /></div>
+							{initialBanners.map((banner) => {
+								const imageUrl = banner.pcImageUrl || banner.mobileImageUrl
+								if (!imageUrl) return null
+								const href = safeBannerHref(banner.linkUrl)
+								const picture = (
+									<picture style={{ display: 'block', width: '100%', height: '100%' }}>
+										{banner.mobileImageUrl && <source media="(max-width: 767px)" srcSet={banner.mobileImageUrl} />}
+										<img src={imageUrl} alt={banner.name || ''} />
+									</picture>
+								)
+								return (
+									<div className="swiper-slide" key={banner.bannerId}>
+										{href && isInternalHref(href) && banner.linkTargetCode !== 'B' ? (
+											<Link href={href} style={{ display: 'block', width: '100%', height: '100%' }}>{picture}</Link>
+										) : href ? (
+											<a href={href} target={banner.linkTargetCode === 'B' ? '_blank' : undefined} rel={banner.linkTargetCode === 'B' ? 'noopener noreferrer' : undefined} style={{ display: 'block', width: '100%', height: '100%' }}>{picture}</a>
+										) : picture}
+									</div>
+								)
+							})}
 						</div>
 					</div>
-					<div className="txt">
+					{activeBanner && <div className="txt">
 						<div className="inner">
-							<h2>지속가능한 내일을 <br className="mo_vw" />꿈꾸는 <br className="pc_vw" />울산의 <br className="mo_vw" />새로운 교육 공간</h2>
-							<p>울산광역시미래교육관 홈페이지를 방문해주신 <br className="mo_vw" />여러분을 진심으로 환영합니다.</p>
+							<h2 style={{ whiteSpace: 'pre-line' }}>{activeBanner.mainText || ''}</h2>
+							<p style={{ whiteSpace: 'pre-line' }}>{activeBanner.subText || ''}</p>
 							<div className="control">
 								<div className="line"><div ref={progressRef} className="bar" /></div>
 								<div className="paging" />
@@ -181,7 +319,7 @@ export default function HomePageClient() {
 								<button type="button" className="arrow next">다음</button>
 							</div>
 						</div>
-					</div>
+					</div>}
 				</section>
 
 				<section className="mcon mc01">
@@ -189,10 +327,10 @@ export default function HomePageClient() {
 						<div className="left flex">
 							<div className="txt"><h2 className="tit">자주 찾는 메뉴</h2><p>울산광역시 미래교육관의 <br />자주 찾는 메뉴들을 만나보세요!</p></div>
 							<ul className="links">
-								<li className="i1"><a href="/program/reserve"><i aria-hidden="true" />예약 안내</a></li>
-								<li className="i2"><a href="/about/location"><i aria-hidden="true" />오시는 길</a></li>
-								<li className="i3"><a href="/exhibit/floor_1f"><i aria-hidden="true" />전시 소개</a></li>
-								<li className="i4"><a href="/support/faq"><i aria-hidden="true" />FAQ</a></li>
+								<li className="i1"><Link href="/program/reserve"><i aria-hidden="true" />예약 안내</Link></li>
+								<li className="i2"><Link href="/about/location"><i aria-hidden="true" />오시는 길</Link></li>
+								<li className="i3"><Link href="/exhibit/floor_1f"><i aria-hidden="true" />전시 소개</Link></li>
+								<li className="i4"><Link href="/support/faq"><i aria-hidden="true" />FAQ</Link></li>
 							</ul>
 						</div>
 						<div className="right flex">
@@ -208,11 +346,11 @@ export default function HomePageClient() {
 
 				<section className="mcon mc02">
 					<div className="inner">
-						<div className="mtit"><h2>울산광역시 미래교육관</h2><strong>교육 프로그램</strong><a href="/program/esd_pbl" className="btn_more">더보기</a></div>
+						<div className="mtit"><h2>울산광역시 미래교육관</h2><strong>교육 프로그램</strong><Link href="/program/esd_pbl" className="btn_more">더보기</Link></div>
 						<ul className="program_list">
-							<li className="c1"><a href="/program/elementary"><i aria-hidden="true"><img src="/pub/images/icon_mc02_01.svg" alt="" /></i><h3>사건탐구 프로그램(초5)</h3><p>울산의 문제를 직접 탐구하고 <br />해결하는 프로젝트 학습</p></a></li>
-							<li className="c2"><a href="/program/mission"><i aria-hidden="true"><img src="/pub/images/icon_mc02_02.svg" alt="" /></i><h3>미션 프로그램(중1)</h3><p>스토리 속 미션을 해결하며 <br />지속가능한 미래를 발견하는 체험</p></a></li>
-							<li className="c3"><a href="/program/biggame"><i aria-hidden="true"><img src="/pub/images/icon_mc02_03.svg" alt="" /></i><h3>빅게임 프로그램</h3><p>팀과 함께 퀘스트를 수행하며 <br />몰입과 재미로 배우는 모험</p></a></li>
+							<li className="c1"><Link href="/program/elementary"><i aria-hidden="true"><img src="/pub/images/icon_mc02_01.svg" alt="" /></i><h3>사건탐구 프로그램(초5)</h3><p>울산의 문제를 직접 탐구하고 <br />해결하는 프로젝트 학습</p></Link></li>
+							<li className="c2"><Link href="/program/mission"><i aria-hidden="true"><img src="/pub/images/icon_mc02_02.svg" alt="" /></i><h3>미션 프로그램(중1)</h3><p>스토리 속 미션을 해결하며 <br />지속가능한 미래를 발견하는 체험</p></Link></li>
+							<li className="c3"><Link href="/program/biggame"><i aria-hidden="true"><img src="/pub/images/icon_mc02_03.svg" alt="" /></i><h3>빅게임 프로그램</h3><p>팀과 함께 퀘스트를 수행하며 <br />몰입과 재미로 배우는 모험</p></Link></li>
 						</ul>
 					</div>
 				</section>
@@ -228,21 +366,21 @@ export default function HomePageClient() {
 									<button type="button" className="arrow prev">이전</button><button type="button" className="arrow next">다음</button>
 								</div>
 								<div ref={exhibitRef} className="mc03a_slide swiper"><div className="swiper-wrapper">
-									{EXHIBITS.map((_, index) => <div className="swiper-slide" key={index}><a href="/news/exhibit_view"><img src="/pub/images/img_sample_mc03_a.webp" alt="" /><h3>울산미래교육관 기관 상징 공모</h3></a></div>)}
+									{initialExhibits.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/news/exhibit_view?id=${encodeURIComponent(post.postId)}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}<h3>{post.title}</h3></Link></div>)}
 								</div></div>
 							</div>
 							<div className="right">
-								<h2 className="mtit">공지사항</h2><a href="/news/notice" className="btn_more">더보기</a>
+								<h2 className="mtit">공지사항</h2><Link href="/news/notice" className="btn_more">더보기</Link>
 								<ul className="main_notice">
-									{NOTICES.map((_, index) => <li key={index}><a href="/news/notice_view"><span className="imgfit"><img src="/pub/images/img_sample_mc03_b.webp" alt="" /></span><span className="txt"><h3>공무원 사칭 피해 주의하세요!</h3><p>최근 교육청 직원으로 속여 대량 발주를 미끼로 접근한 뒤, &quot;물품 대금을 대신 입금해달라&quot;며 돈을 가로채는 사기 피해가 발생하고 있습니다. 울산광역시교육청은 공식 절차 없이 물품납품, 결제액 대납 등을 요구하지 않습니다.</p><span className="date">2026-06-10</span></span></a></li>)}
+									{initialNotices.map((post) => <li key={post.postId}><Link href={`/news/notice_view?id=${encodeURIComponent(post.postId)}`}><span className="imgfit">{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><span className="txt"><h3>{post.title}</h3><p>{plainText(post.content)}</p><span className="date">{formatDate(post.publishedDate || post.registeredAt)}</span></span></Link></li>)}
 								</ul>
 							</div>
 						</div>
 						<div className="flex">
 							<div className="left">
-								<h2 className="mtit">갤러리</h2><a href="/gallery/index" className="btn_more">더보기</a>
+								<h2 className="mtit">갤러리</h2><Link href="/gallery/index" className="btn_more">더보기</Link>
 								<div ref={galleryRef} className="main_gallery swiper"><div className="swiper-wrapper">
-									{GALLERY_ITEMS.map((_, index) => <div className="swiper-slide" key={index}><a href="/gallery/index"><span className="imgfit"><img src="/pub/images/img_sample_mc03_c.webp" alt="" /></span><span className="txt"><h3>울산 미래 마을 디자이너를 찾아라!</h3><span className="date">2026-06-12</span></span></a></div>)}
+									{initialGalleryItems.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/gallery?post_id=${encodeURIComponent(post.postId)}`}><span className="imgfit">{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><span className="txt"><h3>{post.title}</h3><span className="date">{formatDate(post.publishedDate || post.registeredAt)}</span></span></Link></div>)}
 								</div></div>
 							</div>
 							<div className="right">
@@ -253,12 +391,43 @@ export default function HomePageClient() {
 									<button type="button" className="arrow prev">이전</button><button type="button" className="arrow next">다음</button>
 								</div>
 								<div ref={eventRef} className="mc03d_slide swiper"><div className="swiper-wrapper">
-									{EVENTS.map((_, index) => <div className="swiper-slide" key={index}><img src="/pub/images/img_sample_mc03_d.webp" alt="" /></div>)}
+									{initialEvents.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/news/event_view?id=${encodeURIComponent(post.postId)}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt={post.title} />}</Link></div>)}
 								</div></div>
 							</div>
 						</div>
 					</div>
 				</section>
+				{popupOpen && activePopup && (
+					<div className="pop_gen" role="dialog" aria-modal="true" aria-labelledby="main-popup-title" style={popupPositionStyle}>
+						<h2 id="main-popup-title" className="sound_only">{activePopup.name}</h2>
+						<div ref={popupRef} className="pop_slide_wrap swiper" style={{ height: activePopup.height && activePopup.height > 0 ? activePopup.height : 500 }}>
+							<div className="pop_slide swiper-wrapper">
+								{initialPopups.map((popup, index) => {
+									const href = safeBannerHref(popup.linkUrl)
+									const body = popup.imageUrl ? (
+										<img src={popup.imageUrl} alt={popup.name} loading="eager" fetchPriority={index === 0 ? 'high' : 'auto'} />
+									) : (
+										<div className="pop_content" dangerouslySetInnerHTML={{ __html: popup.content || '' }} />
+									)
+									return (
+										<div className="slide swiper-slide" key={popup.popupId}>
+											{href && isInternalHref(href) && popup.linkTargetCode !== 'B'
+												? <Link href={href}>{body}</Link>
+												: href
+													? <a href={href} target={popup.linkTargetCode === 'B' ? '_blank' : undefined} rel={popup.linkTargetCode === 'B' ? 'noopener noreferrer' : undefined}>{body}</a>
+													: body}
+										</div>
+									)
+								})}
+							</div>
+							<div className="paging swiper-pagination" />
+						</div>
+						<div className="btns">
+							<button type="button" className="btn" onClick={closePopupsToday}>오늘 그만 보기</button>
+							<button ref={popupCloseRef} type="button" className="btn" onClick={() => setPopupOpen(false)}>닫기</button>
+						</div>
+					</div>
+				)}
 			</main>
 			<SiteFooter />
 		</>

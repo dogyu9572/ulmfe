@@ -110,13 +110,20 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 		}
 
 		if (behavior === 'popup') {
-			type Slider = { destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void }
+			type Slider = {
+				activeIndex: number
+				slides: ArrayLike<Element>
+				destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void
+				on: (eventName: string, callback: () => void) => void
+				slideTo: (index: number, speed?: number) => void
+			}
 			type SliderConstructor = new (element: Element, options: Record<string, unknown>) => Slider
 			let sliders: Slider[] = []
+			let galleryCleanups: Array<() => void> = []
 			let retryTimer: ReturnType<typeof setTimeout> | undefined
 			let lastFocused: HTMLElement | null = null
 			const initializeSliders = () => {
-				const Swiper = (window as typeof window & { Swiper?: SliderConstructor }).Swiper
+				const Swiper = window.Swiper as unknown as SliderConstructor | undefined
 				if (!Swiper) {
 					retryTimer = setTimeout(initializeSliders, 50)
 					return
@@ -125,8 +132,8 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 					loop: true,
 					pagination: { el: element.querySelector('.pagination'), clickable: true }
 				}))
-				const galleryNavigation = document.querySelector('.pop_gallery .gallery_nav')
-				const galleryMain = document.querySelector('.pop_gallery .gallery_for')
+				const galleryNavigation = document.querySelector<HTMLElement>('.pop_gallery .gallery_nav')
+				const galleryMain = document.querySelector<HTMLElement>('.pop_gallery .gallery_for')
 				if (galleryNavigation && galleryMain) {
 					const navigationSlider = new Swiper(galleryNavigation, {
 						spaceBetween: 8,
@@ -135,20 +142,67 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 						slidesPerView: 3,
 						breakpoints: { 768: { slidesPerView: 4, spaceBetween: 10 }, 1024: { slidesPerView: 6, spaceBetween: 12 } }
 					})
-					sliders.push(navigationSlider)
-					sliders.push(new Swiper(galleryMain, {
+					const mainSlider = new Swiper(galleryMain, {
+						speed: 300,
 						spaceBetween: 10,
 						pagination: { el: galleryMain.querySelector('.pagination'), clickable: true },
 						thumbs: { swiper: navigationSlider }
-					}))
+					})
+					sliders.push(navigationSlider, mainSlider)
+
+					const navigationSlides = Array.from(galleryNavigation.querySelectorAll<HTMLElement>('.swiper-slide'))
+					const syncNavigation = (index: number) => {
+						navigationSlides.forEach((slide, slideIndex) => {
+							slide.classList.toggle('swiper-slide-thumb-active', slideIndex === index)
+						})
+					}
+					const moveTo = (index: number) => {
+						const targetIndex = Math.max(0, Math.min(index, mainSlider.slides.length - 1))
+						mainSlider.slideTo(targetIndex, 300)
+						syncNavigation(targetIndex)
+					}
+					const onNavigationClick = (event: Event) => {
+						const target = event.target as Element
+						const slide = target.closest<HTMLElement>('.swiper-slide')
+						const index = slide ? navigationSlides.indexOf(slide) : -1
+						if (index < 0) return
+						event.preventDefault()
+						moveTo(index)
+					}
+					let dragStartX: number | null = null
+					let dragStartIndex = 0
+					const onPointerDown = (event: PointerEvent) => {
+						dragStartX = event.clientX
+						dragStartIndex = mainSlider.activeIndex
+					}
+					const onPointerUp = (event: PointerEvent) => {
+						if (dragStartX === null) return
+						const distance = event.clientX - dragStartX
+						dragStartX = null
+						if (Math.abs(distance) >= 30) moveTo(dragStartIndex + (distance < 0 ? 1 : -1))
+					}
+					const onDragStart = (event: Event) => event.preventDefault()
+
+					galleryNavigation.addEventListener('click', onNavigationClick)
+					galleryMain.addEventListener('pointerdown', onPointerDown, true)
+					galleryMain.addEventListener('pointerup', onPointerUp, true)
+					galleryMain.addEventListener('dragstart', onDragStart)
+					mainSlider.on('slideChange', () => syncNavigation(mainSlider.activeIndex))
+					syncNavigation(mainSlider.activeIndex)
+					galleryCleanups.push(() => {
+						galleryNavigation.removeEventListener('click', onNavigationClick)
+						galleryMain.removeEventListener('pointerdown', onPointerDown, true)
+						galleryMain.removeEventListener('pointerup', onPointerUp, true)
+						galleryMain.removeEventListener('dragstart', onDragStart)
+					})
 				}
 			}
 			const onClick = (event: MouseEvent) => {
 				const target = event.target as Element
 				const openButton = target.closest<HTMLElement>('.btn_popup')
-				if (openButton) {
+				if (openButton?.dataset.target) {
 					event.preventDefault()
-					const popup = document.getElementById(openButton.dataset.target || '')
+					const popup = document.getElementById(openButton.dataset.target)
 					if (popup) {
 						lastFocused = openButton
 						popup.classList.add('open')
@@ -182,6 +236,7 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 				if (retryTimer) clearTimeout(retryTimer)
 				document.removeEventListener('click', onClick)
 				window.removeEventListener('keydown', onKeyDown)
+				galleryCleanups.forEach((cleanup) => cleanup())
 				sliders.forEach((slider) => slider.destroy(true, true))
 			}
 		}
@@ -286,13 +341,24 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 		if (behavior === 'total-search-tabs') {
 			const tabs = Array.from(document.querySelectorAll<HTMLLIElement>('.tabs_total_search li'))
 			const boxes = Array.from(document.querySelectorAll<HTMLElement>('.total_search_contents .box'))
-			const handlers = tabs.map((tab, index) => () => {
+			const showTab = (index: number) => {
 				tabs.forEach((item) => item.classList.remove('on'))
-				tab.classList.add('on')
+				tabs[index]?.classList.add('on')
 				boxes.forEach((box, boxIndex) => { box.style.display = index === 0 || boxIndex === index - 1 ? 'block' : 'none' })
+			}
+			const handlers = tabs.map((_tab, index) => () => showTab(index))
+			const moreButtons = Array.from(document.querySelectorAll<HTMLAnchorElement>('.total_search_contents .btn_more[data-tab-index]'))
+			const moreHandlers = moreButtons.map((button) => (event: Event) => {
+				event.preventDefault()
+				showTab(Number(button.dataset.tabIndex || 0))
+				document.querySelector('.tabs_total_search')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 			})
 			tabs.forEach((tab, index) => tab.querySelector('button')?.addEventListener('click', handlers[index]))
-			return () => tabs.forEach((tab, index) => tab.querySelector('button')?.removeEventListener('click', handlers[index]))
+			moreButtons.forEach((button, index) => button.addEventListener('click', moreHandlers[index]))
+			return () => {
+				tabs.forEach((tab, index) => tab.querySelector('button')?.removeEventListener('click', handlers[index]))
+				moreButtons.forEach((button, index) => button.removeEventListener('click', moreHandlers[index]))
+			}
 		}
 
 		if (behavior === 'program-height') {

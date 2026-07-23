@@ -2,6 +2,7 @@ package egovframework.com.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -43,6 +44,8 @@ public class SecurityConfig {
 				.contentTypeOptions(withDefaults -> {}))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/user/main", "/api/user/auth/**").permitAll()
+				.requestMatchers("/api/user/qna", "/api/user/qna/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/user/**").permitAll()
 				.requestMatchers("/uploads/**").permitAll()
 				.requestMatchers("/api/user/**").authenticated()
 				.anyRequest().permitAll()

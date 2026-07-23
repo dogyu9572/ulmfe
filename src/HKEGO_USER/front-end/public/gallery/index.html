@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta http-equiv="refresh" content="0;url=/gallery/index/">
-    <script>window.location.replace('/gallery/index/');</script>
     <meta charset="UTF-8">
     <div id="include-dtd" style="display: none;"></div>
     <script>
@@ -20,7 +18,7 @@
                             const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
                         });
                     });
-                    
+
                     const jsFiles = ['/pub/js/com.js'];
                     jsFiles.forEach(url => {
                         fetch(url, { method: 'HEAD' }).then(jsRes => {
@@ -34,7 +32,7 @@
                     });
                 }).catch(err => console.error(err));
             }
-            
+
             const elements = document.querySelectorAll('[data-include]');
             let pCount = 0;
             if (elements.length === 0) return;
@@ -43,28 +41,28 @@
                 const file = el.getAttribute('data-include');
                 if (file) {
                     fetch(file).then(res => res.ok ? res.text() : '').then(data => {
-                        el.innerHTML = data; 
-                        el.removeAttribute('data-include'); 
+                        el.innerHTML = data;
+                        el.removeAttribute('data-include');
                         pCount++;
-                        
+
                         if (pCount === elements.length) {
                             const checkReady = setInterval(() => {
                                 const header = document.querySelector('header');
                                 const hasGnb = header ? header.querySelector('.gnb .list > li:nth-child(6)') : null;
 
-                                if (window.initCommonScript && hasGnb) { 
-                                    clearInterval(checkReady); 
-                                    window.initCommonScript(); 
-                                    
+                                if (window.initCommonScript && hasGnb) {
+                                    clearInterval(checkReady);
+                                    window.initCommonScript();
+
                                     if (window.initPopupSlider) {
                                         window.initPopupSlider();
                                     }
-                                    
+
                                     const gnbTarget = header.querySelector('.gnb .list > li:nth-child(7)');
                                     const sitemapTarget = header.querySelector('.sitemap .list > li:nth-child(7)');
                                     const snbTarget = header.querySelector('.header .gnb .list > li:nth-child(7) .snb li:nth-child(1)');
 									const sitemapSnbTarget = header.querySelector('.sitemap .list > li:nth-child(7) .snb li:nth-child(1)');
-                                    const asideTarget = document.querySelector('.aside div:nth-of-type(7)'); 
+                                    const asideTarget = document.querySelector('.aside div:nth-of-type(7)');
                                     const asideSnbTarget = document.querySelector('.aside div:nth-of-type(7) .snb li:nth-child(1)');
 
                                     if (gnbTarget) gnbTarget.classList.add('on');
@@ -77,22 +75,22 @@
                                     const gnbText = gnbTarget ? gnbTarget.querySelector('a')?.textContent.trim() : '';
                                     const snbText = snbTarget ? snbTarget.querySelector('a')?.textContent.trim() : '';
 
-                                    const pText = "울산광역시미래교육관의 새로운 소식을 전합니다."; 
+                                    const pText = "울산광역시미래교육관의 새로운 소식을 전합니다.";
 
                                     const titEl = document.querySelector('.aside_wrap .tit');
-                                    const pEl = document.querySelector('.aside_wrap p'); 
+                                    const pEl = document.querySelector('.aside_wrap p');
                                     const gnbNameEl = document.getElementById('gnbName');
                                     const snbNameEl = document.getElementById('snbName');
                                     const asideNameEl = document.getElementById('asideName');
                                     const boardTitleEl = document.getElementById('page-title');
 
                                     if (titEl) titEl.textContent = gnbText;
-                                    if (pEl) pEl.textContent = pText; 
+                                    if (pEl) pEl.textContent = pText;
                                     if (gnbNameEl) gnbNameEl.textContent = gnbText;
                                     if (snbNameEl) snbNameEl.textContent = snbText;
                                     if (asideNameEl) asideNameEl.textContent = snbText;
                                     if (boardTitleEl) boardTitleEl.textContent = snbText;
-                                    
+
                                     window.scrollTo(0, 0);
                                 }
                             }, 50);
@@ -115,18 +113,18 @@
         <div class="flex left">
             <div class="total">총 <strong>100</strong>건</div>
         </div>
-        
+
         <form action="" method="get" class="search_wrap">
             <fieldset>
                 <legend class="sound_only">게시글 검색</legend>
-                
+
                 <label for="search-condition" class="sound_only">검색 조건 선택</label>
                 <select name="search_condition" id="search-condition">
                     <option value="all">전체</option>
                     <option value="title">제목</option>
                     <option value="content">내용</option>
                 </select>
-                
+
                 <div class="search_area">
                     <label for="search-keyword" class="sound_only">검색어 입력</label>
                     <input type="text" id="search-keyword" name="search_keyword" placeholder="검색어를 입력해주세요.">
@@ -192,18 +190,18 @@
             </a>
         </li>
     </ul>
-    
+
     <div class="board_bottom">
         <nav class="paging" aria-label="게시판 페이지 이동">
             <a href="#this" class="arrow two first" aria-label="첫 페이지로 이동">처음</a>
             <a href="#this" class="arrow one prev" aria-label="이전 페이지로 이동">이전</a>
-            
+
             <a href="#this" class="on" aria-current="page" aria-label="현재 1페이지">1</a>
             <a href="#this" aria-label="2페이지로 이동">2</a>
             <a href="#this" aria-label="3페이지로 이동">3</a>
             <a href="#this" aria-label="4페이지로 이동">4</a>
             <a href="#this" aria-label="5페이지로 이동">5</a>
-            
+
             <a href="#this" class="arrow one next" aria-label="다음 페이지로 이동">다음</a>
             <a href="#this" class="arrow two last" aria-label="마지막 페이지로 이동">맨끝</a>
         </nav>
@@ -222,11 +220,11 @@ window.initPopupSlider = function() {
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.btn_popup');
         if (!btn) return;
-        
+
         e.preventDefault();
         lastFocusedElement = btn;
         const targetId = btn.getAttribute('data-target');
-        
+
         const existingPopup = document.getElementById(targetId);
         if (existingPopup) {
             existingPopup.style.display = 'block';
@@ -243,7 +241,7 @@ window.initPopupSlider = function() {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(data, 'text/html');
                 let importedPopup = doc.getElementById(targetId) || doc.querySelector('.popup');
-                
+
                 if (importedPopup) {
                     const doubleCheck = document.getElementById(importedPopup.id || targetId);
                     if (doubleCheck) {
@@ -256,7 +254,7 @@ window.initPopupSlider = function() {
                     importedPopup.style.display = 'block';
                     importedPopup.classList.add('open');
                     document.body.appendChild(importedPopup);
-                    
+
                     setTimeout(() => {
                         initSwiperInPopup(importedPopup);
                     }, 50);
@@ -274,7 +272,7 @@ window.initPopupSlider = function() {
             popup.classList.remove('open');
             popup.style.display = 'none';
             popup.remove();
-            
+
             if (lastFocusedElement) {
                 lastFocusedElement.focus();
             }

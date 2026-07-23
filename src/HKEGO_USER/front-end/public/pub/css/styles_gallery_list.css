@@ -26,9 +26,15 @@
 	.gallery_basic .imgarea .type.video i {background-image:url('/pub/images/icon_video.svg');}
 	.gallery_basic .imgarea .type.photo:after {border-top-color:#00973B; border-left-color:#00973B;}
 	.gallery_basic .imgarea .type.video:after {border-top-color:#E5001E; border-left-color:#E5001E;}
-/* 갤러리 내용 팝업 */	
+/* 갤러리 내용 팝업 */
 	.pop_gallery .gallery_for,
 	.pop_gallery .gallery_nav {width:100%; overflow:hidden;}
+	.pop_gallery .gallery_for:not(.swiper-initialized) .swiper-wrapper {display:flex;}
+	.pop_gallery .gallery_for:not(.swiper-initialized) .swiper-slide {width:100%; flex:0 0 100%;}
+	.pop_gallery .gallery_for:not(.swiper-initialized) .swiper-slide img {display:block; width:100%; height:auto;}
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-wrapper {display:flex; gap:12px;}
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-slide {width:calc((100% - 60px)/6); flex:0 0 calc((100% - 60px)/6);}
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-slide img {display:block; width:100%; height:auto;}
 	.pop_gallery .gallery_for {position:relative; border-radius:16px; margin-bottom:16px;}
 	.pop_gallery .gallery_for .pagination {position:absolute; bottom:16px; left:0; width:100%; height:8px; display:flex; justify-content:center; align-items:center; gap:8px; z-index:1;}
 	.pop_gallery .gallery_for .pagination .swiper-pagination-bullet {width:8px; height:8px; background:#191F2833; opacity:1; margin:0;}
@@ -51,6 +57,9 @@
 	.gallery_basic li .date {font-size:15px; margin-top:6px;}
 /* 갤러리 사진,동영상 타입 */
 	.gallery_basic .imgarea .type {left:20px; gap:6px; font-size:14px; line-height:34px; padding:0 16px;}
+/* 갤러리 내용 팝업 초기화 전 */
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-wrapper {gap:10px;}
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-slide {width:calc((100% - 30px)/4); flex-basis:calc((100% - 30px)/4);}
 }
 
 @media screen and (max-width:767px){
@@ -67,6 +76,8 @@
 	.gallery_basic .imgarea .type:after {left:-6px; height:6px;}
 	.gallery_basic .imgarea .type i {width:16px; height:16px;}
 /* 갤러리 내용 팝업 */
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-wrapper {gap:8px;}
+	.pop_gallery .gallery_nav:not(.swiper-initialized) .swiper-slide {width:calc((100% - 16px)/3); flex-basis:calc((100% - 16px)/3);}
 	.pop_gallery .gallery_for {border-radius:12px; margin-bottom:12px;}
 	.pop_gallery .gallery_for .pagination {bottom:12px; height:6px; gap:6px;}
 	.pop_gallery .gallery_for .pagination .swiper-pagination-bullet {width:6px; height:6px;}

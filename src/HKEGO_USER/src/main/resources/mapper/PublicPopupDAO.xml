@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicPopupDAO">
+	<select id="selectVisiblePopups" resultType="egovframework.let.usr.service.vo.PublicPopupVO">
+		SELECT
+			P.POPUP_SN AS POPUP_ID,
+			P.POPUP_NM AS NAME,
+			P.POPUP_CN AS CONTENT,
+			P.POPUP_PSTN_X AS POSITION_X,
+			P.POPUP_PSTN_Y AS POSITION_Y,
+			P.POPUP_WDTH AS WIDTH,
+			P.POPUP_HGHT AS HEIGHT,
+			P.POPUP_URL_ADDR AS LINK_URL,
+			P.LNKG_SE_CD AS LINK_TARGET_CODE,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = P.ATCH_FILE_MNG_NO
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS IMAGE_URL
+		FROM POPUP_MST P
+		WHERE P.DEL_DT IS NULL
+			AND P.USE_YN = 'Y'
+			AND (P.PSTG_BGNG_YMD IS NULL OR P.PSTG_BGNG_YMD &lt;= CURRENT_DATE)
+			AND (P.PSTG_END_YMD IS NULL OR P.PSTG_END_YMD &gt;= CURRENT_DATE)
+		ORDER BY P.REG_DT DESC, P.POPUP_SN DESC
+	</select>
+</mapper>

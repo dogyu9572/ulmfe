@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicQnaDAO">
+	<sql id="qnaColumns">
+		B.PST_SN AS POST_ID,
+		B.PST_TTL AS TITLE,
+		B.PST_CN AS CONTENT,
+		B.WRTR_NM AS WRITER_NAME,
+		B.LCK_YN AS LOCK_YN,
+		B.PST_PSWD AS PASSWORD_HASH,
+		B.PSTG_YMD AS PUBLISHED_DATE,
+		COALESCE(B.INQ_CNT, 0) AS VIEW_COUNT,
+		B.ANS_STTS_CD AS ANSWER_STATUS,
+		B.ANS_CN AS ANSWER_CONTENT,
+		B.ANSWR_NM AS ANSWERER_NAME,
+		B.ANS_YMD AS ANSWER_DATE,
+		B.ANS_DT AS ANSWERED_AT,
+		B.REG_DT AS REGISTERED_AT,
+		B.MDFCN_DT AS MODIFIED_AT
+	</sql>
+
+	<sql id="publicQnaWhere">
+		WHERE B.BBS_ID = 'QNA01'
+			AND B.USE_YN = 'Y'
+			AND (B.PSTG_YMD IS NULL OR B.PSTG_YMD = '' OR B.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+		<if test="keyword != null and keyword != ''">
+			<choose>
+				<when test="searchType == 'title'">
+					AND B.PST_TTL LIKE CONCAT('%', #{keyword}, '%')
+				</when>
+				<when test="searchType == 'content'">
+					AND B.PST_CN LIKE CONCAT('%', #{keyword}, '%')
+				</when>
+				<otherwise>
+					AND (B.PST_TTL LIKE CONCAT('%', #{keyword}, '%') OR B.PST_CN LIKE CONCAT('%', #{keyword}, '%'))
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectPosts" resultType="egovframework.let.usr.service.vo.QnaPostVO">
+		SELECT <include refid="qnaColumns"/>
+		FROM BBS_ARTICLE B
+		INNER JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		<include refid="publicQnaWhere"/>
+		ORDER BY B.REG_DT DESC, B.PST_SN DESC
+		LIMIT #{offset}, #{size}
+	</select>
+
+	<select id="countPosts" resultType="int">
+		SELECT COUNT(*)
+		FROM BBS_ARTICLE B
+		INNER JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		<include refid="publicQnaWhere"/>
+	</select>
+
+	<select id="selectPost" resultType="egovframework.let.usr.service.vo.QnaPostVO">
+		SELECT <include refid="qnaColumns"/>
+		FROM BBS_ARTICLE B
+		INNER JOIN BBS_MST M ON M.BBS_ID = B.BBS_ID AND M.USE_YN = 'Y'
+		WHERE B.BBS_ID = 'QNA01'
+			AND B.PST_SN = #{postId}
+			AND B.USE_YN = 'Y'
+			AND (B.PSTG_YMD IS NULL OR B.PSTG_YMD = '' OR B.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+	</select>
+
+	<insert id="insertPost">
+		INSERT INTO BBS_ARTICLE (
+			BBS_ID, PST_SN, PST_TTL, PST_CN, WRTR_NM, WRTR_ID, SORT_SEQ,
+			CTGR_CD, NTC_YN, UPEND_FIX_YN, LCK_YN, PST_PSWD, LNKG_URL_ADDR, PSTG_YMD,
+			ATCH_FILE_MNG_NO, THMB_FILE_ID, VOD_FILE_ID, USE_YN, INQ_CNT,
+			ANS_STTS_CD, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
+		) VALUES (
+			'QNA01', #{postId}, #{title}, #{content}, #{writerName}, 'PUBLIC', 0,
+			'', 'N', 'N', 'Y', #{passwordHash}, '', #{publishedDate},
+			'', NULL, NULL, 'Y', 0,
+			'WAIT', NOW(), 'PUBLIC', NOW(), 'PUBLIC'
+		)
+	</insert>
+
+	<update id="updatePost">
+		UPDATE BBS_ARTICLE
+		SET PST_TTL = #{title},
+			PST_CN = #{content},
+			LCK_YN = 'Y',
+			PST_PSWD = #{passwordHash},
+			MDFCN_DT = NOW(),
+			MDFR_NM = 'PUBLIC'
+		WHERE BBS_ID = 'QNA01'
+			AND PST_SN = #{postId}
+			AND USE_YN = 'Y'
+	</update>
+
+	<delete id="deletePost">
+		DELETE FROM BBS_ARTICLE
+		WHERE BBS_ID = 'QNA01'
+			AND PST_SN = #{postId}
+			AND USE_YN = 'Y'
+	</delete>
+
+	<update id="increaseViewCount">
+		UPDATE BBS_ARTICLE
+		SET INQ_CNT = COALESCE(INQ_CNT, 0) + 1
+		WHERE BBS_ID = 'QNA01'
+			AND PST_SN = #{postId}
+			AND USE_YN = 'Y'
+	</update>
+
+	<select id="countPostId" resultType="int">
+		SELECT COUNT(*)
+		FROM BBS_ARTICLE
+		WHERE BBS_ID = 'QNA01'
+			AND PST_SN = #{postId}
+	</select>
+</mapper>

@@ -4,6 +4,8 @@
 	.faq_wrap .question,
 	.faq_wrap .answer {position:relative; width:100%; text-align:left; transition:.2s linear; word-break:break-word; white-space:normal;}
 	.faq_wrap .question {padding:24px 86px 24px 42px; line-height:30px;}
+	.faq_wrap summary.question {display:block; list-style:none; cursor:pointer;}
+	.faq_wrap summary.question::-webkit-details-marker {display:none;}
 	.faq_wrap .answer {border-top:#EBEBEB 1px solid; padding:0 0 0 42px; font-size:17px; overflow:hidden; visibility:hidden; max-height:0;}
 	.faq_wrap .question {z-index:1;}
 	.faq_wrap .question:before,
@@ -13,9 +15,12 @@
 	.faq_wrap .question span {position:relative; color:var(--c_blue); font-weight:500; padding-right:13px; margin-right:12px;}
 	.faq_wrap .question span:after {content:""; position:absolute; top:50%; right:0; width:1px; height:14px; background:#E5E8EB; transform:translateY(-50%);}
 	.faq_wrap .question i {position:absolute; top:0; right:0; width:30px; height:100%; background:url('/pub/images/arrow_faq.svg') no-repeat 50% 50%; transition:.2s linear;}
-	.faq_wrap .box.on {border-color:#00A6D9; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04);}
-	.faq_wrap .box.on .question i {transform:rotate(180deg);}
-	.faq_wrap .box.on .answer {padding:24px 24px 24px 42px; visibility:visible; max-height:none;}
+	.faq_wrap .box.on,
+	.faq_wrap .box[open] {border-color:#00A6D9; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04);}
+	.faq_wrap .box.on .question i,
+	.faq_wrap .box[open] .question i {transform:rotate(180deg);}
+	.faq_wrap .box.on .answer,
+	.faq_wrap .box[open] .answer {padding:24px 24px 24px 42px; visibility:visible; max-height:none;}
 	.faq_wrap .box img {height:auto !important;}
 
 /* 반응형 */
@@ -29,7 +34,8 @@
 	.faq_wrap .question span {padding-right:11px; margin-right:10px;}
 	.faq_wrap .question span:after {height:12px;}
 	.faq_wrap .question i {width:26px;}
-	.faq_wrap .box.on .answer {padding:20px 20px 20px 36px;}
+	.faq_wrap .box.on .answer,
+	.faq_wrap .box[open] .answer {padding:20px 20px 20px 36px;}
 }
 
 @media screen and (max-width:767px){
@@ -42,5 +48,6 @@
 	.faq_wrap .answer:before {top:16px; font-size:13px; width:22px; line-height:22px;}
 	.faq_wrap .question span {padding-right:6px; margin-right:5px;}
 	.faq_wrap .question i {width:22px;}
-	.faq_wrap .box.on .answer {padding:16px 16px 16px 30px;}
+	.faq_wrap .box.on .answer,
+	.faq_wrap .box[open] .answer {padding:16px 16px 16px 30px;}
 }

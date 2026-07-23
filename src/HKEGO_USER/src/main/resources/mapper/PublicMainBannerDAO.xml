@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicMainBannerDAO">
+	<select id="selectVisibleBanners" resultType="egovframework.let.usr.service.vo.PublicMainBannerVO">
+		SELECT
+			B.BNR_SN AS BANNER_ID,
+			B.BNR_NM AS NAME,
+			B.BNR_MAIN_CN AS MAIN_TEXT,
+			B.BNR_SUB_CN AS SUB_TEXT,
+			B.LNKG_URL_ADDR AS LINK_URL,
+			B.LNKG_SE_CD AS LINK_TARGET_CODE,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = B.PC_ATCH_FILE_ID
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS PC_IMAGE_URL,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = B.MOBL_ATCH_FILE_ID
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS MOBILE_IMAGE_URL
+		FROM BANNER_MST B
+		WHERE B.DEL_DT IS NULL
+			AND B.USE_YN = 'Y'
+			AND (
+				COALESCE(B.PSTG_PRD_USE_YN, 'N') &lt;&gt; 'Y'
+				OR (
+					(B.PSTG_BGNG_YMD IS NULL OR DATE(B.PSTG_BGNG_YMD) &lt;= CURRENT_DATE)
+					AND (B.PSTG_END_YMD IS NULL OR DATE(B.PSTG_END_YMD) &gt;= CURRENT_DATE)
+				)
+			)
+			AND (
+				COALESCE(B.PC_ATCH_FILE_ID, '') &lt;&gt; ''
+				OR COALESCE(B.MOBL_ATCH_FILE_ID, '') &lt;&gt; ''
+			)
+		ORDER BY B.SORT_SEQ ASC, B.REG_DT DESC
+	</select>
+</mapper>

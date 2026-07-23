@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { SITE_MENUS } from './siteNavigation'
 
@@ -28,7 +29,7 @@ export default function SubpageAside({ menuIndex, currentHref, title, descriptio
 					<div className={`sub${menuIndex + 1} on`}>
 						<ul className="snb">
 							{menu.children.map((child) => (
-								<li className={currentHref === child.href ? 'on' : ''} key={child.href}><a href={child.href}>{child.label}</a></li>
+								<li className={currentHref === child.href ? 'on' : ''} key={child.href}><Link href={child.href} onClick={() => setOpen(false)}>{child.label}</Link></li>
 							))}
 						</ul>
 					</div>

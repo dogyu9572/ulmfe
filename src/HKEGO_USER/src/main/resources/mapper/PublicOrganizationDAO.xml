@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicOrganizationDAO">
+	<select id="selectVisibleMembers" resultType="egovframework.let.usr.service.vo.PublicOrganizationMemberVO">
+		SELECT
+			ORG_MBR_SN AS ORGANIZATION_MEMBER_ID,
+			FRST_CLSF_CD AS FIRST_CATEGORY_CODE,
+			FRST_CLSF_NM AS FIRST_CATEGORY_NAME,
+			SCND_CLSF_CD AS SECOND_CATEGORY_CODE,
+			SCND_CLSF_NM AS SECOND_CATEGORY_NAME,
+			TASK_CN AS TASK,
+			TELNO AS TELEPHONE,
+			SORT_SEQ AS SORT_SEQUENCE
+		FROM HMPG_ORG_MEMBER
+		WHERE DEL_YN = 'N'
+			AND USE_YN = 'Y'
+		ORDER BY
+			CASE SCND_CLSF_CD
+				WHEN 'DIRECTOR' THEN 1
+				WHEN 'PLAN' THEN 2
+				WHEN 'EDU' THEN 3
+				WHEN 'FACILITY' THEN 4
+				ELSE 5
+			END,
+			SORT_SEQ DESC,
+			ORG_MBR_SN ASC
+	</select>
+</mapper>

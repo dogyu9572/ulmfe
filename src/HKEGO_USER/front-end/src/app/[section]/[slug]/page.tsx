@@ -4,9 +4,12 @@ import PageBehavior from '@/components/PageBehavior'
 import SiteFooter from '@/components/SiteFooter'
 import SiteHeader from '@/components/SiteHeader'
 import SubpageAside from '@/components/SubpageAside'
-import { getPageDefinition, PAGE_DEFINITIONS } from '@/content/pageRegistry'
+import { getPageDefinition, PAGE_DEFINITIONS, type PageSearchParams } from '@/content/pageRegistry'
 
-type PageProps = { params: Promise<{ section: string; slug: string }> }
+type PageProps = {
+	params: Promise<{ section: string; slug: string }>
+	searchParams: PageSearchParams
+}
 
 export const dynamicParams = false
 
@@ -20,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	return page ? { title: `${page.title} | 울산광역시미래교육관`, description: page.description || page.title } : {}
 }
 
-export default async function Subpage({ params }: PageProps) {
+export default async function Subpage({ params, searchParams }: PageProps) {
 	const { section, slug } = await params
 	const page = getPageDefinition(section, slug)
 	if (!page) notFound()
@@ -37,7 +40,7 @@ export default async function Subpage({ params }: PageProps) {
 				{page.menuIndex !== null && page.description ? (
 					<SubpageAside menuIndex={page.menuIndex} currentHref={currentHref} title={page.title} description={page.description} />
 				) : null}
-				<page.Content />
+				<page.Content searchParams={searchParams} />
 			</main>
 			<PageBehavior behavior={page.behavior} />
 			<SiteFooter />

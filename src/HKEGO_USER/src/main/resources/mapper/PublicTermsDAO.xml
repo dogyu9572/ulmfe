@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicTermsDAO">
+	<select id="selectCurrentTerms" parameterType="string" resultType="egovframework.let.usr.service.vo.PublicTermsVO">
+		SELECT
+			T.TRMS_SN AS TERMS_ID,
+			T.TRMS_TYPE_CD AS TERMS_TYPE_CODE,
+			T.TRMS_TYPE_NM AS TERMS_TYPE_NAME,
+			T.TRMS_TTL AS TITLE,
+			T.TRMS_CN AS CONTENT,
+			T.REG_DT AS REGISTERED_AT,
+			T.MDFCN_DT AS MODIFIED_AT
+		FROM HMPG_TERMS T
+		WHERE T.TRMS_TYPE_CD = #{value}
+			AND T.CURRENT_YN = 'Y'
+			AND T.DEL_YN = 'N'
+		ORDER BY T.REG_DT DESC, T.TRMS_SN DESC
+		LIMIT 1
+	</select>
+</mapper>

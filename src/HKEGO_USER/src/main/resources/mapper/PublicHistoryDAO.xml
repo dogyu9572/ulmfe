@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicHistoryDAO">
+	<select id="selectVisibleHistories" resultType="egovframework.let.usr.service.vo.PublicHistoryVO">
+		SELECT
+			H.HSTRY_SN AS HISTORY_ID,
+			H.HSTRY_YR AS YEAR,
+			H.HSTRY_MM AS MONTH,
+			H.HSTRY_CN AS CONTENT,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = H.IMG_FILE_ID
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS IMAGE_URL
+		FROM HMPG_HSTRY H
+		WHERE H.DEL_YN = 'N'
+			AND H.USE_YN = 'Y'
+		ORDER BY H.HSTRY_YR DESC, H.HSTRY_MM DESC, H.HSTRY_SN DESC
+	</select>
+</mapper>

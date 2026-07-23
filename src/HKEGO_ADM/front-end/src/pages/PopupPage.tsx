@@ -28,10 +28,15 @@ type PopupDto = {
 	popPosy: number | null
 	popWidth: number | null
 	popHeight: number | null
+	popupPstnX?: number | null
+	popupPstnY?: number | null
+	popupWdth?: number | null
+	popupHght?: number | null
 	pstgBgngYmd: string
 	pstgEndYmd: string
 	useYn: string
 	popImg: string
+	atchFileMngNo?: string
 	popupUrlAddr: string
 	lnkgSeCd: string
 	regDt?: string
@@ -153,9 +158,6 @@ export const PopupPage: React.FC = () => {
 				],
 				callbacks: {
 					onKeydown: summernoteOnEnterKeydown($el),
-					onInit: function () {
-						if (initial) $el.summernote('code', initial)
-					},
 					onImageUpload: function (files: FileList | File[]) {
 						const fileList = Array.isArray(files) ? files : Array.from(files)
 						for (let i = 0; i < fileList.length; i++) {
@@ -193,6 +195,7 @@ export const PopupPage: React.FC = () => {
 					}
 				}
 			})
+			$el.summernote('code', initial)
 		}, 100)
 		return () => {
 			clearTimeout(t)
@@ -261,19 +264,20 @@ export const PopupPage: React.FC = () => {
 		setPopupOpen(true)
 	}
 	const openEditPopup = (row: PopupDto) => {
+		const popImg = row.popImg || row.atchFileMngNo || ''
 		setForm({
 			...defaultForm,
 			popupSn: row.popupSn ?? null,
 			popupNm: row.popupNm ?? '',
 			popupCn: row.popupCn ?? '',
-			popPosx: numOrNull(row.popPosx),
-			popPosy: numOrNull(row.popPosy),
-			popWidth: numOrNull(row.popWidth),
-			popHeight: numOrNull(row.popHeight),
+			popPosx: numOrNull(row.popPosx ?? row.popupPstnX),
+			popPosy: numOrNull(row.popPosy ?? row.popupPstnY),
+			popWidth: numOrNull(row.popWidth ?? row.popupWdth),
+			popHeight: numOrNull(row.popHeight ?? row.popupHght),
 			pstgBgngYmd: row.pstgBgngYmd ? String(row.pstgBgngYmd).slice(0, 10) : '',
 			pstgEndYmd: row.pstgEndYmd ? String(row.pstgEndYmd).slice(0, 10) : '',
 			useYn: row.useYn ?? 'N',
-			popImg: row.popImg ?? '',
+			popImg,
 			popupUrlAddr: row.popupUrlAddr ?? '',
 			lnkgSeCd: row.lnkgSeCd ?? 'P'
 		})
@@ -282,7 +286,7 @@ export const PopupPage: React.FC = () => {
 			URL.revokeObjectURL(popImgObjectUrlRef.current)
 			popImgObjectUrlRef.current = null
 		}
-		setPopImgDisplayUrl(row.popImg?.startsWith('/') ? row.popImg : '')
+		setPopImgDisplayUrl(popImg.startsWith('/') ? popImg : '')
 		setPopImgDisplayName('')
 		setPopupMode('edit')
 		setPopupOpen(true)
@@ -388,14 +392,14 @@ export const PopupPage: React.FC = () => {
 			const body = {
 				popupNm: form.popupNm,
 				popupCn,
-				popPosx: numOrNull(form.popPosx),
-				popPosy: numOrNull(form.popPosy),
-				popWidth: numOrNull(form.popWidth),
-				popHeight: numOrNull(form.popHeight),
+				popupPstnX: numOrNull(form.popPosx),
+				popupPstnY: numOrNull(form.popPosy),
+				popupWdth: numOrNull(form.popWidth),
+				popupHght: numOrNull(form.popHeight),
 				pstgBgngYmd: form.pstgBgngYmd || null,
 				pstgEndYmd: form.pstgEndYmd || null,
 				useYn: form.useYn ?? 'N',
-				popImg: popImgFile ? '' : (form.popImg ?? ''),
+				atchFileMngNo: popImgFile ? '' : (form.popImg ?? ''),
 				popupUrlAddr: form.popupUrlAddr ?? '',
 				lnkgSeCd: form.lnkgSeCd ?? 'P'
 			}

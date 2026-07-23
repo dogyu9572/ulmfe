@@ -57,6 +57,9 @@ import TermsCctvContent from './pages/terms/cctv'
 
 export type PageBehaviorName = 'faq' | 'history' | 'library-month' | 'library-sliders' | 'location-map' | 'program-height' | 'program-slider' | 'popup' | 'total-search-tabs'
 
+export type PageSearchParams = Promise<Record<string, string | string[] | undefined>>
+export type PageContentProps = { searchParams: PageSearchParams }
+
 export type PageDefinition = {
 	section: string
 	slug: string
@@ -67,7 +70,7 @@ export type PageDefinition = {
 	behavior?: PageBehaviorName
 	activeHref?: string
 	mainClassName: string
-	Content: ComponentType
+	Content: ComponentType<PageContentProps>
 }
 
 export const PAGE_DEFINITIONS: PageDefinition[] = [
@@ -107,8 +110,8 @@ export const PAGE_DEFINITIONS: PageDefinition[] = [
 	{ section: "news", slug: "exhibit_view", title: "기획전", menuIndex: 4, activeHref: "/news/exhibit", description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_view.css"], mainClassName: "container sub_wrap", Content: NewsExhibitViewContent },
 	{ section: "news", slug: "event", title: "이벤트", menuIndex: 4, description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_gallery_list.css"], mainClassName: "container sub_wrap", Content: NewsEventContent },
 	{ section: "news", slug: "event_view", title: "이벤트", menuIndex: 4, activeHref: "/news/event", description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_view.css"], mainClassName: "container sub_wrap", Content: NewsEventViewContent },
-	{ section: "support", slug: "faq", title: "FAQ", menuIndex: 5, description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_support.css"], behavior: "faq", mainClassName: "container sub_wrap", Content: SupportFaqContent },
-	{ section: "support", slug: "qna", title: "1:1문의", menuIndex: 5, description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_list.css"], behavior: "popup", mainClassName: "container sub_wrap", Content: SupportQnaContent },
+	{ section: "support", slug: "faq", title: "FAQ", menuIndex: 5, description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_support.css"], mainClassName: "container sub_wrap", Content: SupportFaqContent },
+	{ section: "support", slug: "qna", title: "1:1문의", menuIndex: 5, description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_list.css"], mainClassName: "container sub_wrap", Content: SupportQnaContent },
 	{ section: "support", slug: "qna_write", title: "1:1문의", menuIndex: 5, activeHref: "/support/qna", description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_write.css"], mainClassName: "container sub_wrap", Content: SupportQnaWriteContent },
 	{ section: "support", slug: "qna_view", title: "1:1문의", menuIndex: 5, activeHref: "/support/qna", description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_view.css"], mainClassName: "container sub_wrap", Content: SupportQnaViewContent },
 	{ section: "support", slug: "qna_modify", title: "1:1문의", menuIndex: 5, activeHref: "/support/qna", description: "울산광역시미래교육관의 새로운 소식을 전합니다.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_board_write.css"], mainClassName: "container sub_wrap", Content: SupportQnaModifyContent },
@@ -119,7 +122,7 @@ export const PAGE_DEFINITIONS: PageDefinition[] = [
 	{ section: "library", slug: "search_view", title: "자료검색", menuIndex: 7, activeHref: "/library/search", description: "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_library.css"], mainClassName: "container sub_wrap", Content: LibrarySearchViewContent },
 	{ section: "library", slug: "recommend", title: "사서 추천도서", menuIndex: 7, description: "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_library.css"], mainClassName: "container sub_wrap", Content: LibraryRecommendContent },
 	{ section: "library", slug: "recommend_view", title: "사서 추천도서", menuIndex: 7, activeHref: "/library/recommend", description: "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_library.css"], mainClassName: "container sub_wrap", Content: LibraryRecommendViewContent },
-	{ section: "library", slug: "new", title: "새로 들어온 도서", menuIndex: 7, description: "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_library.css"], behavior: "library-month", mainClassName: "container sub_wrap", Content: LibraryNewContent },
+	{ section: "library", slug: "new", title: "새로 들어온 도서", menuIndex: 7, description: "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_library.css"], mainClassName: "container sub_wrap", Content: LibraryNewContent },
 	{ section: "library", slug: "new_view", title: "새로 들어온 도서", menuIndex: 7, activeHref: "/library/new", description: "지속가능발전을 주제로 깊이 읽고 탐색하는 공간입니다. 프로젝트 수업 전후, 생각을 넓혀줄 자료를 찾아보세요.", styles: ["/pub/css/styles_sub.css","/pub/css/styles_library.css"], mainClassName: "container sub_wrap", Content: LibraryNewViewContent },
 	{ section: "total_search", slug: "index", title: "통합검색", menuIndex: null, styles: ["/pub/css/styles_sub.css","/pub/css/styles_board_public.css","/pub/css/styles_total_search.css"], behavior: "total-search-tabs", mainClassName: "container sub_wrap", Content: TotalSearchIndexContent },
 	{ section: "terms", slug: "policy", title: "이용약관", menuIndex: null, styles: ["/pub/css/styles_sub.css","/pub/css/styles_terms.css"], mainClassName: "container terms_wrap", Content: TermsPolicyContent },

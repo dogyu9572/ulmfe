@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
 const RESERVATION_URL = 'https://use.go.kr/booking/index.do;jsessionid=18A242975D5071CBE5C0B679CB59722B'
@@ -41,10 +42,10 @@ export default function SiteFooter() {
 					<div className="top">
 						<div className="logo" aria-hidden="true" />
 						<ul className="links">
-							<li><a href="/terms/policy">이용약관</a></li>
-							<li><a href="/terms/privacy"><strong>개인정보처리방침</strong></a></li>
-							<li><a href="/terms/no_email">이메일 무단수집거부</a></li>
-							<li><a href="/terms/cctv">영상정보처리기기 운영방침</a></li>
+							<li><Link href="/terms/policy">이용약관</Link></li>
+							<li><Link href="/terms/privacy"><strong>개인정보처리방침</strong></Link></li>
+							<li><Link href="/terms/no_email">이메일 무단수집거부</Link></li>
+							<li><Link href="/terms/cctv">영상정보처리기기 운영방침</Link></li>
 						</ul>
 					</div>
 					<div className="btm">
