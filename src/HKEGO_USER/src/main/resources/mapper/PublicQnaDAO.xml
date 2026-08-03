@@ -32,8 +32,15 @@
 				<when test="searchType == 'content'">
 					AND B.PST_CN LIKE CONCAT('%', #{keyword}, '%')
 				</when>
+				<when test="searchType == 'writer'">
+					AND B.WRTR_NM LIKE CONCAT('%', #{keyword}, '%')
+				</when>
 				<otherwise>
-					AND (B.PST_TTL LIKE CONCAT('%', #{keyword}, '%') OR B.PST_CN LIKE CONCAT('%', #{keyword}, '%'))
+					AND (
+						B.PST_TTL LIKE CONCAT('%', #{keyword}, '%')
+						OR B.PST_CN LIKE CONCAT('%', #{keyword}, '%')
+						OR B.WRTR_NM LIKE CONCAT('%', #{keyword}, '%')
+					)
 				</otherwise>
 			</choose>
 		</if>

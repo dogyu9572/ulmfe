@@ -29,7 +29,7 @@ public class EgovPublicQnaServiceImpl implements EgovPublicQnaService {
 	private static final String CAPTCHA_SESSION_KEY = "PUBLIC_QNA_CAPTCHA";
 	private static final String POST_ID_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	private static final String CAPTCHA_CHARACTERS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
-	private static final Set<String> SEARCH_TYPES = Set.of("all", "title", "content");
+	private static final Set<String> SEARCH_TYPES = Set.of("all", "title", "content", "writer");
 	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 	private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -261,7 +261,8 @@ public class EgovPublicQnaServiceImpl implements EgovPublicQnaService {
 		int[] characters = safeName.codePoints().toArray();
 		if (characters.length == 1) return "*";
 		if (characters.length == 2) return new String(characters, 0, 1) + "*";
-		return new String(characters, 0, 1) + "*".repeat(characters.length - 2)
+		int maskedLength = Math.min(characters.length, 7);
+		return new String(characters, 0, 1) + "*".repeat(maskedLength - 2)
 			+ new String(characters, characters.length - 1, 1);
 	}
 

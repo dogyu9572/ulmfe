@@ -2,27 +2,39 @@
 
 import type { FormEvent } from 'react'
 
-type SearchType = 'all' | 'title' | 'content'
+export type BoardSearchType = 'all' | 'title' | 'content' | 'writer'
 
-type Props = {
-	idPrefix: string
-	searchType: SearchType
-	keyword: string
-	onSearchTypeChange: (value: SearchType) => void
-	onKeywordChange: (value: string) => void
-	onSubmit: (event: FormEvent<HTMLFormElement>) => void
+const SEARCH_TYPE_LABELS: Record<BoardSearchType, string> = {
+	all: '전체',
+	title: '제목',
+	content: '내용',
+	writer: '작성자'
 }
 
-export default function BoardSearchForm({
+const DEFAULT_SEARCH_TYPES = ['all', 'title', 'content'] as const
+
+type Props<T extends BoardSearchType> = {
+	idPrefix: string
+	searchType: T
+	keyword: string
+	onSearchTypeChange: (value: T) => void
+	onKeywordChange: (value: string) => void
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void
+	searchTypes?: readonly T[]
+}
+
+export default function BoardSearchForm<T extends BoardSearchType>({
 	idPrefix,
 	searchType,
 	keyword,
 	onSearchTypeChange,
 	onKeywordChange,
-	onSubmit
-}: Props) {
+	onSubmit,
+	searchTypes
+}: Props<T>) {
 	const conditionId = `${idPrefix}-search-condition`
 	const keywordId = `${idPrefix}-search-keyword`
+	const visibleSearchTypes: readonly BoardSearchType[] = searchTypes ?? DEFAULT_SEARCH_TYPES
 	return (
 		<form className="search_wrap" onSubmit={onSubmit}>
 			<fieldset>
@@ -32,11 +44,11 @@ export default function BoardSearchForm({
 					name="search_condition"
 					id={conditionId}
 					value={searchType}
-					onChange={(event) => onSearchTypeChange(event.target.value as SearchType)}
+					onChange={(event) => onSearchTypeChange(event.target.value as T)}
 				>
-					<option value="all">전체</option>
-					<option value="title">제목</option>
-					<option value="content">내용</option>
+					{visibleSearchTypes.map((type) => (
+						<option key={type} value={type}>{SEARCH_TYPE_LABELS[type]}</option>
+					))}
 				</select>
 				<div className="search_area">
 					<label htmlFor={keywordId} className="sound_only">검색어 입력</label>

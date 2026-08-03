@@ -13,7 +13,58 @@ const SEARCH_CATEGORIES = [
 	'도서관'
 ] as const
 
+type SearchCategory = typeof SEARCH_CATEGORIES[number]
+
 const normalizeCategoryName = (value: string) => value.replace(/\s+/g, '')
+
+const CATEGORY_BY_NAME = new Map<string, SearchCategory>(
+	SEARCH_CATEGORIES.map((category) => [normalizeCategoryName(category), category])
+)
+
+CATEGORY_BY_NAME.set(normalizeCategoryName('울산미래교육관'), SEARCH_CATEGORIES[0])
+CATEGORY_BY_NAME.set(normalizeCategoryName('울산광역시미래교육관'), SEARCH_CATEGORIES[0])
+
+const CATEGORY_BY_PATH_PREFIX: Array<[string, SearchCategory]> = [
+	['/about/', SEARCH_CATEGORIES[0]],
+	['/exhibit/', SEARCH_CATEGORIES[1]],
+	['/exhibition/', SEARCH_CATEGORIES[1]],
+	['/program/', SEARCH_CATEGORIES[2]],
+	['/archive/', SEARCH_CATEGORIES[3]],
+	['/resource/', SEARCH_CATEGORIES[3]],
+	['/news/', SEARCH_CATEGORIES[4]],
+	['/support/', SEARCH_CATEGORIES[5]],
+	['/gallery/', SEARCH_CATEGORIES[6]],
+	['/library/', SEARCH_CATEGORIES[7]]
+]
+
+const PAGE_PATH_ALIASES = new Map([
+	['/exhibition/floor1', '/exhibit/floor_1f'],
+	['/exhibition/floor2', '/exhibit/floor_2f'],
+	['/exhibition/floor3', '/exhibit/floor_3f'],
+	['/exhibition/annex', '/exhibit/annex'],
+	['/exhibition/outdoor', '/exhibit/outdoor'],
+	['/program/esd-pbl', '/program/esd_pbl'],
+	['/program/exploration', '/program/elementary'],
+	['/program/reservation', '/program/reserve'],
+	['/resource/exploration', '/archive/elementary'],
+	['/resource/mission', '/archive/mission'],
+	['/news/exhibition', '/news/exhibit'],
+	['/gallery/photo', '/gallery/index']
+])
+
+const pagePath = (value: string) => {
+	try {
+		return new URL(value, 'https://ulmfe-user.hk-test.co.kr').pathname
+	} catch {
+		return ''
+	}
+}
+
+const resultCategory = (result: PublicSearchPage) => {
+	const path = pagePath(result.pageUrl)
+	const pathCategory = CATEGORY_BY_PATH_PREFIX.find(([prefix]) => path.startsWith(prefix))?.[1]
+	return pathCategory ?? CATEGORY_BY_NAME.get(normalizeCategoryName(result.menu1DepthName)) ?? null
+}
 
 const stripHtml = (value: string) => value
 	.replace(/<[^>]*>/g, ' ')
@@ -26,8 +77,21 @@ const stripHtml = (value: string) => value
 
 const safePageHref = (value: string) => {
 	const href = value.trim()
-	if (href.startsWith('/') && !href.startsWith('//')) return href
-	if (/^https?:\/\//i.test(href)) return href
+	try {
+		if (href.startsWith('/') && !href.startsWith('//')) {
+			const url = new URL(href, 'https://ulmfe-user.hk-test.co.kr')
+			return `${PAGE_PATH_ALIASES.get(url.pathname) ?? url.pathname}${url.search}${url.hash}`
+		}
+		if (/^https?:\/\//i.test(href)) {
+			const url = new URL(href)
+			if (url.hostname === 'ulmfe-user.hk-test.co.kr') {
+				url.pathname = PAGE_PATH_ALIASES.get(url.pathname) ?? url.pathname
+			}
+			return url.toString()
+		}
+	} catch {
+		return '#'
+	}
 	return '#'
 }
 
@@ -73,19 +137,11 @@ export default async function TotalSearchIndexContent({ searchParams }: PageCont
 	const params = await searchParams
 	const keyword = singleQueryValue(params.search_keyword).trim().slice(0, 100)
 	const results = keyword ? await getPublicSearchPagesServer(keyword).catch(() => []) : []
-	const knownCategoryNames = new Set(SEARCH_CATEGORIES.map(normalizeCategoryName))
-	const extraCategories = results
-		.map((result) => result.menu1DepthName)
-		.filter((category, index, categories) =>
-			Boolean(category) &&
-			!knownCategoryNames.has(normalizeCategoryName(category)) &&
-			categories.indexOf(category) === index
-		)
-	const categories = [...SEARCH_CATEGORIES, ...extraCategories]
-	const groupedResults = categories.map((category) => ({
+	const groupedResults = SEARCH_CATEGORIES.map((category) => ({
 		category,
-		results: results.filter((result) => normalizeCategoryName(result.menu1DepthName) === normalizeCategoryName(category))
+		results: results.filter((result) => resultCategory(result) === category)
 	}))
+	const visibleResultCount = groupedResults.reduce((count, group) => count + group.results.length, 0)
 
 	return (
 		<section className="total_search_wrap inner" aria-labelledby="total-search-title">
@@ -103,7 +159,7 @@ export default async function TotalSearchIndexContent({ searchParams }: PageCont
 				</form>
 			</div>
 			<ul className="tabs_round tabs_total_search">
-				<li className="on"><button type="button">전체({results.length})</button></li>
+				<li className="on"><button type="button">전체({visibleResultCount})</button></li>
 				{groupedResults.map(({ category, results: categoryResults }) => (
 					<li key={category}><button type="button">{category}({categoryResults.length})</button></li>
 				))}

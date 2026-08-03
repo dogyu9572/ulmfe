@@ -593,8 +593,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 											onClick={() => {
 												setOpenGroupIds((prev) =>
 													prev.includes(group.id)
-														? prev.filter((id) => id !== group.id)
-														: [...prev, group.id]
+														? []
+														: [group.id]
 												)
 											}}
 										>

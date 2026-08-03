@@ -60,12 +60,6 @@ type CodeDetailRow = {
 	seq?: number | null
 }
 
-const NOTICE_LEARNING_TYPE_OPTIONS: CodeDetailRow[] = [
-	{ code: '사전학습', cdDtlNm: '사전학습' },
-	{ code: '본학습', cdDtlNm: '본학습' },
-	{ code: '사후학습', cdDtlNm: '사후학습' }
-]
-
 type EtcIdx = 1 | 2 | 3 | 4 | 5
 type NttEtcKey = 'etc1' | 'etc2' | 'etc3' | 'etc4' | 'etc5'
 
@@ -250,7 +244,7 @@ export const BbsPostPage: React.FC = () => {
 	const isGalleryBoard = currentBbsId === 'GALRY'
 	const isQnaBoard = currentBbsId === 'QNA01'
 	const isNoticeBoard = currentBbsId === 'ZEHSB'
-	const categoryFieldLabel = isNoticeBoard ? '학습 유형' : isFaqBoard ? 'FAQ 분류' : isGalleryBoard ? '구분' : '카테고리'
+	const categoryFieldLabel = isFaqBoard ? 'FAQ 분류' : isGalleryBoard ? '구분' : '카테고리'
 	const titleFieldLabel = isFaqBoard ? '질문' : isQnaBoard ? '문의제목' : '제목'
 	const contentFieldLabel = isFaqBoard ? '답변' : isQnaBoard ? '문의내용' : '내용'
 	const linkFieldLabel = isGalleryBoard ? '영상 임베드 링크' : '링크'
@@ -430,7 +424,7 @@ export const BbsPostPage: React.FC = () => {
 				params.set('searchType', searchType)
 				params.set('searchKeyword', searchKeyword.trim())
 			}
-			if (searchCategory.trim()) {
+			if (!isNoticeBoard && searchCategory.trim()) {
 				params.set('category', searchCategory.trim())
 			}
 			if (startDate) params.set('startDate', startDate)
@@ -505,7 +499,8 @@ export const BbsPostPage: React.FC = () => {
 		}
 	}, [bbsMaster])
 
-	const showCateInList = isNoticeBoard || bbsMasterIsY(bbsMaster, 'cateYn')
+	const showCategoryField = !isNoticeBoard && bbsMasterIsY(bbsMaster, 'cateYn')
+	const showCateInList = showCategoryField
 	const showThumInList = bbsMasterIsY(bbsMaster, 'thumYn')
 	const showTopInList = bbsMasterIsY(bbsMaster, 'topYn')
 	const getCategoryLabel = (code: string | undefined): string => {
@@ -517,7 +512,6 @@ export const BbsPostPage: React.FC = () => {
 		return match?.cdDtlNm || c
 	}
 	const getCategoryOptions = (): CodeDetailRow[] => {
-		if (isNoticeBoard) return NOTICE_LEARNING_TYPE_OPTIONS
 		const cdId = (bbsMaster?.cateCd || '').trim()
 		return cdId ? etcCodeOptions[cdId] ?? [] : []
 	}
@@ -926,10 +920,6 @@ export const BbsPostPage: React.FC = () => {
 		setForm(currentForm)
 		if (!currentForm.pstTtl?.trim()) {
 			setError('제목을 입력하세요.')
-			return
-		}
-		if (isNoticeBoard && !currentForm.category?.trim()) {
-			setError('학습 유형을 선택하세요.')
 			return
 		}
 		let pstCn = getCurrentPostContent(currentForm.pstCn ?? '')
@@ -1557,9 +1547,9 @@ export const BbsPostPage: React.FC = () => {
 								/>
 							</td>
 						</tr>
-						{(isNoticeBoard || bbsMasterIsY(bbsMaster, 'cateYn') || bbsMasterIsY(bbsMaster, 'topYn')) ? (
+						{(showCategoryField || bbsMasterIsY(bbsMaster, 'topYn')) ? (
 							<tr>
-								{(isNoticeBoard || bbsMasterIsY(bbsMaster, 'cateYn')) ? (
+								{showCategoryField ? (
 									<>
 										<th>{categoryFieldLabel}</th>
 										<td colSpan={bbsMasterIsY(bbsMaster, 'topYn') ? 1 : 3}>
@@ -1600,7 +1590,7 @@ export const BbsPostPage: React.FC = () => {
 								{bbsMasterIsY(bbsMaster, 'topYn') ? (
 									<>
 										<th>상단고정</th>
-										<td colSpan={(isNoticeBoard || bbsMasterIsY(bbsMaster, 'cateYn')) ? 1 : 3}>
+										<td colSpan={showCategoryField ? 1 : 3}>
 											<input type="hidden" name="upendFixYn" value={form.upendFixYn ?? 'N'} />
 											{renderYnToggle(
 												'upendFixYn',
@@ -1795,6 +1785,9 @@ export const BbsPostPage: React.FC = () => {
 								return []
 							}
 							const label = getMasterEtc(bbsMaster, idx, 'Nm').trim() || `ETC${idx}`
+							if (isNoticeBoard && label.replace(/\s+/g, '') === '장소') {
+								return []
+							}
 							const tp = (getMasterEtc(bbsMaster, idx, 'Tp').toLowerCase() || 'input').trim()
 							const cdId = getMasterEtc(bbsMaster, idx, 'Cd').trim()
 							const field = `nttEtc${idx}` as NttEtcKey

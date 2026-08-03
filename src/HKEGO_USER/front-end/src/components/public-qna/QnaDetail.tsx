@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { type MouseEvent, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { deletePublicQna, getPublicQna, type PublicQnaDetail } from '@/lib/publicQnaApi'
-import { qnaListHref, qnaPageHref } from './qnaNavigation'
+import { QNA_LIST_RETURN_KEY, qnaListHref, qnaPageHref } from './qnaNavigation'
 
 function formatDate(value: string | null) {
 	return value ? value.slice(0, 10).replaceAll('-', '.') : ''
@@ -18,6 +18,7 @@ export default function QnaDetail() {
 	const params = useSearchParams()
 	const postId = params.get('post_id') || params.get('id') || ''
 	const paramsSnapshot = useMemo(() => new URLSearchParams(params.toString()), [params])
+	const listHref = useMemo(() => qnaListHref(paramsSnapshot), [paramsSnapshot])
 	const [post, setPost] = useState<PublicQnaDetail | null>(null)
 	const [error, setError] = useState(postId ? '' : '문의 정보가 없습니다.')
 	const [deleting, setDeleting] = useState(false)
@@ -54,6 +55,17 @@ export default function QnaDetail() {
 		}
 	}
 
+	const returnToList = (event: MouseEvent<HTMLAnchorElement>) => {
+		event.preventDefault()
+		const returnHref = window.sessionStorage.getItem(QNA_LIST_RETURN_KEY)
+		window.sessionStorage.removeItem(QNA_LIST_RETURN_KEY)
+		if (returnHref === listHref && window.history.length > 1) {
+			router.back()
+			return
+		}
+		router.push(listHref)
+	}
+
 	const done = answerDone(post?.answerStatus ?? null)
 	const hasAnswer = Boolean(done && post?.answerContent?.trim())
 	const canManage = Boolean(post?.passwordProtected)
@@ -86,7 +98,7 @@ export default function QnaDetail() {
 				)}
 			</div>
 			{error && post && <p role="alert" className="tac" style={{ color: '#e5484d' }}>{error}</p>}
-			<div className="board_bottom flex_center"><a href={qnaListHref(paramsSnapshot)} className="btn btn_wbb btn_large">목록</a></div>
+			<div className="board_bottom flex_center"><a href={listHref} className="btn btn_wbb btn_large" onClick={returnToList}>목록</a></div>
 		</section>
 	)
 }

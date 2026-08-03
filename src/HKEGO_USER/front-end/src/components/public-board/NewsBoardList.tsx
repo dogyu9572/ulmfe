@@ -29,7 +29,7 @@ const getLearningTypeClass = (category: string) => {
 	}
 }
 
-function NoticeRows({ posts, totalCount, page, size, detailPath, emptyMessage, listHref }: {
+function NoticeRows({ posts, totalCount, page, size, detailPath, emptyMessage, listHref, showLearningType }: {
 	posts: PublicBoardPost[]
 	totalCount: number
 	page: number
@@ -37,9 +37,10 @@ function NoticeRows({ posts, totalCount, page, size, detailPath, emptyMessage, l
 	detailPath: string
 	emptyMessage: string
 	listHref: string
+	showLearningType: boolean
 }) {
 	if (posts.length === 0) {
-		return <tr><td colSpan={6}>{emptyMessage || '등록된 게시물이 없습니다.'}</td></tr>
+		return <tr><td colSpan={showLearningType ? 6 : 5}>{emptyMessage || '등록된 게시물이 없습니다.'}</td></tr>
 	}
 	return posts.map((post, index) => {
 		const number = Math.max(1, totalCount - (page - 1) * size - index)
@@ -51,9 +52,11 @@ function NoticeRows({ posts, totalCount, page, size, detailPath, emptyMessage, l
 		return (
 			<tr key={post.postId} className={rowClassName}>
 				<td className="board_num">{number}</td>
-				<td className={`board_edu_type ${getLearningTypeClass(category)}`.trim()}>
-					{category ? <span>{category}</span> : null}
-				</td>
+				{showLearningType ? (
+					<td className={`board_edu_type ${getLearningTypeClass(category)}`.trim()}>
+						{category ? <span>{category}</span> : null}
+					</td>
+				) : null}
 				<td className="board_tit">
 					<a href={`${detailPath}?${detailQuery.toString()}`}>
 						{post.newYn === 'Y' && <span className="sound_only">[새 글]</span>}
@@ -146,11 +149,33 @@ export default function NewsBoardList({
 					<table>
 						<caption className="sound_only">게시판 목록으로 번호, 제목, 작성일 정보를 제공합니다.</caption>
 						<colgroup>
-							<col className="board_num" /><col className="board_edu_type" /><col className="board_tit" />
+							<col className="board_num" />
+							{showLearningTypeFilter ? <col className="board_edu_type" /> : null}
+							<col className="board_tit" />
 							<col className="board_file" /><col className="board_date" /><col className="board_hit" />
 						</colgroup>
-						<thead><tr><th scope="col">번호</th><th scope="col">학습 유형</th><th scope="col">제목</th><th scope="col">첨부파일</th><th scope="col">등록일</th><th scope="col">조회수</th></tr></thead>
-						<tbody><NoticeRows posts={result.list} totalCount={result.totalCount} page={result.page} size={result.size} detailPath={detailPath} emptyMessage={emptyMessage} listHref={listHref} /></tbody>
+						<thead>
+							<tr>
+								<th scope="col">번호</th>
+								{showLearningTypeFilter ? <th scope="col">학습 유형</th> : null}
+								<th scope="col">제목</th>
+								<th scope="col">첨부파일</th>
+								<th scope="col">등록일</th>
+								<th scope="col">조회수</th>
+							</tr>
+						</thead>
+						<tbody>
+							<NoticeRows
+								posts={result.list}
+								totalCount={result.totalCount}
+								page={result.page}
+								size={result.size}
+								detailPath={detailPath}
+								emptyMessage={emptyMessage}
+								listHref={listHref}
+								showLearningType={showLearningTypeFilter}
+							/>
+						</tbody>
 					</table>
 				</div>
 			) : (

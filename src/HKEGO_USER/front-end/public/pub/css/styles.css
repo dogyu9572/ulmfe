@@ -70,7 +70,7 @@
 	.total_search_area .inbox {position:relative; width:100%; background:#fff; border:#E5E8EB 1px solid; padding:80px 20px; text-align:center; z-index:1;}
 	.total_search_area .tit {font-size:40px; font-weight:600; line-height:1.2; text-align:center; margin-bottom:48px;}
 	.total_search_area .search_input_area {display:flex; justify-content:center; gap:16px;}
-	.total_search_area .search_input_area .text {width:560px; max-width:calc(100% - 156px); height:62px; font-size:18px; padding:0 72px 0 32px; border-radius:31px; border:#58B431 1px solid; box-shadow:0 0 20px 0 #58B43133; background:#fff url('/pub/images/icon_search_small.svg') no-repeat right 32px center;}
+	.total_search_area .search_input_area .text {width:560px; max-width:calc(100% - 156px); height:62px; font-size:18px; padding:0 32px; border-radius:31px; border:#58B431 1px solid; box-shadow:0 0 20px 0 #58B43133; background:#fff;}
 	.total_search_area .search_input_area .btn_submit {width:140px; height:62px; font-size:20px; color:#fff; font-weight:600; background:#58B431; border-radius:31px;}
 	.total_search_area .btn_close {position:absolute; top:0; right:16px; width:40px; height:40px; background:url('/pub/images/btn_close.svg') no-repeat 50% 50%; font-size:0;}
 	.header.search_open {background:#fff;}
@@ -307,7 +307,7 @@
 	.total_search_area .inbox {padding:24px 20px;}
 	.total_search_area .tit {font-size:24px; margin-bottom:24px;}
 	.total_search_area .search_input_area {gap:8px;}
-	.total_search_area .search_input_area .text {max-width:calc(100% - 108px); height:40px; font-size:13px; padding:0 50px 0 24px; background-position:right 20px center;}
+	.total_search_area .search_input_area .text {max-width:calc(100% - 108px); height:40px; font-size:13px; padding:0 24px;}
 	.total_search_area .search_input_area .btn_submit {width:100px; height:40px; font-size:14px;}
 /* footer */
 	.quick_area {bottom:20px; right:20px; gap:6px;}

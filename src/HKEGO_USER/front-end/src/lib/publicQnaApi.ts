@@ -3,7 +3,7 @@ import type { ApiResponse, PublicPageResult } from './publicApi'
 const CSRF_COOKIE_NAME = 'XSRF-TOKEN'
 const CSRF_HEADER_NAME = 'X-XSRF-TOKEN'
 
-export type QnaSearchType = 'all' | 'title' | 'content'
+export type QnaSearchType = 'all' | 'title' | 'content' | 'writer'
 
 export type PublicQnaSummary = {
 	postId: string

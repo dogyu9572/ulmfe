@@ -37,7 +37,7 @@ export default function FaqBoard({
 						value={board.draftCategory}
 						onChange={(event) => board.selectCategory(event.target.value)}
 					>
-						<option value="">분류</option>
+						<option value="">전체</option>
 						{categories.map((category) => (
 							<option key={category.categoryCode} value={category.categoryCode}>
 								{category.categoryName || category.categoryCode}

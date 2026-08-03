@@ -3829,6 +3829,16 @@ h6 {
 	background-color: #eff6ff;
 }
 
+.bbs-post-basic-list-table {
+	table-layout: fixed;
+}
+
+.table td.bbs-post-list-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .table-actions {
 	white-space: nowrap;
 }

@@ -10,7 +10,7 @@ import {
 	type PublicQnaSummary,
 	type QnaSearchType
 } from '@/lib/publicQnaApi'
-import { qnaListQuery, qnaPageHref } from './qnaNavigation'
+import { QNA_LIST_RETURN_KEY, qnaListHref, qnaListQuery, qnaPageHref } from './qnaNavigation'
 
 const PAGE_SIZE = 10
 
@@ -20,7 +20,7 @@ function positivePage(value: string | null) {
 }
 
 function searchType(value: string | null): QnaSearchType {
-	return value === 'title' || value === 'content' ? value : 'all'
+	return value === 'title' || value === 'content' || value === 'writer' ? value : 'all'
 }
 
 function formatDate(value: string | null) {
@@ -107,11 +107,14 @@ export default function QnaBoard() {
 		router.push(value ? `${pathname}?${value}` : pathname)
 	}
 
+	const navigateToPost = (postId: string) => {
+		const listParams = new URLSearchParams(params.toString())
+		window.sessionStorage.setItem(QNA_LIST_RETURN_KEY, qnaListHref(listParams))
+		router.push(qnaPageHref('/support/qna_view', postId, listParams))
+	}
+
 	const openPost = (post: PublicQnaSummary) => {
-		if (!post.passwordProtected) {
-			router.push(qnaPageHref('/support/qna_view', post.postId, new URLSearchParams(params.toString())))
-			return
-		}
+		if (!post.passwordProtected) return navigateToPost(post.postId)
 		setPassword('')
 		setVerifyError('')
 		setSelectedPost(post)
@@ -136,7 +139,10 @@ export default function QnaBoard() {
 		setVerifyError('')
 		try {
 			await verifyPublicQna(selectedPost.postId, password)
-			router.push(qnaPageHref('/support/qna_view', selectedPost.postId, new URLSearchParams(params.toString())))
+			const postId = selectedPost.postId
+			setSelectedPost(null)
+			setPassword('')
+			navigateToPost(postId)
 		} catch (reason) {
 			setVerifyError(reason instanceof Error ? reason.message : '비밀번호를 확인하지 못했습니다.')
 			passwordRef.current?.select()
@@ -158,6 +164,7 @@ export default function QnaBoard() {
 						onSearchTypeChange={setDraftSearchType}
 						onKeywordChange={setDraftKeyword}
 						onSubmit={submitSearch}
+						searchTypes={['all', 'title', 'content', 'writer']}
 					/>
 				</div>
 				<div className="board_basic border_qna">

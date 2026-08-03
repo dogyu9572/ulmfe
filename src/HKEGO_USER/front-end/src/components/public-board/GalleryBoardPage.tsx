@@ -1,6 +1,5 @@
 import GalleryBoard from './GalleryBoard'
 import type { PageSearchParams } from '@/content/pageRegistry'
-import type { BoardListParams } from '@/lib/publicApi'
 import { getPublicBoardPostServer, getPublicBoardPostsServer } from '@/lib/publicApiServer'
 
 type Props = { searchParams: PageSearchParams }
@@ -13,9 +12,7 @@ export default async function GalleryBoardPage({ searchParams }: Props) {
 	const query = await searchParams
 	const pageValue = Number(firstValue(query.page))
 	const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1
-	const searchTypeValue = firstValue(query.search_condition || query.searchType)
-	const searchType: NonNullable<BoardListParams['searchType']> =
-		searchTypeValue === 'title' || searchTypeValue === 'content' ? searchTypeValue : 'all'
+	const searchType = 'title' as const
 	const keyword = firstValue(query.search_keyword || query.keyword)
 	const postId = firstValue(query.post_id)
 	const mediaValue = Number(firstValue(query.media))

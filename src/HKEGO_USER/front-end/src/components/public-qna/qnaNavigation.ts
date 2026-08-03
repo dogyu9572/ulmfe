@@ -1,5 +1,7 @@
 const LIST_QUERY_KEYS = ['page', 'search_condition', 'search_keyword'] as const
 
+export const QNA_LIST_RETURN_KEY = 'ulmfe-qna-list-return'
+
 export function qnaListQuery(params: URLSearchParams) {
 	const query = new URLSearchParams()
 	LIST_QUERY_KEYS.forEach((key) => {

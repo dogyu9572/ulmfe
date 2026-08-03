@@ -75,7 +75,7 @@ export const BbsPostListBasicTemplate: React.FC<Props> = ({
 		(status || '').toUpperCase() === 'DONE' ? '답변완료' : '답변대기'
 
 	return (
-		<table className="table">
+		<table className="table bbs-post-basic-list-table">
 			<thead>
 				<tr>
 					<th className="table-col-check" style={{ width: '50px'}}>
@@ -131,7 +131,7 @@ export const BbsPostListBasicTemplate: React.FC<Props> = ({
 								</td>
 							) : null}
 							{!qnaMode && showCate ? <td>{getCategoryLabel(row.category)}</td> : null}
-							<td>{row.pstTtl}</td>
+							<td className="bbs-post-list-title" title={row.pstTtl}>{row.pstTtl}</td>
 							<td>{row.wrtrNm}</td>
 							<td>{row.pstgYmd || row.regDt?.slice(0, 10)}</td>
 							{qnaMode ? <td>{row.answrNm || '-'}</td> : null}

@@ -55,7 +55,7 @@ export default function GalleryBoard({
 	initialSearchType,
 	initialKeyword
 }: Props) {
-	const board = usePublicBoardList('GALRY', 6, initialResult, initialSearchType, initialKeyword)
+	const board = usePublicBoardList('GALRY', 6, initialResult, initialSearchType, initialKeyword, '', undefined, 'title')
 	const selectedPost = initialSelectedPost ?? null
 	const { result } = board
 	const listHref = board.buildHref(result.page)
@@ -78,6 +78,7 @@ export default function GalleryBoard({
 						onSearchTypeChange={board.setDraftSearchType}
 						onKeywordChange={board.setDraftKeyword}
 						onSubmit={board.submitSearch}
+						searchTypes={['title']}
 					/>
 				</div>
 				<ul className="gallery_basic type_gallery">
