@@ -55,6 +55,14 @@
 *.log
 *.tmp
 *.bak
+/tmp/
+
+# Local AI assistant/IDE runtime files
+/.copilot/
+
+# TypeScript/Next.js generated metadata
+**/*.tsbuildinfo
+**/next-env.d.ts
 
 # IDE metadata
 **/.project
