@@ -89,7 +89,7 @@
 	.board_basic .new td.board_tit a {padding-right:20px;}
 	.board_basic .new td.board_tit a:after {width:16px; height:16px; line-height:16px; font-size:10px;}
 	.board_basic .state {position:absolute; bottom:10px; right:0; padding:2px 10px;}
-	.board_basic .board_review {position: absolute; bottom:10px; right:0;}
+	.board_basic .board_review {position:absolute; bottom:10px; right:0;}
 	.board_basic .review {font-size:13px; padding:2px 10px;}
 	.board_basic .board_file {padding:0;}
 	.board_basic i.file {width:20px; height:20px; background-size:50%;}

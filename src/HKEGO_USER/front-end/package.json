@@ -7,6 +7,7 @@
 		"dev:server": "NODE_OPTIONS=--max-old-space-size=768 next dev --webpack --port 9132 --hostname 127.0.0.1",
 		"build": "next build",
 		"start": "next start --port 3014 --hostname 0.0.0.0",
+		"start:server": "NODE_OPTIONS=--max-old-space-size=768 next start --port 9132 --hostname 127.0.0.1",
 		"lint": "next lint"
 	},
 	"dependencies": {

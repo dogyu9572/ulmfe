@@ -145,6 +145,19 @@ export type TabletTeacherMessage = {
 	regDt?: string
 }
 
+export type TabletEsdQuestion = {
+	questionId: number
+	questionType: 'OX' | 'SELECT'
+	question: string
+	imageUrl?: string
+	options: string[]
+}
+
+export type TabletEsdQuestionCheck = {
+	correct: boolean
+	explanation?: string
+}
+
 export type TabletContentQuestion = {
 	cntnQstnSn: number
 	cntnSn: number
@@ -287,6 +300,23 @@ export const fetchTabletAuthSession = () => request<TabletLoginResponse>('/api/t
 export const fetchTabletSession = () => request<TabletSession>('/api/tablet/session', {
 	cache: 'no-store'
 })
+
+export const fetchRandomTabletEsdQuestion = (excludeQuestionId?: number) => {
+	const params = new URLSearchParams()
+	if (excludeQuestionId && excludeQuestionId > 0) params.set('excludeQuestionId', String(excludeQuestionId))
+	const query = params.toString()
+	return request<TabletEsdQuestion | null>(`/api/tablet/esd-questions/random${query ? `?${query}` : ''}`, {
+		cache: 'no-store'
+	})
+}
+
+export const checkTabletEsdQuestion = (questionId: number, answerIndex: number) => request<TabletEsdQuestionCheck>(
+	`/api/tablet/esd-questions/${questionId}/check`,
+	{
+		method: 'POST',
+		body: JSON.stringify({ answerNo: answerIndex + 1 })
+	}
+)
 
 export const markTabletAttendance = (rsvtSn: number, studentSns: number[]) => request<void>(`/api/tablet/reservations/${rsvtSn}/attendance`, {
 	method: 'POST',

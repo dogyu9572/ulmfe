@@ -31,6 +31,7 @@ import { EvaluationFormPage } from './pages/EvaluationFormPage'
 import { SurveyFormPage } from './pages/SurveyFormPage'
 import { EducationContentPage } from './pages/EducationContentPage'
 import { EducationProgramPage } from './pages/EducationProgramPage'
+import { EsdQuestionBankPage } from './pages/EsdQuestionBankPage'
 import { LearningCalendarPage } from './pages/LearningCalendarPage'
 import { LearningFieldStatusPage } from './pages/LearningFieldStatusPage'
 import { LearningResultPage } from './pages/LearningResultPage'
@@ -149,6 +150,7 @@ const App: React.FC = () => {
 				<Route path="/admin/library-books" element={<LibraryBookPage />} />
 				<Route path="/admin/exploration-programs" element={<EducationProgramPage programType="EXPLORE" />} />
 				<Route path="/admin/mission-programs" element={<EducationProgramPage programType="MISSION" />} />
+				<Route path="/admin/esd-question-bank" element={<EsdQuestionBankPage />} />
 				<Route path="/admin/evaluation-forms" element={<EvaluationFormPage />} />
 				<Route path="/admin/survey-forms" element={<SurveyFormPage />} />
 				<Route path="/admin/education-contents" element={<EducationContentPage />} />

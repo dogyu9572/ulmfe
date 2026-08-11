@@ -186,7 +186,7 @@ export default function QnaBoard() {
 									</tr>
 								)
 							})}
-							{!loading && list.length === 0 && <tr><td colSpan={5}>{error || '등록된 문의가 없습니다.'}</td></tr>}
+							{!loading && list.length === 0 && <tr><td colSpan={5}><div className="no_content">{error || '등록된 문의가 없습니다.'}</div></td></tr>}
 							{loading && list.length === 0 && <tr><td colSpan={5}>문의 목록을 불러오는 중입니다.</td></tr>}
 						</tbody>
 					</table>

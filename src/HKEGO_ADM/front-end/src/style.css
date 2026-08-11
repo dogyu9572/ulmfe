@@ -3546,6 +3546,7 @@ h6 {
 .bbs-post-filter-row {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 8px;
 	min-height: 32px;
 }
@@ -6898,3 +6899,5 @@ input.bbs-post-regdt-input {
 .field-status-step-lines em.is-done {
 	color: #111827;
 }
+
+.max-w-full {max-width:100%;}

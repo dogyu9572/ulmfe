@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 190">
+  <rect x="0" y="0" width="420" height="190" fill="#f2f5f9"/>
+  <rect x="16" y="18" width="388" height="154" rx="9" fill="#fff" stroke="#c8cfd6"/>
+  <rect x="34" y="36" width="110" height="56" rx="6" fill="#e6f2f9"/>
+  <text x="89" y="68" font-size="13" font-weight="700" text-anchor="middle" fill="#0075ba">지구존</text>
+  <rect x="160" y="36" width="110" height="56" rx="6" fill="#e6f2f9"/>
+  <text x="215" y="68" font-size="13" font-weight="700" text-anchor="middle" fill="#0075ba">미래존</text>
+  <rect x="286" y="36" width="100" height="56" rx="6" fill="#e6f2f9"/>
+  <text x="336" y="68" font-size="13" font-weight="700" text-anchor="middle" fill="#0075ba">사회존</text>
+  <rect x="34" y="108" width="236" height="50" rx="6" fill="#eef2f8"/>
+  <text x="152" y="137" font-size="13" font-weight="700" text-anchor="middle" fill="#5c6570">러닝도서관</text>
+  <rect x="286" y="108" width="100" height="50" rx="6" fill="#f7f9fb" stroke="#e0e5ea"/>
+  <text x="336" y="137" font-size="11" text-anchor="middle" fill="#8a939d">입구</text>
+</svg>

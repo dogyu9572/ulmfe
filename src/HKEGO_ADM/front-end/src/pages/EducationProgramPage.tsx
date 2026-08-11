@@ -83,6 +83,15 @@ const BACKEND = API_BASE_URL
 const PAGE_SIZE_OPTIONS = [20, 50, 100]
 const PROGRAM_IMAGE_KEY = 'programImageAtchFileId'
 const PROGRAM_ROUTE_STEP_COUNT = 4
+const MISSION_ROUTE_STEP_OPTIONS = ['지구존', '미래존', '사회존', '러닝도서관']
+
+const normalizeMissionRouteName = (value: string) => {
+	const trimmed = value.trim()
+	const normalized = trimmed.replace(/\s/g, '')
+	return normalized === '도서관' || normalized === '도서관존' || normalized === '러닝도서관'
+		? '러닝도서관'
+		: trimmed
+}
 
 type UploadInfo = {
 	fiId?: string
@@ -147,7 +156,7 @@ const defaultStepRows = (programType: ProgramType): ProgramStepDetail[] => (
 					title: '',
 					place: '',
 					limitMin: '',
-					quests: ['지구존', '미래존', '사회존', '도서관존'].map((name) => ({
+					quests: ['지구존', '미래존', '사회존', '러닝도서관'].map((name) => ({
 						name,
 						title: '',
 						place: '',
@@ -254,7 +263,8 @@ function normalizeRouteRows(value: string, programType: ProgramType): ProgramRou
 				: []
 		const steps = Array.from({ length: PROGRAM_ROUTE_STEP_COUNT }, (_, stepIndex) => {
 			const value = rawSteps[stepIndex]
-			return typeof value === 'string' && value.trim() ? value.trim() : fallbackRow.steps[stepIndex]
+			const normalizedValue = typeof value === 'string' && value.trim() ? value.trim() : fallbackRow.steps[stepIndex]
+			return programType === 'MISSION' ? normalizeMissionRouteName(normalizedValue) : normalizedValue
 		})
 		return {
 			name: typeof row.name === 'string' && row.name.trim() ? row.name.trim() : fallbackRow.name,
@@ -284,6 +294,9 @@ function normalizeStepRows(value: string, programType: ProgramType): ProgramStep
 		}
 		normalized.thoughts = Array.isArray(row.thoughts) ? row.thoughts as ProgramTextRow[] : fallbackRow.thoughts
 		normalized.quests = Array.isArray(row.quests) ? row.quests as ProgramQuestDetail[] : fallbackRow.quests
+		if (programType === 'MISSION' && normalized.quests) {
+			normalized.quests = normalized.quests.map((quest) => ({ ...quest, name: normalizeMissionRouteName(quest.name || '') }))
+		}
 		normalized.contents = Array.isArray(row.contents) ? row.contents as ProgramContentRow[] : fallbackRow.contents
 		normalized.safetyRules = Array.isArray(row.safetyRules) ? row.safetyRules as ProgramTextRow[] : fallbackRow.safetyRules
 		normalized.checklists = Array.isArray(row.checklists) ? row.checklists as ProgramTextRow[] : fallbackRow.checklists
@@ -300,6 +313,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 	const pageTitle = programType === 'MISSION' ? '미션 프로그램 관리' : '사건탐구 프로그램 관리'
 	const nameLabel = programType === 'MISSION' ? '미션명' : '프로그램명'
 	const teamLabel = programType === 'MISSION' ? '총 동선 수' : '총 팀(모둠) 수'
+	const showStepInformation = programType === 'EXPLORE'
 	const [list, setList] = useState<EducationProgram[]>([])
 	const [form, setForm] = useState<EducationProgram>(defaultForm(programType))
 	const [popupOpen, setPopupOpen] = useState(false)
@@ -337,7 +351,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 		.map((row, index) => ({ row, index }))
 		.filter(({ row }) => programType === 'EXPLORE' ? row.step !== 'STEP3' && row.step !== 'STEP4' : row.step !== 'STEP4')
 	const evalInfo = parseJsonObject(form.evalJson, { studentEvaluation: '', teacherEvaluation: '', survey: '', [PROGRAM_IMAGE_KEY]: '' })
-	const routeStepOptions = programType === 'MISSION' ? ['지구존', '미래존', '사회존', '도서관존'] : ['퀘스트1', '퀘스트2', '퀘스트3', '퀘스트4']
+	const routeStepOptions = programType === 'MISSION' ? MISSION_ROUTE_STEP_OPTIONS : ['퀘스트1', '퀘스트2', '퀘스트3', '퀘스트4']
 
 	const buildSearchParams = useCallback((targetPage: number, targetSize = pageSize, filters?: { useYn?: string; searchKeyword?: string }) => {
 		const targetUseYn = filters?.useYn ?? useYnFilter
@@ -1127,7 +1141,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 									<p className="education-program-field-note">강조할 문구의 앞뒤에 *를 입력해 주세요. * 기호는 화면에 표시되지 않습니다.</p>
 								</td>
 							</tr>
-							{programType !== 'MISSION' && (
+							{showStepInformation && (
 								<tr>
 									<th>이미지 관리</th>
 									<td colSpan={3}>
@@ -1178,7 +1192,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 														<td className="education-program-fixed-label">{row.name}</td>
 														{row.steps.map((step, stepIndex) => (
 															<td key={stepIndex}>
-																<select value={step} onChange={(e) => updateRouteStep(index, stepIndex, e.target.value)}>
+														<select key={`${programType}-route-label-v2-${stepIndex}`} value={step} onChange={(e) => updateRouteStep(index, stepIndex, e.target.value)}>
 																	<option value="">선택</option>
 																	{routeStepOptions.map((option) => <option key={option} value={option}>{option}</option>)}
 																</select>
@@ -1190,13 +1204,17 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 									</table>
 								</td>
 							</tr>
-							<tr className="education-program-section-row">
-								<th colSpan={4}>STEP 정보</th>
-							</tr>
-							<tr>
-								<th>상세 설정</th>
-								<td colSpan={3}>{visibleStepRows.map(({ row, index }) => renderStepDetail(row, index))}</td>
-							</tr>
+							{showStepInformation && (
+								<>
+									<tr className="education-program-section-row">
+										<th colSpan={4}>STEP 정보</th>
+									</tr>
+									<tr>
+										<th>상세 설정</th>
+										<td colSpan={3}>{visibleStepRows.map(({ row, index }) => renderStepDetail(row, index))}</td>
+									</tr>
+								</>
+							)}
 					</tbody>
 				</table>
 			</LayerPopup>

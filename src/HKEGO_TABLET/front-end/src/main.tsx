@@ -36,9 +36,11 @@ import {
 	Mission06EndPage,
 	Mission06Page,
 	MissionAboutPage,
+	MissionPlayPage,
 	MissionResourceCenterPage,
 	MissionWelcomePage
 } from './pages/student/mission'
+import { MissionProtoPage } from './pages/student/mission/proto/MissionProtoPage'
 import {
 	TeacherAttendancePage,
 	TeacherCallHistoryPage,
@@ -66,6 +68,8 @@ const plannedPages = [
 	'student/mission06',
 	'student/mission06_end',
 	'student/mission_about',
+	'student/mission_play',
+	'student/mission_proto',
 	'student/mission_resource_center',
 	'student/mission_welcome',
 	'student/quest00',
@@ -173,6 +177,7 @@ const PageRoute = () => {
 	if (page === 'student/resource_center') return <ResourceCenterPage />
 	if (page === 'student/mission_welcome') return <MissionWelcomePage />
 	if (page === 'student/mission_about') return <MissionAboutPage />
+	if (page === 'student/mission_play') return <MissionPlayPage />
 	if (page === 'student/mission01') return <Mission01Page />
 	if (page === 'student/mission02') return <Mission02Page />
 	if (page === 'student/mission03') return <Mission03Page />
@@ -183,6 +188,7 @@ const PageRoute = () => {
 	if (page === 'student/mission05_end') return <Mission05EndPage />
 	if (page === 'student/mission06') return <Mission06Page />
 	if (page === 'student/mission06_end') return <Mission06EndPage />
+	if (page === 'student/mission_proto') return <MissionProtoPage />
 	if (page === 'student/mission_resource_center') return <MissionResourceCenterPage />
 	if (page === 'teacher/attendance') return <TeacherAttendancePage />
 	if (page === 'teacher/monitoring') return <TeacherMonitoringPage />

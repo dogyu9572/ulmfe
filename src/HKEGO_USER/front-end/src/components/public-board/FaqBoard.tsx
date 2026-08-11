@@ -72,7 +72,7 @@ export default function FaqBoard({
 						</details>
 					)
 				})}
-				{emptyMessage ? <p role="status">{emptyMessage}</p> : null}
+				{emptyMessage ? <p role="status" className="no_content">{emptyMessage}</p> : null}
 			</div>
 			<div className="board_bottom">
 				<BoardPagination page={result.page} totalPages={result.totalPages} buildHref={board.buildHref} />

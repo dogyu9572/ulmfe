@@ -11,8 +11,8 @@
 	.about_area .tit strong {display:block; font-size:24px; font-weight:600; margin-bottom:32px;}
 	.about_area .tit p {font-size:20px; color:#333D4B;}
 	.about_area .ibox {display:flex; gap:24px; margin:80px 0;}
-	.about_area .ibox li {width:calc((100% - 48px)/3); color:#333D4B; padding:32px; border-radius:16px; box-shadow:0 4px 20px 0 rgba(0, 0, 0, 0.10);}
-	.about_area .ibox li:before {content:""; display:block; width:64px; height:64px; background:#F9FAFB no-repeat 50% 50%; border-radius:50%; margin:0 auto 16px;}
+	.about_area .ibox li {width:calc((100% - 48px)/3); color:#333D4B; padding:48px 32px; border-radius:16px; box-shadow:0 4px 20px 0 rgba(0, 0, 0, 0.10);}
+	.about_area .ibox li:before {content:""; display:block; width:100px; height:100px; background:#F9FAFB no-repeat 50% 50% / 40%; border-radius:50%; margin:0 auto 16px;}
 	.about_area .ibox li.i1:before {background-image:url('/pub/images/icon_about01.svg');}
 	.about_area .ibox li.i2:before {background-image:url('/pub/images/icon_about02.svg');}
 	.about_area .ibox li.i3:before {background-image:url('/pub/images/icon_about03.svg');}

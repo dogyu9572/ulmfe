@@ -25,7 +25,7 @@ export const MissionAboutPage = () => {
 							<div className="blue_box">
 								{descriptionLines.length > 0 ? descriptionLines.map((line, index) => <p key={`${line}-${index}`}><EmphasisText text={line} /></p>) : <p>관리자에 등록된 시작 전 설명이 없습니다.</p>}
 							</div>
-							<Link to="/student/mission01" className="btn_link"><strong>미션 출발하기</strong><p>첫번째 활동으로 떠나볼까요?<img src="/pub/images/btn_link_search.webp" alt="" aria-hidden="true" /></p></Link>
+							<Link to="/student/mission_play" className="btn_link"><strong>미션 출발하기</strong><p>첫번째 활동으로 떠나볼까요?<img src="/pub/images/btn_link_search.webp" alt="" aria-hidden="true" /></p></Link>
 						</div>
 					</div>
 				</div>

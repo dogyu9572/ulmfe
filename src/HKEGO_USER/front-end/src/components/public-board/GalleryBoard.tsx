@@ -107,7 +107,7 @@ export default function GalleryBoard({
 						)
 					})}
 				</ul>
-				{emptyMessage ? <p role="status">{emptyMessage}</p> : null}
+				{emptyMessage ? <p role="status" className="no_content">{emptyMessage}</p> : null}
 				<div className="board_bottom">
 					<BoardPagination page={result.page} totalPages={result.totalPages} buildHref={board.buildHref} />
 				</div>

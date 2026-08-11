@@ -15,7 +15,7 @@ const currentPlaceName = () => {
 	return stripEmphasisMarkers(session.prgrmNm)
 }
 
-export const TeacherCallPopup = () => {
+export const TeacherCallPopup = ({ placeName }: { placeName?: string } = {}) => {
 	const [open, setOpen] = useState(false)
 	const [saving, setSaving] = useState(false)
 
@@ -48,7 +48,7 @@ export const TeacherCallPopup = () => {
 		}
 		try {
 			setSaving(true)
-			await createTabletTeacherCall(session.rsvtSn, { studentSns, placeNm: currentPlaceName() })
+			await createTabletTeacherCall(session.rsvtSn, { studentSns, placeNm: placeName || currentPlaceName() })
 			window.alert('선생님 호출을 보냈습니다.')
 			setOpen(false)
 		} catch (error) {
@@ -146,9 +146,9 @@ export const TeacherMessagePopup = () => {
 	)
 }
 
-export const StudentPopups = () => (
+export const StudentPopups = ({ teacherCallPlaceName }: { teacherCallPlaceName?: string } = {}) => (
 	<>
-		<TeacherCallPopup />
+		<TeacherCallPopup placeName={teacherCallPlaceName} />
 		<TeacherMessagePopup />
 	</>
 )

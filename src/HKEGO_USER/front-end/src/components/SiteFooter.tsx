@@ -33,7 +33,7 @@ export default function SiteFooter() {
 	return (
 		<footer ref={footerRef} className={`footer${unfixed ? ' unfixed' : ''}`}>
 			<div ref={quickRef} className="quick_area">
-				<a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" className="btn btn_youtube">유튜브</a>
+				<a href="https://www.youtube.com/@happy_use" target="_blank" rel="noopener noreferrer" className="btn btn_youtube">유튜브</a>
 				<a href={RESERVATION_URL} target="_blank" rel="noopener noreferrer" className="btn btn_reserve">통합예약</a>
 				<button ref={topButtonRef} type="button" className="btn gotop" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>TOP</button>
 			</div>
@@ -59,7 +59,7 @@ export default function SiteFooter() {
 						</div>
 						<ul className="out_link">
 							<li className="btn_reserve"><a href={RESERVATION_URL} target="_blank" rel="noopener noreferrer">울산광역시교육청 통합예약</a></li>
-							<li className="btn_youtube"><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">울산광역시미래교육관 유튜브</a></li>
+							<li className="btn_youtube"><a href="https://www.youtube.com/@happy_use" target="_blank" rel="noopener noreferrer">울산광역시미래교육관 유튜브</a></li>
 							<li className={`family_site${familyOpen ? ' on' : ''}`}>
 								<button type="button" className="btn" aria-expanded={familyOpen} onClick={() => setFamilyOpen((open) => !open)}>관련 기관 사이트<i aria-hidden="true" /></button>
 								<ul>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 190">
+  <rect x="0" y="0" width="420" height="190" fill="#f7f9fb"/>
+  <rect x="20" y="24" width="380" height="128" rx="8" fill="#fff" stroke="#c8cfd6"/>
+  <text x="210" y="46" font-size="11" font-weight="700" text-anchor="middle" fill="#0075ba">E-09  지구의 온도변화 패널</text>
+  <rect x="40" y="60" width="150" height="74" rx="5" fill="#eef2f8"/>
+  <text x="115" y="102" font-size="9" text-anchor="middle" fill="#5c6570">온도 상승 그래프</text>
+  <rect x="206" y="60" width="174" height="74" rx="5" fill="#f7f9fb" stroke="#e0e5ea"/>
+  <g font-size="17" font-weight="700" text-anchor="middle">
+    <text x="238" y="92" fill="#e11d48">ㄱ</text>
+    <text x="279" y="92" fill="#1d4ed8">ㄷ</text>
+    <text x="320" y="92" fill="#15803d">ㅅ</text>
+    <text x="361" y="92" fill="#ea580c">ㅈ</text>
+  </g>
+  <g font-size="8" text-anchor="middle" fill="#8a939d">
+    <text x="238" y="112">2번째</text>
+    <text x="279" y="112">4번째</text>
+    <text x="320" y="112">6번째</text>
+    <text x="361" y="112">8번째</text>
+  </g>
+  <rect x="206" y="60" width="174" height="74" rx="5" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-dasharray="5 3"/>
+</svg>

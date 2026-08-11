@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.EsdQuestionDAO">
+	<sql id="selectColumns">
+		Q.ESD_QSTN_SN,
+		Q.QSTN_TYPE_CD,
+		CASE Q.QSTN_TYPE_CD
+			WHEN 'OX' THEN 'OX'
+			WHEN 'SELECT' THEN '객관식'
+			ELSE Q.QSTN_TYPE_CD
+		END AS QSTN_TYPE_NM,
+		Q.QSTN_CN,
+		Q.QSTN_IMG_ATCH_FILE_ID,
+		Q.OPTN_CN,
+		Q.CRANS_NO,
+		Q.CRANS_EXPLN,
+		Q.USE_YN,
+		Q.SORT_SEQ,
+		Q.REG_DT,
+		Q.RGTR_NM,
+		Q.MDFCN_DT,
+		Q.MDFR_NM,
+		Q.DEL_DT,
+		Q.DLTR_NM
+	</sql>
+
+	<sql id="searchWhere">
+		<where>
+			Q.DEL_DT IS NULL
+			<if test="qstnTypeCd != null and qstnTypeCd != ''">
+				AND Q.QSTN_TYPE_CD = #{qstnTypeCd}
+			</if>
+			<if test="useYn != null and useYn != ''">
+				AND Q.USE_YN = #{useYn}
+			</if>
+			<if test="searchKeyword != null and searchKeyword != ''">
+				AND Q.QSTN_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+			</if>
+		</where>
+	</sql>
+
+	<select id="countList" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_ESD_QSTN Q
+		<include refid="searchWhere"/>
+	</select>
+
+	<select id="selectList" resultType="egovframework.let.adm.service.vo.EsdQuestionVO">
+		SELECT
+		<include refid="selectColumns"/>
+		FROM EDU_ESD_QSTN Q
+		<include refid="searchWhere"/>
+		ORDER BY Q.ESD_QSTN_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="findById" resultType="egovframework.let.adm.service.vo.EsdQuestionVO">
+		SELECT
+		<include refid="selectColumns"/>
+		FROM EDU_ESD_QSTN Q
+		WHERE Q.ESD_QSTN_SN = #{esdQstnSn}
+		AND Q.DEL_DT IS NULL
+	</select>
+
+	<insert id="insertQuestion" parameterType="egovframework.let.adm.service.vo.EsdQuestionVO" useGeneratedKeys="true" keyProperty="esdQstnSn">
+		INSERT INTO EDU_ESD_QSTN (
+			QSTN_TYPE_CD,
+			QSTN_CN,
+			QSTN_IMG_ATCH_FILE_ID,
+			OPTN_CN,
+			CRANS_NO,
+			CRANS_EXPLN,
+			USE_YN,
+			SORT_SEQ,
+			RGTR_NM,
+			REG_DT
+		) VALUES (
+			#{qstnTypeCd},
+			#{qstnCn},
+			#{qstnImgAtchFileId},
+			#{optnCn},
+			#{cransNo},
+			#{cransExpln},
+			#{useYn},
+			#{sortSeq},
+			#{rgtr},
+			NOW()
+		)
+	</insert>
+
+	<update id="updateQuestion" parameterType="egovframework.let.adm.service.vo.EsdQuestionVO">
+		UPDATE EDU_ESD_QSTN SET
+			QSTN_TYPE_CD = #{qstnTypeCd},
+			QSTN_CN = #{qstnCn},
+			QSTN_IMG_ATCH_FILE_ID = #{qstnImgAtchFileId},
+			OPTN_CN = #{optnCn},
+			CRANS_NO = #{cransNo},
+			CRANS_EXPLN = #{cransExpln},
+			USE_YN = #{useYn},
+			SORT_SEQ = #{sortSeq},
+			MDFR_NM = #{mdfr},
+			MDFCN_DT = NOW()
+		WHERE ESD_QSTN_SN = #{esdQstnSn}
+		AND DEL_DT IS NULL
+	</update>
+
+	<update id="deleteQuestion">
+		UPDATE EDU_ESD_QSTN SET
+			DEL_DT = NOW(),
+			DLTR_NM = 'admin'
+		WHERE ESD_QSTN_SN = #{esdQstnSn}
+		AND DEL_DT IS NULL
+	</update>
+</mapper>

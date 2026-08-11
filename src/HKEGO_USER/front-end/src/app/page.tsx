@@ -1,4 +1,5 @@
 import HomePageClient from '@/components/HomePageClient'
+import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import {
 	getPublicBoardPostsServer,
@@ -6,6 +7,13 @@ import {
 	getPublicPopupsServer
 } from '@/lib/publicApiServer'
 
+export const metadata: Metadata = {
+    title: '울산광역시미래교육관',
+    description: '울산광역시미래교육관 메인 페이지입니다',
+    alternates: {
+        canonical: '/'
+    }
+}
 
 export default async function HomePage() {
 	const [banners, exhibits, notices, galleryItems, events, popups] = await Promise.all([

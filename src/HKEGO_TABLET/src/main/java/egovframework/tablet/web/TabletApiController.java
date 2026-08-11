@@ -6,6 +6,9 @@ import egovframework.tablet.common.ApiResponse;
 import egovframework.tablet.service.TabletService;
 import egovframework.tablet.service.TabletPushService;
 import egovframework.tablet.service.vo.TabletAttendanceRequest;
+import egovframework.tablet.service.vo.TabletEsdQuestionAnswerRequest;
+import egovframework.tablet.service.vo.TabletEsdQuestionCheckResponse;
+import egovframework.tablet.service.vo.TabletEsdQuestionVO;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletLoginRequest;
 import egovframework.tablet.service.vo.TabletLoginResponse;
@@ -109,6 +112,28 @@ public class TabletApiController {
 		@RequestParam Integer prgrmSn
 	) {
 		return ApiResponse.success("학습지원 자료실 조회 성공", tabletService.getLearningResources(prgrmTypeCd, prgrmSn));
+	}
+
+	@GetMapping("/esd-questions/random")
+	public ApiResponse<TabletEsdQuestionVO> getRandomEsdQuestion(
+		@RequestParam(required = false) Integer excludeQuestionId
+	) {
+		return ApiResponse.success("문제은행 무작위 문항 조회 성공", tabletService.getRandomEsdQuestion(excludeQuestionId));
+	}
+
+	@PostMapping("/esd-questions/{questionId}/check")
+	public ResponseEntity<ApiResponse<TabletEsdQuestionCheckResponse>> checkEsdQuestion(
+		@PathVariable Integer questionId,
+		@RequestBody TabletEsdQuestionAnswerRequest request
+	) {
+		try {
+			return ResponseEntity.ok(ApiResponse.success(
+				"문제은행 정답 판정 성공",
+				tabletService.checkEsdQuestion(questionId, request == null ? null : request.getAnswerNo())
+			));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+		}
 	}
 
 	@GetMapping("/learning-resources/{pstSn}/open")

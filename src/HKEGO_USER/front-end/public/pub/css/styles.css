@@ -18,6 +18,7 @@
 	.c_yellow {color:#F5A200;}
 	
 	.btn_wbb {color:#fff !important; background:#00A6D9 !important; border-color:#00A6D9 !important;}
+	.btn_bwb {color:#00A6D9 !important; background:#fff !important; border:#00A6D9 1px solid !important;}
 	.btn_wgg {color:#fff !important; background:#58B431 !important; border-color:#58B431 !important;}
 /* 버튼 */
 	.btn {display:flex; justify-content:center; align-items:center; font-weight:600; width:200px; height:48px; border-radius:24px;}
@@ -31,8 +32,8 @@
 	.header {position:fixed; top:0; left:0; width:100%; height:96px; z-index:100; padding:0 80px; color:#191F28; background:#fff; transition:.2s linear;}
 	.header * {letter-spacing:-.03em;}
 	.header .logo {position:absolute; top:0; left:80px; width:222px; height:100%; background:url('/pub/images/logo.svg') no-repeat 50% 50% / contain; z-index:1;}
-	.header .gnb {position:absolute; top:0; right:240px;}
-	.header .gnb .list {display:flex;}
+	.header .gnb {width:100%; padding:0 90px 0 222px;}
+	.header .gnb .list {display:flex; justify-content:center}
 	.header .gnb .list > li {position:relative;}
 	.header .gnb .list > li > a {display:block; font-size:20px; font-weight:500; line-height:96px; padding:0 20px;}
 	.header .gnb .list > li.on > a {color:var(--c_iden) !important;}
@@ -79,6 +80,7 @@
 	.header.search_open .btn_search:before,
 	.header.search_open .btn_menu span {background:#333D4B;}
 	.header.search_open .total_search_area {visibility:visible; opacity:1;}
+	.total_search_area.no_transition {transition:none !important;}
 
 	.header.main {background:none;}
 	.header.main .logo {background-image:url('/pub/images/logo_w.svg');}
@@ -92,7 +94,7 @@
 	.header.fixed .btn_menu span {background:#333D4B;}
 
 	.header.on .logo {left:55px; background-image:url('/pub/images/logo.svg');}
-	.header.on .btn_menu {right:55px; width:40px; height:40px; background:#fff; border-color:#ddd;}
+	.header.on .btn_menu {/* right:55px; */ width:40px; height:40px; background:#fff; border-color:#ddd;}
 	.header.on .btn_menu span {background:#333D4B;}
 	.header.on .btn_menu .t {margin-top:-1px; transform:rotate(135deg);}
 	.header.on .btn_menu .m {width:0;}
@@ -100,7 +102,7 @@
 	.header.on .sitemap {visibility:visible; opacity:1; pointer-events:auto; user-select:auto;}
 /* footer */
 	.footer {position:relative; border-top:#E5E8EB 1px solid;}
-	.quick_area {position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:1;}
+	.quick_area {position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:10;}
 	.quick_area .btn {width:72px; height:72px; border-radius:50%; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:14px; color:#191F28; font-weight:500; line-height:20px;}
 	.quick_area .btn:before {content:""; display:block; width:100%; height:20px; background:no-repeat 50% 50%;}
 	.quick_area .btn_youtube {background:#FFE6E6;}
@@ -156,7 +158,7 @@
 /* header */
 	.header {padding:0 20px;}
 	.header .logo {left:20px;}
-	.header .gnb {right:140px;}
+	.header .gnb {padding:0 90px 0 222px;}
 	.header .gnb .list > li > a {font-size:18px; padding:0 12px;}
 	.header .gnb .snb {padding:48px 80px 48px 400px;}
 	.header .gnb .snb .tit {left:20px; width:360px; font-size:34px;}
@@ -181,7 +183,7 @@
 /* header */
 	.header {height:80px;}
 	.header .logo {width:180px;}
-	.header .gnb {right:120px;}
+	.header .gnb {padding:0 90px 0 180px;}
 	.header .gnb .list > li > a {font-size:15px; line-height:80px; padding:0 8px;}
 	.header .gnb .snb {top:80px; padding:40px 20px 40px 400px; background-size:340px;}
 	.header .gnb .snb .tit {top:40px; left:20px; width:300px; font-size:30px;}
@@ -203,7 +205,7 @@
 	.total_search_area .tit {font-size:36px; margin-bottom:40px;}
 
 	.header.on .logo {left:40px;}
-	.header.on .btn_menu {right:40px;}
+	/* .header.on .btn_menu {right:40px;} */
 /* footer */
 	.footer_info .btm {position:relative; gap:12px;}
 	.footer_info .btm .txt {width:100%; max-width:100%;}
@@ -260,7 +262,7 @@
 	.total_search_area .search_input_area .btn_submit {height:56px; font-size:18px;}
 
 	.header.on .logo {left:20px;}
-	.header.on .btn_menu {right:20px;}
+	/* .header.on .btn_menu {right:20px;} */
 /* footer */
 	.footer_info .top {padding-bottom:20px; margin-bottom:20px;}
 	.footer_info .top .logo {width:200px;}

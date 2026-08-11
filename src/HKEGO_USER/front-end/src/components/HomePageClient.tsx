@@ -325,20 +325,21 @@ export default function HomePageClient({
 				<section className="mcon mc01">
 					<div className="inner">
 						<div className="left flex">
-							<div className="txt"><h2 className="tit">자주 찾는 메뉴</h2><p>울산광역시 미래교육관의 <br />자주 찾는 메뉴들을 만나보세요!</p></div>
+							<div className="txt"><h2 className="tit">자주 찾는 메뉴</h2><p>울산광역시미래교육관의 <br />자주 찾는 메뉴들을 만나보세요!</p></div>
 							<ul className="links">
 								<li className="i1"><Link href="/program/reserve"><i aria-hidden="true" />예약 안내</Link></li>
 								<li className="i2"><Link href="/about/location"><i aria-hidden="true" />오시는 길</Link></li>
-								<li className="i3"><Link href="/exhibit/floor_1f"><i aria-hidden="true" />전시 소개</Link></li>
+								<li className="i3"><Link href="/exhibit/floor_1f"><i aria-hidden="true" />전시소개</Link></li>
 								<li className="i4"><Link href="/support/faq"><i aria-hidden="true" />FAQ</Link></li>
 							</ul>
 						</div>
 						<div className="right flex">
 							<div className="txt"><h2 className="tit">이용안내</h2><a href="https://use.go.kr/booking/index.do;jsessionid=18A242975D5071CBE5C0B679CB59722B" target="_blank" rel="noopener noreferrer" className="btn">통합 예약 바로가기</a></div>
 							<ul className="info">
-								<li className="i1"><h3>운영시간</h3><strong>09:00 ~ 18:00</strong><span>(※ 온라인 사전 예약 후 이용이 가능합니다.)</span></li>
+								<li className="i1"><h3>운영시간</h3><strong>09:00 ~ 18:00</strong></li>
 								<li className="i2"><h3>휴관안내</h3><strong>매주 수요일 / 공휴일</strong></li>
 								<li className="i3"><h3>이용요금</h3><strong>무료</strong></li>
+								<li className="pl0"><span>(※ 온라인 사전 예약 후 이용이 가능합니다.)</span></li>
 							</ul>
 						</div>
 					</div>
@@ -346,11 +347,11 @@ export default function HomePageClient({
 
 				<section className="mcon mc02">
 					<div className="inner">
-						<div className="mtit"><h2>울산광역시 미래교육관</h2><strong>교육 프로그램</strong><Link href="/program/esd_pbl" className="btn_more">더보기</Link></div>
+						<div className="mtit"><h2>울산광역시미래교육관</h2><strong>교육 프로그램</strong><Link href="/program/esd_pbl" className="btn_more"><span>자세히 보기</span></Link></div>
 						<ul className="program_list">
-							<li className="c1"><Link href="/program/elementary"><i aria-hidden="true"><img src="/pub/images/icon_mc02_01.svg" alt="" /></i><h3>사건탐구 프로그램(초5)</h3><p>울산의 문제를 직접 탐구하고 <br />해결하는 프로젝트 학습</p></Link></li>
-							<li className="c2"><Link href="/program/mission"><i aria-hidden="true"><img src="/pub/images/icon_mc02_02.svg" alt="" /></i><h3>미션 프로그램(중1)</h3><p>스토리 속 미션을 해결하며 <br />지속가능한 미래를 발견하는 체험</p></Link></li>
-							<li className="c3"><Link href="/program/biggame"><i aria-hidden="true"><img src="/pub/images/icon_mc02_03.svg" alt="" /></i><h3>빅게임 프로그램</h3><p>팀과 함께 퀘스트를 수행하며 <br />몰입과 재미로 배우는 모험</p></Link></li>
+							<li className="c1"><Link href="/program/elementary"><i aria-hidden="true"><img src="/pub/images/icon_mc02_01.svg" alt="" /></i><h3>사건탐구 프로그램(초5)</h3><p>울산의 문제를 직접 탐구하고 <br />해결하는 프로젝트 학습</p><span className="go">자세히 보기 ›</span></Link></li>
+							<li className="c2"><Link href="/program/mission"><i aria-hidden="true"><img src="/pub/images/icon_mc02_02.svg" alt="" /></i><h3>미션 프로그램(중1)</h3><p>스토리 속 미션을 해결하며 <br />지속가능한 미래를 발견하는 체험</p><span className="go">자세히 보기 ›</span></Link></li>
+							<li className="c3"><Link href="/program/biggame"><i aria-hidden="true"><img src="/pub/images/icon_mc02_03.svg" alt="" /></i><h3>빅게임 프로그램</h3><p>팀과 함께 퀘스트를 수행하며 <br />몰입과 재미로 배우는 모험</p><span className="go">자세히 보기 ›</span></Link></li>
 						</ul>
 					</div>
 				</section>
@@ -366,21 +367,21 @@ export default function HomePageClient({
 									<button type="button" className="arrow prev">이전</button><button type="button" className="arrow next">다음</button>
 								</div>
 								<div ref={exhibitRef} className="mc03a_slide swiper"><div className="swiper-wrapper">
-									{initialExhibits.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/news/exhibit_view?id=${encodeURIComponent(post.postId)}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}<h3>{post.title}</h3></Link></div>)}
+									{initialExhibits.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/news/exhibit_view?id=${encodeURIComponent(post.postId)}`}><span className={`imgfit${post.thumbnailUrl ? ' in' : ''}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><div className="txt"><h3>{post.title}</h3></div></Link></div>)}
 								</div></div>
 							</div>
 							<div className="right">
-								<h2 className="mtit">공지사항</h2><Link href="/news/notice" className="btn_more">더보기</Link>
+								<h2 className="mtit">공지사항</h2><Link href="/news/notice" className="btn_more"><span>자세히 보기</span></Link>
 								<ul className="main_notice">
-									{initialNotices.map((post) => <li key={post.postId}><Link href={`/news/notice_view?id=${encodeURIComponent(post.postId)}`}><span className="imgfit">{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><span className="txt"><h3>{post.title}</h3><p>{plainText(post.content)}</p><span className="date">{formatDate(post.publishedDate || post.registeredAt)}</span></span></Link></li>)}
+									{initialNotices.map((post) => <li key={post.postId}><Link href={`/news/notice_view?id=${encodeURIComponent(post.postId)}`}><span className={`imgfit${post.thumbnailUrl ? ' in' : ''}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><span className="txt"><h3>{post.title}</h3><p>{plainText(post.content)}</p><span className="date">{formatDate(post.publishedDate || post.registeredAt)}</span></span></Link></li>)}
 								</ul>
 							</div>
 						</div>
 						<div className="flex">
 							<div className="left">
-								<h2 className="mtit">갤러리</h2><Link href="/gallery/index" className="btn_more">더보기</Link>
+								<h2 className="mtit">갤러리</h2><Link href="/gallery/index" className="btn_more"><span>자세히 보기</span></Link>
 								<div ref={galleryRef} className="main_gallery swiper"><div className="swiper-wrapper">
-									{initialGalleryItems.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/gallery?post_id=${encodeURIComponent(post.postId)}`}><span className="imgfit">{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><span className="txt"><h3>{post.title}</h3><span className="date">{formatDate(post.publishedDate || post.registeredAt)}</span></span></Link></div>)}
+									{initialGalleryItems.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/gallery?post_id=${encodeURIComponent(post.postId)}`}><span className={`imgfit${post.thumbnailUrl ? ' in' : ''}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt="" />}</span><span className="txt"><h3>{post.title}</h3><span className="date">{formatDate(post.publishedDate || post.registeredAt)}</span></span></Link></div>)}
 								</div></div>
 							</div>
 							<div className="right">
@@ -391,7 +392,7 @@ export default function HomePageClient({
 									<button type="button" className="arrow prev">이전</button><button type="button" className="arrow next">다음</button>
 								</div>
 								<div ref={eventRef} className="mc03d_slide swiper"><div className="swiper-wrapper">
-									{initialEvents.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/news/event_view?id=${encodeURIComponent(post.postId)}`}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt={post.title} />}</Link></div>)}
+									{initialEvents.map((post) => <div className="swiper-slide" key={post.postId}><Link href={`/news/event_view?id=${encodeURIComponent(post.postId)}`} className={post.thumbnailUrl ? 'in' : ''}>{post.thumbnailUrl && <img src={post.thumbnailUrl} alt={post.title} />}</Link></div>)}
 								</div></div>
 							</div>
 						</div>

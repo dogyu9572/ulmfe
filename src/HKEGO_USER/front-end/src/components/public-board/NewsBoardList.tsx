@@ -183,7 +183,7 @@ export default function NewsBoardList({
 					<ul className={`gallery_basic ${variant === 'gallery-large' ? 'type_large' : 'type_small'}`}>
 						<GalleryItems posts={result.list} detailPath={detailPath} listHref={listHref} />
 					</ul>
-					{emptyMessage && <p role="status">{emptyMessage}</p>}
+					{emptyMessage && <p role="status" className="no_content">{emptyMessage}</p>}
 				</>
 			)}
 			<div className="board_bottom">

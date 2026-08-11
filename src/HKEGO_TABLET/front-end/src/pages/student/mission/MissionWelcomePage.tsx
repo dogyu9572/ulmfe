@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { AttendanceHeader } from '../../../components/tablet/AttendanceHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
-import { studentFlowAssignmentName, studentFlowDisplayName, studentFlowReservation, studentFlowRouteItems, studentFlowTeamName } from '../../../state/tabletStudentFlowSession'
+import { studentFlowDisplayName, studentFlowReservation, studentFlowRouteItems, studentFlowTeamName } from '../../../state/tabletStudentFlowSession'
 import { stripEmphasisMarkers } from '../../../utils/emphasisText'
 import { missionRouteIconSrc } from './missionShared'
 
@@ -12,7 +12,6 @@ export const MissionWelcomePage = () => {
 
 	const teamName = studentFlowTeamName(flowSession)
 	const routeItems = studentFlowRouteItems(flowSession)
-	const assignmentName = studentFlowAssignmentName(flowSession)
 
 	return (
 		<main className="container flex_center" id="mainContent">
@@ -27,10 +26,9 @@ export const MissionWelcomePage = () => {
 				</div>
 				<div className="stit itit">오늘의 활동 순서</div>
 				<ol className="activity_order_step_area">
-					<li><i aria-hidden="true"><img src="/pub/images/icon_activity_order01.webp" alt="" /></i><strong>사건제시</strong><p>2층 ESD 배움터 아이디어실 1</p></li>
-					<li><i aria-hidden="true"><img src="/pub/images/icon_activity_mission02.webp" alt="" /></i><strong>미션 탐색</strong><p>2층 ESD 배움터 아이디어실 1</p></li>
-					{routeItems.map((item, index) => <li key={`${item}-${index}`}><i aria-hidden="true"><img src={missionRouteIconSrc(item)} alt="" /></i><strong>{item}</strong><p>{assignmentName}</p></li>)}
-					<li><i aria-hidden="true"><img src="/pub/images/icon_activity_order06.webp" alt="" /></i><strong>정리 및 일반화</strong><p>1층 ESD 배움터 아이디어실 1</p></li>
+					<li><i aria-hidden="true"><img src="/pub/images/icon_activity_order01.webp" alt="" /></i><strong>스토리 제시</strong></li>
+					{routeItems.map((item, index) => <li key={`${item}-${index}`}><i aria-hidden="true"><img src={missionRouteIconSrc(item)} alt="" /></i><strong>{item}</strong></li>)}
+					<li><i aria-hidden="true"><img src={missionRouteIconSrc('최종 미션')} alt="" /></i><strong>최종 미션</strong></li>
 				</ol>
 				<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button><button type="button" className="btn btn_wbb" onClick={() => navigate('/student/mission_about')}>다음</button></div>
 			</section>

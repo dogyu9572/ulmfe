@@ -102,6 +102,7 @@ public class AdminMenuAuthorizationService {
 		if (uri.startsWith("/api/admin/learning-results")) return "/admin/learning-results";
 		if (uri.startsWith("/api/admin/learning-reservations")) return "/admin/learning-reservations";
 		if (uri.startsWith("/api/admin/learning-support-materials")) return "/admin/learning-support-materials";
+		if (uri.startsWith("/api/admin/esd-questions")) return "/admin/esd-question-bank";
 		if (uri.startsWith("/api/admin/users")) return "/admin/users";
 		return null;
 	}

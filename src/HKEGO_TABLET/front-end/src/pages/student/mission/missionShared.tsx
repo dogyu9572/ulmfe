@@ -46,6 +46,7 @@ export const missionRouteIconSrc = (label: string) => {
 	if (label.includes('사회')) return '/pub/images/icon_activity_mission05.webp'
 	if (label.includes('도서') || label.includes('열람')) return '/pub/images/icon_activity_mission_book.webp'
 	if (label.includes('정리') || label.includes('일반화')) return '/pub/images/icon_activity_order06.webp'
+	if (label.includes('완료')) return '/pub/images/icon_activity_order06.webp'
 	if (label.includes('탐색')) return '/pub/images/icon_activity_mission02.webp'
 	if (label.includes('사건') || label.includes('제시')) return '/pub/images/icon_activity_order01.webp'
 	return '/pub/images/icon_activity_mission03.webp'

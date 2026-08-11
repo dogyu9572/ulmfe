@@ -1,5 +1,6 @@
 package egovframework.tablet.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -7,6 +8,8 @@ import egovframework.tablet.service.mapper.TabletMapper;
 import egovframework.tablet.service.vo.TabletAdminVO;
 import egovframework.tablet.service.vo.TabletContentQuestionVO;
 import egovframework.tablet.service.vo.TabletContentVO;
+import egovframework.tablet.service.vo.TabletEsdQuestionCheckResponse;
+import egovframework.tablet.service.vo.TabletEsdQuestionVO;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletLoginRequest;
 import egovframework.tablet.service.vo.TabletLoginResponse;
@@ -164,6 +167,47 @@ public class TabletServiceImpl implements TabletService {
 			return List.of();
 		}
 		return tabletMapper.selectLearningResources(normalizedType, prgrmSn);
+	}
+
+	@Override
+	public TabletEsdQuestionVO getRandomEsdQuestion(Integer excludeQuestionId) {
+		Integer normalizedExcludeId = excludeQuestionId != null && excludeQuestionId > 0 ? excludeQuestionId : null;
+		TabletEsdQuestionVO question = tabletMapper.selectRandomEsdQuestion(normalizedExcludeId);
+		if (question == null) return null;
+		question.setOptions(parseEsdQuestionOptions(question));
+		return question;
+	}
+
+	@Override
+	public TabletEsdQuestionCheckResponse checkEsdQuestion(Integer questionId, Integer answerNo) {
+		if (questionId == null || questionId <= 0 || answerNo == null || answerNo <= 0) {
+			throw new IllegalArgumentException("문항과 답안을 올바르게 선택하세요.");
+		}
+		TabletEsdQuestionVO question = tabletMapper.selectEsdQuestionAnswer(questionId);
+		if (question == null) {
+			throw new IllegalArgumentException("사용 가능한 문제를 찾을 수 없습니다.");
+		}
+		boolean correct = String.valueOf(answerNo).equals(question.getCorrectAnswerNo());
+		return TabletEsdQuestionCheckResponse.builder()
+			.correct(correct)
+			.explanation(correct ? normalizeText(question.getCorrectExplanation()) : "")
+			.build();
+	}
+
+	private List<String> parseEsdQuestionOptions(TabletEsdQuestionVO question) {
+		try {
+			List<String> options = objectMapper.readValue(
+				question.getOptionJson() == null ? "[]" : question.getOptionJson(),
+				new TypeReference<List<String>>() { }
+			).stream()
+				.map(this::normalizeText)
+				.filter(option -> !option.isEmpty())
+				.toList();
+			if (!options.isEmpty()) return options;
+		} catch (Exception ignored) {
+			// 관리 데이터 오류 시 OX 문항만 안전한 기본 보기를 제공하고, 선택형은 빈 문항으로 노출하지 않습니다.
+		}
+		return "OX".equalsIgnoreCase(question.getQuestionType()) ? List.of("O", "X") : List.of();
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package egovframework.tablet.service.mapper;
 import egovframework.tablet.service.vo.TabletAdminVO;
 import egovframework.tablet.service.vo.TabletContentQuestionVO;
 import egovframework.tablet.service.vo.TabletContentVO;
+import egovframework.tablet.service.vo.TabletEsdQuestionVO;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
 import egovframework.tablet.service.vo.TabletMissionAnswerVO;
 import egovframework.tablet.service.vo.TabletProgressLogVO;
@@ -35,6 +36,10 @@ public interface TabletMapper {
 	List<TabletContentVO> selectContentsByNames(@Param("contentNames") List<String> contentNames);
 
 	List<TabletContentQuestionVO> selectContentQuestions(@Param("contentIds") List<Integer> contentIds);
+
+	TabletEsdQuestionVO selectRandomEsdQuestion(@Param("excludeQuestionId") Integer excludeQuestionId);
+
+	TabletEsdQuestionVO selectEsdQuestionAnswer(Integer questionId);
 
 	List<TabletProgressLogVO> selectProgressLogs(Integer rsvtSn);
 

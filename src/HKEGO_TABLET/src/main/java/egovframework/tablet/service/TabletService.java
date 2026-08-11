@@ -3,6 +3,8 @@ package egovframework.tablet.service;
 import egovframework.tablet.service.vo.TabletLoginRequest;
 import egovframework.tablet.service.vo.TabletLoginResponse;
 import egovframework.tablet.service.vo.TabletLearningResourceVO;
+import egovframework.tablet.service.vo.TabletEsdQuestionCheckResponse;
+import egovframework.tablet.service.vo.TabletEsdQuestionVO;
 import egovframework.tablet.service.vo.TabletMakerAnswerRequest;
 import egovframework.tablet.service.vo.TabletMissionFinalSubmitRequest;
 import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
@@ -29,6 +31,10 @@ public interface TabletService {
 	TabletQuestionnaireVO getQuestionnaireByLink(String linkCd);
 
 	List<TabletLearningResourceVO> getLearningResources(String prgrmTypeCd, Integer prgrmSn);
+
+	TabletEsdQuestionVO getRandomEsdQuestion(Integer excludeQuestionId);
+
+	TabletEsdQuestionCheckResponse checkEsdQuestion(Integer questionId, Integer answerNo);
 
 	String recordLearningResourceDownload(String pstSn, Integer fileSeq);
 

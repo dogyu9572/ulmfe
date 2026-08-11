@@ -11,6 +11,14 @@ const normalizeTeamName = (value?: string | null) => {
 
 const routeSeparators = /\s*(?:->|→|,|，|>|\/)\s*/g
 
+export const normalizeMissionRouteName = (value?: string | null) => {
+	const trimmed = (value || '').trim()
+	const normalized = trimmed.replace(/\s/g, '')
+	return normalized === '도서관' || normalized === '도서관존' || normalized === '러닝도서관'
+		? '러닝도서관'
+		: trimmed
+}
+
 export type TabletStudentFlowStudent = Pick<TabletStudent, 'stdntSn' | 'stdntNo' | 'clasNm' | 'clasNo' | 'stdntNm' | 'teamNm' | 'asgnNm' | 'routeCn' | 'prgrsRt'>
 
 export type TabletProgramRouteRow = {
@@ -205,14 +213,24 @@ const routeNameMatchesCourse = (routeName: string, courseKey: string) => {
 export const studentFlowProgramRouteRows = (session: TabletStudentFlowSession | null) => parseJsonList<Partial<TabletProgramRouteRow>>(session?.routeJson)
 	.map((row) => ({
 		name: typeof row.name === 'string' ? row.name.trim() : '',
-		steps: Array.isArray(row.steps) ? row.steps.map((step) => typeof step === 'string' ? step.trim() : '').filter(Boolean) : []
+		steps: Array.isArray(row.steps)
+			? row.steps
+				.map((step) => typeof step === 'string' ? step.trim() : '')
+				.map((step) => session?.prgrmTypeCd === 'MISSION' ? normalizeMissionRouteName(step) : step)
+				.filter(Boolean)
+			: []
 	}))
 	.filter((row) => row.name || row.steps.length > 0)
 
 export const studentFlowSelectedProgramRoute = (session: TabletStudentFlowSession | null) => {
 	const rows = studentFlowProgramRouteRows(session)
 	const courseKey = courseKeyFromTeam(session)
-	return rows.find((row) => routeNameMatchesCourse(row.name, courseKey)) ?? rows[0] ?? null
+	const populatedRows = rows.filter((row) => row.steps.length > 0)
+	return populatedRows.find((row) => routeNameMatchesCourse(row.name, courseKey))
+		?? populatedRows[0]
+		?? rows.find((row) => routeNameMatchesCourse(row.name, courseKey))
+		?? rows[0]
+		?? null
 }
 
 export const studentFlowRouteItems = (session: TabletStudentFlowSession | null) => {
@@ -224,7 +242,7 @@ export const studentFlowRouteItems = (session: TabletStudentFlowSession | null) 
 	if (!selectedRoute) return []
 	return selectedRoute
 		.split(routeSeparators)
-		.map((item) => item.trim())
+		.map((item) => session?.prgrmTypeCd === 'MISSION' ? normalizeMissionRouteName(item) : item.trim())
 		.filter(Boolean)
 }
 
@@ -247,7 +265,7 @@ export const studentFlowProgramSteps = (session: TabletStudentFlowSession | null
 		thoughts: normalizeProgramTextRows(row.thoughts),
 		quests: Array.isArray(row.quests)
 			? row.quests.map((quest) => ({
-					name: typeof quest.name === 'string' ? quest.name.trim() : '',
+					name: session?.prgrmTypeCd === 'MISSION' ? normalizeMissionRouteName(quest.name) : (typeof quest.name === 'string' ? quest.name.trim() : ''),
 					title: typeof quest.title === 'string' ? quest.title.trim() : '',
 					place: typeof quest.place === 'string' ? quest.place.trim() : '',
 					limitMin: quest.limitMin,

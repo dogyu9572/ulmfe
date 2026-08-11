@@ -174,6 +174,42 @@
 		ORDER BY Q.CNTN_SN ASC, Q.SORT_SEQ ASC, Q.CNTN_QSTN_SN ASC
 	</select>
 
+	<select id="selectRandomEsdQuestion" resultType="TabletEsdQuestionVO">
+		SELECT
+			Q.ESD_QSTN_SN AS QUESTION_ID,
+			Q.QSTN_TYPE_CD AS QUESTION_TYPE,
+			Q.QSTN_CN AS QUESTION,
+			Q.OPTN_CN AS OPTION_JSON,
+			Q.CRANS_NO AS CORRECT_ANSWER_NO,
+			Q.CRANS_EXPLN AS CORRECT_EXPLANATION,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = Q.QSTN_IMG_ATCH_FILE_ID
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS IMAGE_URL
+		FROM EDU_ESD_QSTN Q
+		WHERE Q.USE_YN = 'Y'
+		AND Q.DEL_DT IS NULL
+		ORDER BY
+			CASE WHEN #{excludeQuestionId} IS NOT NULL AND Q.ESD_QSTN_SN = #{excludeQuestionId} THEN 1 ELSE 0 END,
+			RAND()
+		LIMIT 1
+	</select>
+
+	<select id="selectEsdQuestionAnswer" resultType="TabletEsdQuestionVO">
+		SELECT
+			Q.ESD_QSTN_SN AS QUESTION_ID,
+			Q.CRANS_NO AS CORRECT_ANSWER_NO,
+			Q.CRANS_EXPLN AS CORRECT_EXPLANATION
+		FROM EDU_ESD_QSTN Q
+		WHERE Q.ESD_QSTN_SN = #{questionId}
+		AND Q.USE_YN = 'Y'
+		AND Q.DEL_DT IS NULL
+		LIMIT 1
+	</select>
+
 	<select id="selectProgressLogs" resultType="TabletProgressLogVO">
 		SELECT
 			STDNT_SN,

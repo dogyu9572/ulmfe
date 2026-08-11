@@ -1,5 +1,6 @@
 export { MissionWelcomePage } from './MissionWelcomePage'
 export { MissionAboutPage } from './MissionAboutPage'
+export { MissionPlayPage } from './MissionPlayPage'
 export { Mission01Page } from './Mission01Page'
 export { Mission02Page } from './Mission02Page'
 export { Mission03Page } from './Mission03Page'

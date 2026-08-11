@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, MouseEvent, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
 	createPublicQna,
@@ -9,7 +9,7 @@ import {
 	getQnaCaptchaUrl,
 	updatePublicQna
 } from '@/lib/publicQnaApi'
-import { qnaListHref, qnaPageHref } from './qnaNavigation'
+import { QNA_LIST_RETURN_KEY, qnaListHref, qnaPageHref } from './qnaNavigation'
 
 type Props = { mode: 'create' | 'modify' }
 
@@ -24,6 +24,8 @@ export default function QnaForm({ mode }: Props) {
 	const params = useSearchParams()
 	const postId = params.get('post_id') || params.get('id') || ''
 	const paramsSnapshot = useMemo(() => new URLSearchParams(params.toString()), [params])
+	const listHref = useMemo(() => qnaListHref(paramsSnapshot), [paramsSnapshot])
+
 	const [title, setTitle] = useState('')
 	const [writerName, setWriterName] = useState('')
 	const [password, setPassword] = useState('')
@@ -60,6 +62,17 @@ export default function QnaForm({ mode }: Props) {
 	const refreshCaptcha = () => {
 		setCaptcha('')
 		setCaptchaNonce(Date.now())
+	}
+
+	const returnToList = (event: MouseEvent<HTMLAnchorElement>) => {
+		event.preventDefault()
+		const returnHref = window.sessionStorage.getItem(QNA_LIST_RETURN_KEY)
+		window.sessionStorage.removeItem(QNA_LIST_RETURN_KEY)
+		if (returnHref === listHref && window.history.length > 1) {
+			router.back()
+			return
+		}
+		router.push(listHref)
 	}
 
 	const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -116,7 +129,7 @@ export default function QnaForm({ mode }: Props) {
 							</tr>
 							<tr>
 								<th scope="row"><label htmlFor="inputWriter">작성자<span className="c_blue">*</span></label></th>
-								<td><input type="text" id="inputWriter" className="text w100p" placeholder="작성자를 입력해주세요." value={writerName} onChange={(event) => setWriterName(event.target.value)} maxLength={100} disabled={mode === 'modify' || loading} /></td>
+								<td><input type="text" id="inputWriter" className="text w100p" placeholder="작성자를 입력해주세요. 작성자는 최대 7자리까지만 입력해주세요." value={writerName} onChange={(event) => setWriterName(event.target.value)} maxLength={7} disabled={mode === 'modify' || loading} /></td>
 							</tr>
 							<tr>
 								<th scope="row"><label htmlFor="inputPassword">비밀번호<span className="c_blue">*</span></label></th>
@@ -142,7 +155,12 @@ export default function QnaForm({ mode }: Props) {
 					</table>
 				</div>
 				{error && <p role="alert" className="tac" style={{ color: '#e5484d' }}>{error}</p>}
-				<div className="board_bottom"><div className="flex_center btns"><button type="submit" id="btn_submit" className="btn btn_wbb btn_large" disabled={loading || submitting}>{submitting ? '처리 중' : '등록'}</button></div></div>
+				<div className="board_bottom">
+					<div className="flex_center btns">
+						<a href={listHref} className="btn btn_bwb btn_large" onClick={returnToList}>목록</a>
+						<button type="submit" id="btn_submit" className="btn btn_wbb btn_large" disabled={loading || submitting}>{submitting ? '처리 중' : '등록'}</button>
+					</div>
+				</div>
 			</form>
 		</section>
 	)

@@ -643,7 +643,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 				</aside>
 
 				<div className="content">
-					<header className="header">
+					<header className="header overflow-hidden">
 						<button
 							type="button"
 							id="sidebarToggle"
@@ -663,8 +663,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 						<h2>{title ?? '백오피스'}</h2>
 
 						{/* 유저 드롭다운 + 세션 타이머 */}
-						<div className="user-dropdown">
-							<div className="header-user-bar">
+						<div className="user-dropdown max-w-full">
+							<div className="header-user-bar flex-wrap max-w-full">
 								<span className="header-user-name">
 									{adminName ? `${adminName}님` : '관리자님'}
 									{adminRoleName ? ` (${adminRoleName})` : adminRole ? ` (${adminRole})` : ''}

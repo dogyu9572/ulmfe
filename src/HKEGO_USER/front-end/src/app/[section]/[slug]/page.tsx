@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import PageBehavior from '@/components/PageBehavior'
 import SiteFooter from '@/components/SiteFooter'
 import SiteHeader from '@/components/SiteHeader'
@@ -40,7 +41,9 @@ export default async function Subpage({ params, searchParams }: PageProps) {
 				{page.menuIndex !== null && page.description ? (
 					<SubpageAside menuIndex={page.menuIndex} currentHref={currentHref} title={page.title} description={page.description} />
 				) : null}
-				<page.Content searchParams={searchParams} />
+				<Suspense fallback={null}>
+					<page.Content searchParams={searchParams} />
+				</Suspense>
 			</main>
 			<PageBehavior behavior={page.behavior} />
 			<SiteFooter />
