@@ -45,7 +45,7 @@ public class EgovUserVisitorStatsManageApiController {
 			return ApiResponse.error(e.getMessage());
 		} catch (Exception e) {
 			log.error("방문자 요약 조회 오류", e);
-			return ApiResponse.error("방문자 요약 조회 중 오류가 발생했습니다.");
+			return ApiResponse.error(ApiResponse.messageOf(e, "방문자 요약 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -60,7 +60,7 @@ public class EgovUserVisitorStatsManageApiController {
 			return ApiResponse.error(e.getMessage());
 		} catch (Exception e) {
 			log.error("연별 방문자 조회 오류", e);
-			return ApiResponse.error("연별 방문자 조회 중 오류가 발생했습니다.");
+			return ApiResponse.error(ApiResponse.messageOf(e, "연별 방문자 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -75,7 +75,7 @@ public class EgovUserVisitorStatsManageApiController {
 			return ApiResponse.error(e.getMessage());
 		} catch (Exception e) {
 			log.error("월별 방문자 조회 오류", e);
-			return ApiResponse.error("월별 방문자 조회 중 오류가 발생했습니다.");
+			return ApiResponse.error(ApiResponse.messageOf(e, "월별 방문자 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -97,7 +97,7 @@ public class EgovUserVisitorStatsManageApiController {
 			return ApiResponse.error(e.getMessage());
 		} catch (Exception e) {
 			log.error("일별 방문자 조회 오류", e);
-			return ApiResponse.error("일별 방문자 조회 중 오류가 발생했습니다.");
+			return ApiResponse.error(ApiResponse.messageOf(e, "일별 방문자 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -119,7 +119,7 @@ public class EgovUserVisitorStatsManageApiController {
 			return ApiResponse.error(e.getMessage());
 		} catch (Exception e) {
 			log.error("시간별 방문자 조회 오류", e);
-			return ApiResponse.error("시간별 방문자 조회 중 오류가 발생했습니다.");
+			return ApiResponse.error(ApiResponse.messageOf(e, "시간별 방문자 조회 중 오류가 발생했습니다."));
 		}
 	}
 

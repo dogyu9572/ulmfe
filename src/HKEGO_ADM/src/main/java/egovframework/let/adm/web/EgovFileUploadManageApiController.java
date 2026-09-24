@@ -47,7 +47,7 @@ public class EgovFileUploadManageApiController {
 			return ResponseEntity.ok(ApiResponse.success("이미지 업로드 완료", data));
 		} catch (Exception e) {
 			log.error("이미지 업로드 오류", e);
-			return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+			return ResponseEntity.ok(ApiResponse.error(ApiResponse.messageOf(e, "이미지 업로드 중 오류가 발생했습니다.")));
 		}
 	}
 
@@ -66,7 +66,7 @@ public class EgovFileUploadManageApiController {
 			return ResponseEntity.ok(ApiResponse.success("파일 업로드 완료", data));
 		} catch (Exception e) {
 			log.error("파일 업로드 오류", e);
-			return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+			return ResponseEntity.ok(ApiResponse.error(ApiResponse.messageOf(e, "파일 업로드 중 오류가 발생했습니다.")));
 		}
 	}
 
@@ -86,7 +86,7 @@ public class EgovFileUploadManageApiController {
 			return ResponseEntity.ok(ApiResponse.success("첨부파일 업로드 완료", data));
 		} catch (Exception e) {
 			log.error("첨부파일 업로드 오류", e);
-			return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+			return ResponseEntity.ok(ApiResponse.error(ApiResponse.messageOf(e, "첨부파일 업로드 중 오류가 발생했습니다.")));
 		}
 	}
 
@@ -133,7 +133,7 @@ public class EgovFileUploadManageApiController {
 			return ResponseEntity.ok(ApiResponse.success("파일 정보 조회 성공", data));
 		} catch (Exception e) {
 			log.error("파일 정보 조회 오류", e);
-			return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+			return ResponseEntity.ok(ApiResponse.error(ApiResponse.messageOf(e, "파일 정보 조회 중 오류가 발생했습니다.")));
 		}
 	}
 
@@ -156,7 +156,7 @@ public class EgovFileUploadManageApiController {
 			return ResponseEntity.ok(ApiResponse.success("파일 목록 조회 성공", data));
 		} catch (Exception e) {
 			log.error("파일 목록 조회 오류", e);
-			return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+			return ResponseEntity.ok(ApiResponse.error(ApiResponse.messageOf(e, "파일 목록 조회 중 오류가 발생했습니다.")));
 		}
 	}
 
@@ -169,7 +169,7 @@ public class EgovFileUploadManageApiController {
 			return ResponseEntity.ok(ApiResponse.success("파일이 삭제되었습니다.", null));
 		} catch (Exception e) {
 			log.error("파일 삭제 오류: fiId={}, fiSn={}", fiId, fiSn, e);
-			return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+			return ResponseEntity.ok(ApiResponse.error(ApiResponse.messageOf(e, "파일 삭제 중 오류가 발생했습니다.")));
 		}
 	}
 }

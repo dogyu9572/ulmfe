@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import {
 	getPublicBoardPost,
 	getPublicFileDownloadUrl,
+	resolvePublicHtmlMediaUrls,
 	type PublicBoardId,
 	type PublicBoardPost
 } from '@/lib/publicApi'
+import { withBasePath } from '@/lib/basePath'
 
 type Props = {
 	boardId: PublicBoardId
@@ -52,7 +54,7 @@ export default function NewsBoardDetail({ boardId, listHref, detailPath, postId,
 	const detailHref = (targetPostId: string) => {
 		const detailQuery = new URLSearchParams(listHref.split('?')[1] || '')
 		detailQuery.set('id', targetPostId)
-		return `${detailPath}?${detailQuery.toString()}`
+		return withBasePath(`${detailPath}?${detailQuery.toString()}`)
 	}
 	const previousHref = post?.previousPostId
 		? detailHref(post.previousPostId)
@@ -70,7 +72,7 @@ export default function NewsBoardDetail({ boardId, listHref, detailPath, postId,
 						<li><strong>조회수</strong><p>{post?.viewCount ?? 0}</p></li>
 					</ul>
 				</div>
-				<div className="cont" dangerouslySetInnerHTML={{ __html: post?.content || '' }} />
+				<div className="cont" dangerouslySetInnerHTML={{ __html: resolvePublicHtmlMediaUrls(post?.content || '') }} />
 				<div className="file_area">
 					{post?.attachments.map((file) => (
 						<a key={`${file.fileId}-${file.fileSeq}`} href={getPublicFileDownloadUrl(file)} download>
@@ -88,7 +90,7 @@ export default function NewsBoardDetail({ boardId, listHref, detailPath, postId,
 						<strong>다음 글</strong><p>{post?.nextPostTitle || '다음 글이 없습니다.'}</p>
 					</a>
 				</div>
-				<a href={listHref} className="btn btn_wbb btn_large">목록</a>
+				<a href={withBasePath(listHref)} className="btn btn_wbb btn_large">목록</a>
 			</div>
 		</section>
 	)

@@ -1,11 +1,11 @@
 ﻿// E2 글자판 뒤집기 패널 — 앞면 글자를 순서대로 터치하면 뒷면 글자가 조합되고, 조합 결과로 판정
 import { useState } from 'react'
 import type { BoardFlipPuzzle } from '../../../../state/missionPuzzleTypes'
-import { AnswerBox, DemoState } from './puzzleShared'
+import { AnswerBox, DemoState, HintBar } from './puzzleShared'
 
 type Picked = { row: number; col: number }
 
-export const BoardFlipPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: BoardFlipPuzzle; demo?: DemoState; onSubmit: (ok: boolean) => void }) => {
+export const BoardFlipPuzzlePanel = ({ puzzle, demo, onSubmit, openCount, nextWait }: { puzzle: BoardFlipPuzzle; demo?: DemoState; onSubmit: (ok: boolean) => void; openCount: number; nextWait: number }) => {
 	const [picked, setPicked] = useState<Picked[]>([])
 
 	const isPicked = (row: number, col: number) => picked.some((p) => p.row === row && p.col === col)
@@ -30,20 +30,23 @@ export const BoardFlipPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: Board
 
 	return (
 		<>
-			<div className="mproto_board" style={{ gridTemplateColumns: `repeat(${puzzle.front[0].length}, 72px)` }}>
-				{puzzle.front.map((rowChars, row) => rowChars.map((ch, col) => (
-					<button
-						type="button"
-						className={`mproto_cell${isPicked(row, col) ? ' flip' : ''}`}
-						key={`${row}-${col}`}
-						onClick={() => { if (!isPicked(row, col)) setPicked([...picked, { row, col }]) }}
-					>{isPicked(row, col) ? puzzle.back[row][col] : ch}</button>
-				)))}
+			<div className="wbox mproto_slots_wrap mt">
+				<div className="mproto_board" style={{ gridTemplateColumns: `repeat(${puzzle.front[0].length}, 72px)` }}>
+					{puzzle.front.map((rowChars, row) => rowChars.map((ch, col) => (
+						<button
+							type="button"
+							className={`mproto_cell${isPicked(row, col) ? ' flip' : ''}`}
+							key={`${row}-${col}`}
+							onClick={() => { if (!isPicked(row, col)) setPicked([...picked, { row, col }]) }}
+						>{isPicked(row, col) ? puzzle.back[row][col] : ch}</button>
+					)))}
+				</div>
+				<HintBar hints={puzzle.hints} openCount={openCount} nextWait={nextWait} />
 			</div>
 			<div className="mproto_combo">{combo.length ? combo.join(' ') : '— '.repeat(puzzle.answer.length).trim()}</div>
 			<div className="mproto_center">
+				<button type="button" className="btn btn_kwg mproto_btn" onClick={() => setPicked([])}>다시</button>
 				<button type="button" className="btn btn_wbb mproto_btn" onClick={confirm}>확인</button>
-				<button type="button" className="mproto_btn_sm" onClick={() => setPicked([])}>다시</button>
 			</div>
 			<AnswerBox demo={demo}>
 				앞면에서 <code>{(puzzle.frontAnswer || '').split('').join(' ')}</code> 를 이 순서대로 터치 →

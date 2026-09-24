@@ -41,7 +41,7 @@
 	<select id="selectAdminList" resultMap="AdminInfoMap">
 		SELECT *
 		<include refid="adminListWhere"/>
-		ORDER BY REG_DT DESC
+		ORDER BY REG_DT DESC, USER_ID DESC
 		LIMIT #{offset}, #{limit}
 	</select>
 

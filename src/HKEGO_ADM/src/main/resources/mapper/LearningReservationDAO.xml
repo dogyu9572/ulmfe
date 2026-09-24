@@ -266,4 +266,23 @@
 		WHERE RSVT_SN = #{rsvtSn}
 		AND DEL_DT IS NULL
 	</update>
+
+	<!-- 보너스 스테이지 반별 개방 — 행의 존재가 곧 개방이다 -->
+	<select id="selectOpenedBonusClasses" parameterType="int" resultType="string">
+		SELECT CLAS_NM
+		FROM EDU_BNS_OPN
+		WHERE RSVT_SN = #{rsvtSn}
+		ORDER BY CLAS_NM
+	</select>
+
+	<insert id="insertBonusOpen" parameterType="map">
+		INSERT IGNORE INTO EDU_BNS_OPN (RSVT_SN, CLAS_NM)
+		VALUES (#{rsvtSn}, #{clasNm})
+	</insert>
+
+	<delete id="deleteBonusOpen" parameterType="map">
+		DELETE FROM EDU_BNS_OPN
+		WHERE RSVT_SN = #{rsvtSn}
+		AND CLAS_NM = #{clasNm}
+	</delete>
 </mapper>

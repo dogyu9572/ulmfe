@@ -1,3 +1,4 @@
+import { pubUrl } from '../../config'
 import { TabletReservation } from '../../api/tabletApi'
 import { useTabletSidebarToggle } from '../../hooks/useTabletSidebarToggle'
 import { stripEmphasisMarkers } from '../../utils/emphasisText'
@@ -18,7 +19,7 @@ export const AttendanceHeader = ({ reservation }: { reservation?: TabletReservat
 	return (
 		<header className={`header header_attendance${collapsed ? ' off' : ''}`}>
 			<h2 className="sound_only">메인메뉴 영역</h2>
-			<a href="/" className="logo"><img src="/pub/images/logo.svg" alt="logo" /></a>
+			<a href="/" className="logo"><img src={pubUrl("/pub/images/logo.svg")} alt="logo" /></a>
 			<ul className="user_info">
 				<li className="school"><span>학교</span><strong>{reservation?.schlNm || '-'}</strong></li>
 				<li className="class"><span>학년/반</span><strong>{reservation?.scyrNm || '-'}</strong></li>

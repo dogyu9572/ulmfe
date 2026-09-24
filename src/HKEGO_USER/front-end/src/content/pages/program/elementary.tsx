@@ -1,3 +1,4 @@
+import { withBasePath } from '@/lib/basePath'
 export default function ProgramElementaryContent() {
 	return (
 		<>
@@ -10,7 +11,7 @@ export default function ProgramElementaryContent() {
 						{"울산의 문제에서 출발해 세계의 미래를 탐구합니다. "}
 						<br />
 						{"퀘스트를 수행하며 직접 해결책을 만들어보세요. "}
-						<a href="/program/reserve" className="btn_link">
+						<a href={withBasePath("/program/reserve")} className="btn_link">
 							{"프로그램 예약하기"}
 						</a>
 					</div>
@@ -25,7 +26,7 @@ export default function ProgramElementaryContent() {
 							</h2>
 							<div className="con">
 								<div className="imgfit" aria-hidden="true">
-									<img src="/pub/images/img_elementary01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_elementary01.webp')} alt="" />
 								</div>
 								<p>
 									{"사건의 원인·결과를 중심으로 탐구하는 지속가능발전교육 기본 교육 프로그램입니다."}
@@ -124,65 +125,65 @@ export default function ProgramElementaryContent() {
 							<ul className="con program_list program_types">
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_elementary02_1.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_elementary02_1.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"살고 싶은 곳, 울산"}
 										</h3>
-										<a href="/program/elementary1" className="btn_link">
+										<a href={withBasePath("/program/elementary1")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_elementary02_2.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_elementary02_2.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"모두를 위한 가게, 나도 사장님"}
 										</h3>
-										<a href="/program/elementary2" className="btn_link">
+										<a href={withBasePath("/program/elementary2")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_elementary02_3.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_elementary02_3.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"몽돌이 데굴데굴"}
 										</h3>
-										<a href="/program/elementary3" className="btn_link">
+										<a href={withBasePath("/program/elementary3")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_elementary02_4.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_elementary02_4.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"유포석보 복원 프로젝트"}
 										</h3>
-										<a href="/program/elementary4" className="btn_link">
+										<a href={withBasePath("/program/elementary4")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_elementary02_5.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_elementary02_5.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"지구를 구하는 요리사"}
 										</h3>
-										<a href="/program/elementary5" className="btn_link">
+										<a href={withBasePath("/program/elementary5")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>

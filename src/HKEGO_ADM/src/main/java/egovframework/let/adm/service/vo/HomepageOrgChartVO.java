@@ -17,6 +17,7 @@ public class HomepageOrgChartVO {
 	private String frstClsfNm;
 	private String scndClsfCd;
 	private String scndClsfNm;
+	private String pstnNm;
 	private String taskCn;
 	private String telno;
 	private Integer sortSeq;

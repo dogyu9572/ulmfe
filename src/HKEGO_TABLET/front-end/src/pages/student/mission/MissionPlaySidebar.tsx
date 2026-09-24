@@ -12,10 +12,12 @@ const progressClassName = (progress: number) => {
 	return 'line_area pct_step1'
 }
 
-export const MissionPlaySidebar = ({ flowSession, program, sceneNames, scene, stickers }: { flowSession: TabletStudentFlowSession; program: MissionProgramPuzzles; sceneNames: string[]; scene: number; stickers: number }) => {
+export const MissionPlaySidebar = ({ flowSession, program, sceneNames, scene, stickers, stickerTotal: stickerTotalProp }: { flowSession: TabletStudentFlowSession; program: MissionProgramPuzzles; sceneNames: string[]; scene: number; stickers: number; stickerTotal?: number }) => {
 	const { collapsed, toggleSidebar } = useTabletSidebarToggle()
 	const progress = sceneNames.length > 1 ? Math.round((scene / (sceneNames.length - 1)) * 100) : 0
-	const stickerTotal = program.stickerCount
+	// 스티커 총계는 이 예약이 실제로 도는 존 수를 따른다.
+	// 프로그램 정의의 stickerCount 는 만점 기준이라, 동선이 짧은 예약에서는 칸이 남아 돈다.
+	const stickerTotal = stickerTotalProp ?? program.stickerCount
 	const teamName = studentFlowTeamName(flowSession)
 
 	return (
@@ -57,14 +59,23 @@ export const MissionPlaySidebar = ({ flowSession, program, sceneNames, scene, st
 						</ul>
 					</div>
 				</div>
-				{stickerTotal > 0 && (
-					<div className="area">
-						<div className="tit"><h3>스티커 수첩</h3></div>
-						<div className="mproto_stk" aria-label={`스티커 ${stickers} / ${stickerTotal}`}>
-							{Array.from({ length: stickerTotal }, (_, index) => <i className={index < stickers ? 'got' : ''} key={index}></i>)}
-						</div>
-					</div>
-				)}
+				<div className="area">
+					<div className="tit"><h3>획득한 스티커</h3></div>
+					<ul className="stamp_area type_sticker1" aria-label={`미션 스티커 ${Math.min(stickers, 3)} / 3`}>
+						<li className={`i1${stickers >= 1 ? ' on' : ''}`}>미션1 스티커</li>
+						<li className={`i2${stickers >= 2 ? ' on' : ''}`}>미션2 스티커</li>
+						<li className={`i3${stickers >= 3 ? ' on' : ''}`}>미션3 스티커</li>
+					</ul>
+				</div>
+				<div className="area">
+					<div className="tit"><h3>보너스 스티커</h3></div>
+					<ul className="stamp_area type_sticker2" aria-label={`보너스 스티커 ${stickers >= stickerTotal ? 4 : 0} / 4`}>
+						<li className={`i1${stickers >= stickerTotal ? ' on' : ''}`}>보너스1 스티커</li>
+						<li className={`i2${stickers >= stickerTotal ? ' on' : ''}`}>보너스2 스티커</li>
+						<li className={`i3${stickers >= stickerTotal ? ' on' : ''}`}>보너스3 스티커</li>
+						<li className={`i4${stickers >= stickerTotal ? ' on' : ''}`}>보너스4 스티커</li>
+					</ul>
+				</div>
 			</div>
 			<button type="button" className="btn_menu" onClick={toggleSidebar}>{collapsed ? '메뉴 열기' : '메뉴 닫기'}</button>
 		</header>

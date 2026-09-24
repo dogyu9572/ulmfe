@@ -1,3 +1,4 @@
+import { pubUrl } from '../../config'
 import { StudentPopups } from './TabletPopup'
 import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { useTabletSidebarToggle } from '../../hooks/useTabletSidebarToggle'
@@ -72,7 +73,7 @@ export const StudentCaseHeader = () => {
 		}
 	})
 	const steps = [
-		{ title: '사건제시', description: introStep?.title || '', time: introStep?.limitMin ? `${introStep.limitMin}분` : '', icon: '/pub/images/icon_activity_order01.webp' },
+		{ title: '사건제시', description: introStep?.title || '', time: introStep?.limitMin ? `${introStep.limitMin}분` : '', icon: pubUrl('/pub/images/icon_activity_order01.webp') },
 		...dynamicSteps
 	]
 	const completedExploreStepCodes = studentFlowCompletedExploreStepCodes(flowSession)

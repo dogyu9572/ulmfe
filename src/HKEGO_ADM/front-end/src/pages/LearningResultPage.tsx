@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL } from '../config'
 
 type ApiResponse<T> = {
@@ -211,7 +212,8 @@ export const LearningResultPage: React.FC = () => {
 	const [searchType, setSearchType] = useState('all')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	// select 옵션이 20 부터라 기본값을 10 으로 두면 표시(20)와 실제 조회(10)가 어긋난다.
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [totalCount, setTotalCount] = useState(0)
 
 	const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [pageSize, totalCount])
@@ -230,6 +232,11 @@ export const LearningResultPage: React.FC = () => {
 
 	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
 		setError(null)
+		const rangeWarning = checkDateRange(startLrnYmd, endLrnYmd, '학습일')
+		if (rangeWarning) {
+			setError(rangeWarning)
+			return
+		}
 		try {
 			const res = await fetch(`${BACKEND}/api/admin/learning-results?${buildSearchParams(targetPage, targetSize)}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<LearningResult>> = await res.json()
@@ -396,9 +403,8 @@ export const LearningResultPage: React.FC = () => {
 			<table className="table">
 				<thead>
 					<tr>
-						<th style={{ width: 44 }}><input type="checkbox" disabled aria-label="전체 선택" /></th>
 						<th style={{ width: 70 }}>번호</th>
-						<th>학교(학교명)</th>
+						<th>학교명</th>
 						<th style={{ width: 90 }}>학년</th>
 						<th style={{ width: 100 }}>구분</th>
 						<th>프로그램명</th>
@@ -411,7 +417,6 @@ export const LearningResultPage: React.FC = () => {
 				<tbody>
 					{list.map((row) => (
 						<tr key={row.rsvtSn}>
-							<td><input type="checkbox" disabled aria-label={`${row.schlNm} 선택`} /></td>
 							<td>{row.rsvtSn}</td>
 							<td>{row.schlNm}</td>
 							<td>{row.scyrNm || '-'}</td>
@@ -429,7 +434,7 @@ export const LearningResultPage: React.FC = () => {
 					))}
 					{list.length === 0 && (
 						<tr>
-							<td colSpan={10} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
+							<td colSpan={9} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
 						</tr>
 					)}
 				</tbody>
@@ -454,7 +459,7 @@ export const LearningResultPage: React.FC = () => {
 				<table className="form-table">
 					<tbody>
 						<tr>
-							<th>학교번호</th>
+							<th>예약번호</th>
 							<td colSpan={3}>{detail.rsvtNo || '자동생성'}</td>
 						</tr>
 						<tr>
@@ -510,6 +515,8 @@ export const LearningResultPage: React.FC = () => {
 								<td>
 									<div className="admin-inline-actions learning-result-actions">
 										<button type="button" className="admin-list-btn-edit" onClick={() => void openAnswers(student, 'WORKSHEET', '활동지')} disabled={loading}>활동지</button>
+										<button type="button" className="admin-list-btn-edit" onClick={() => void openAnswers(student, 'EVALUATION', '평가지')} disabled={loading}>평가지</button>
+										<button type="button" className="admin-list-btn-edit" onClick={() => void openAnswers(student, 'SURVEY', '설문지')} disabled={loading}>설문지</button>
 									</div>
 								</td>
 							</tr>
@@ -538,11 +545,17 @@ export const LearningResultPage: React.FC = () => {
 				wideDouble
 				footer={<button type="button" className="admin-footer-btn-close" onClick={() => setAnswerPopupOpen(false)}>닫기</button>}
 			>
-				<table className="table">
+				<table className="table learning-result-answer-table">
+					<colgroup>
+						<col className="learning-result-answer-step-col" />
+						<col className="learning-result-answer-category-col" />
+						<col className="learning-result-answer-question-col" />
+						<col className="learning-result-answer-content-col" />
+					</colgroup>
 					<thead>
 						<tr>
-							<th style={{ width: 90 }}>STEP</th>
-							<th style={{ width: 120 }}>카드/분류</th>
+							<th>STEP</th>
+							<th>카드/분류</th>
 							<th>문항</th>
 							<th>답변</th>
 						</tr>

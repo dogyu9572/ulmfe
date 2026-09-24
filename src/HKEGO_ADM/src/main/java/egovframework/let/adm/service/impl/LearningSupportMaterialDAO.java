@@ -13,13 +13,14 @@ import java.util.Map;
 public class LearningSupportMaterialDAO extends EgovAbstractMapper {
 	private static final String NS = "egovframework.let.adm.service.impl.LearningSupportMaterialDAO.";
 
-	public int countList(String lrnTypeCd, String dataTypeCd, String startRegYmd, String endRegYmd, String searchType, String searchKeyword) {
-		Integer count = selectOne(NS + "countList", searchParam(lrnTypeCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword));
+	public int countList(String lrnTypeCd, String zoneCd, String dataTypeCd, String startRegYmd, String endRegYmd, String searchType, String searchKeyword) {
+		Integer count = selectOne(NS + "countList", searchParam(lrnTypeCd, zoneCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword));
 		return count == null ? 0 : count;
 	}
 
 	public List<LearningSupportMaterialVO> selectList(
 		String lrnTypeCd,
+		String zoneCd,
 		String dataTypeCd,
 		String startRegYmd,
 		String endRegYmd,
@@ -28,7 +29,7 @@ public class LearningSupportMaterialDAO extends EgovAbstractMapper {
 		int offset,
 		int limit
 	) {
-		Map<String, Object> param = searchParam(lrnTypeCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword);
+		Map<String, Object> param = searchParam(lrnTypeCd, zoneCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword);
 		param.put("offset", offset);
 		param.put("limit", limit);
 		return selectList(NS + "selectList", param);
@@ -61,6 +62,7 @@ public class LearningSupportMaterialDAO extends EgovAbstractMapper {
 
 	private Map<String, Object> searchParam(
 		String lrnTypeCd,
+		String zoneCd,
 		String dataTypeCd,
 		String startRegYmd,
 		String endRegYmd,
@@ -69,6 +71,7 @@ public class LearningSupportMaterialDAO extends EgovAbstractMapper {
 	) {
 		Map<String, Object> param = new HashMap<>();
 		param.put("lrnTypeCd", lrnTypeCd);
+		param.put("zoneCd", zoneCd);
 		param.put("dataTypeCd", dataTypeCd);
 		param.put("startRegYmd", startRegYmd);
 		param.put("endRegYmd", endRegYmd);

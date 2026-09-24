@@ -19,18 +19,19 @@ public class PublicBoardDAO extends EgovAbstractMapper {
 		String searchType,
 		String keyword,
 		String category,
+		String zone,
 		String programType,
 		int offset,
 		int size
 	) {
-		Map<String, Object> params = searchParams(boardId, searchType, keyword, category, programType);
+		Map<String, Object> params = searchParams(boardId, searchType, keyword, category, zone, programType);
 		params.put("offset", offset);
 		params.put("size", size);
 		return selectList(NS + "selectPosts", params);
 	}
 
-	public int countPosts(String boardId, String searchType, String keyword, String category, String programType) {
-		Integer count = selectOne(NS + "countPosts", searchParams(boardId, searchType, keyword, category, programType));
+	public int countPosts(String boardId, String searchType, String keyword, String category, String zone, String programType) {
+		Integer count = selectOne(NS + "countPosts", searchParams(boardId, searchType, keyword, category, zone, programType));
 		return count == null ? 0 : count;
 	}
 
@@ -64,6 +65,7 @@ public class PublicBoardDAO extends EgovAbstractMapper {
 		String searchType,
 		String keyword,
 		String category,
+		String zone,
 		String programType
 	) {
 		Map<String, Object> params = new HashMap<>();
@@ -71,6 +73,7 @@ public class PublicBoardDAO extends EgovAbstractMapper {
 		params.put("searchType", searchType);
 		params.put("keyword", keyword);
 		params.put("category", category);
+		params.put("zone", zone);
 		params.put("programType", programType);
 		return params;
 	}

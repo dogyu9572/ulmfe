@@ -1,3 +1,4 @@
+import { pubUrl } from '../../config'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { submitTabletMissionFinal } from '../../api/tabletApi'
@@ -8,10 +9,11 @@ import {
 	studentFlowCompletedExploreStepCodes,
 	studentFlowDisplayName,
 	studentFlowExploreQuestByRouteIndex,
-	studentFlowRouteItems
+	studentFlowRouteItems,
+	finishTabletStudentFlow
 } from '../../state/tabletStudentFlowSession'
 
-const stampImage = (routeIndex: number) => `/pub/images/icon_stamp${String(routeIndex + 1).padStart(2, '0')}_large.svg`
+const stampImage = (routeIndex: number) => pubUrl(`/pub/images/icon_stamp${String(routeIndex + 1).padStart(2, '0')}_large.svg`)
 
 export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 	const navigate = useNavigate()
@@ -31,9 +33,17 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 	const completedStepCodes = studentFlowCompletedExploreStepCodes(flowSession)
 	const earnedStampCount = routeItems.filter((_item, index) => completedStepCodes.has(`QUEST${String(index + 1).padStart(2, '0')}`)).length
 
+	// 마지막 존을 마치면 STEP4 정리·일반화에서 평가지·설문지를 답하고 끝난다.
+	// 연결된 문항이 없는 프로그램은 그 단계를 건너뛰고 여기서 바로 완료 처리한다.
+	const hasQuestionnaire = flowSession.evaluationQuestions.length > 0 || flowSession.surveyQuestions.length > 0
+
 	const moveNext = async () => {
 		if (nextPath) {
 			navigate(nextPath)
+			return
+		}
+		if (hasQuestionnaire) {
+			navigate('/student/quest_end')
 			return
 		}
 		if (saving) return
@@ -84,7 +94,7 @@ export const QuestStepEndPage = ({ routeIndex }: { routeIndex: number }) => {
 					</div>
 				</div>
 			</section>
-			<StudentProgramCompletionPopup open={completedOpen} variant="explore" displayName={studentFlowDisplayName(flowSession)} onClose={() => setCompletedOpen(false)} onComplete={() => navigate('/select-user')} />
+			<StudentProgramCompletionPopup open={completedOpen} variant="explore" displayName={studentFlowDisplayName(flowSession)} programName={flowSession.prgrmNm} areaCount={routeItems.length} onClose={() => setCompletedOpen(false)} onComplete={() => finishTabletStudentFlow(navigate)} />
 		</main>
 	)
 }

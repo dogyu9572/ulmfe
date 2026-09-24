@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchTabletAuthSession } from '../api/tabletApi'
 
 const parseLimitSeconds = (limitMin?: number | string | null) => {
@@ -20,15 +20,16 @@ export const useQuestTimeLimit = (storageKey: string, limitMin?: number | string
 	const [adminId, setAdminId] = useState(() => typeof window === 'undefined' ? '' : window.sessionStorage.getItem('hkegoTabletAdminId') || '')
 	const isTimeLimitBypassed = adminId.trim().toLowerCase() === 'admin2'
 
+	// 제한 시간이 없는 단계도 소요시간을 재야 하므로 시작 시각은 항상 남긴다.
 	const startedAt = useMemo(() => {
-		if (typeof window === 'undefined' || !storageKey || limitSeconds <= 0) return Date.now()
+		if (typeof window === 'undefined' || !storageKey) return Date.now()
 		const storedValue = window.sessionStorage.getItem(storageKey)
 		const storedStartedAt = storedValue ? Number(storedValue) : NaN
 		if (Number.isFinite(storedStartedAt) && storedStartedAt > 0) return storedStartedAt
 		const nextStartedAt = Date.now()
 		window.sessionStorage.setItem(storageKey, String(nextStartedAt))
 		return nextStartedAt
-	}, [limitSeconds, storageKey])
+	}, [storageKey])
 
 	useEffect(() => {
 		if (limitSeconds <= 0) return
@@ -58,8 +59,15 @@ export const useQuestTimeLimit = (storageKey: string, limitMin?: number | string
 		}
 	}, [])
 
-	const elapsedSeconds = limitSeconds <= 0 ? limitSeconds : Math.floor((now - startedAt) / 1000)
-	const remainingSeconds = Math.max(0, limitSeconds - elapsedSeconds)
+	const elapsedSeconds = Math.max(0, Math.floor((now - startedAt) / 1000))
+	const remainingSeconds = limitSeconds <= 0 ? 0 : Math.max(0, limitSeconds - elapsedSeconds)
+
+	/**
+	 * 제출 시점의 경과 시간을 초로 돌려준다.
+	 * 렌더 시점의 elapsedSeconds 는 타이머가 도는 단계에서만 갱신되므로,
+	 * 저장할 때는 이 함수로 그 순간을 다시 계산한다.
+	 */
+	const getElapsedSeconds = useCallback(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)), [startedAt])
 
 	useEffect(() => {
 		if (isTimeLimitBypassed) return
@@ -75,6 +83,8 @@ export const useQuestTimeLimit = (storageKey: string, limitMin?: number | string
 	return {
 		limitSeconds,
 		remainingSeconds,
+		elapsedSeconds,
+		getElapsedSeconds,
 		isTimeLimitMet: isTimeLimitBypassed || limitSeconds <= 0 || remainingSeconds <= 0,
 		remainingLabel: formatSeconds(remainingSeconds)
 	}

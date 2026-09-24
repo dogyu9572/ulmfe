@@ -17,7 +17,6 @@ import { Quest03Page } from './pages/student/Quest03Page'
 import { Quest03SecondPage } from './pages/student/Quest03SecondPage'
 import { Quest04Page } from './pages/student/Quest04Page'
 import { Quest04SecondPage } from './pages/student/Quest04SecondPage'
-import { Quest05Page } from './pages/student/Quest05Page'
 import { QuestEndPage } from './pages/student/QuestEndPage'
 import { QuestStepEndPage } from './pages/student/QuestStepEndPage'
 import { QuestSurveyPage } from './pages/student/QuestSurveyPage'
@@ -25,16 +24,6 @@ import { QuestVideoPage } from './pages/student/QuestVideoPage'
 import { ResourceCenterPage } from './pages/student/ResourceCenterPage'
 import { QuestDynamicContentPage } from './pages/student/questDynamicShared'
 import {
-	Mission01Page,
-	Mission02Page,
-	Mission03EndPage,
-	Mission03Page,
-	Mission04EndPage,
-	Mission04Page,
-	Mission05EndPage,
-	Mission05Page,
-	Mission06EndPage,
-	Mission06Page,
 	MissionAboutPage,
 	MissionPlayPage,
 	MissionResourceCenterPage,
@@ -51,22 +40,23 @@ import {
 	TeacherSessionManagementPage
 } from './pages/teacher'
 import './style.css'
+import { BASE_PATH } from './config'
+
+// index.html link 가 실패해도 스타일이 붙도록 BASE_URL 기준 CSS 를 한 번 더 건다.
+;['pub/css/font.css', 'pub/css/styles.css', 'pub/css/reactive.css'].forEach((path) => {
+	const href = `${import.meta.env.BASE_URL}${path}`
+	if (document.querySelector(`link[href="${href}"]`)) return
+	const link = document.createElement('link')
+	link.rel = 'stylesheet'
+	link.href = href
+	document.head.appendChild(link)
+})
 
 const plannedPages = [
 	'index',
 	'select_user',
 	'student/about',
 	'student/attendance',
-	'student/mission01',
-	'student/mission02',
-	'student/mission03',
-	'student/mission03_end',
-	'student/mission04',
-	'student/mission04_end',
-	'student/mission05',
-	'student/mission05_end',
-	'student/mission06',
-	'student/mission06_end',
 	'student/mission_about',
 	'student/mission_play',
 	'student/mission_proto',
@@ -87,7 +77,6 @@ const plannedPages = [
 	'student/quest04',
 	'student/quest04_2',
 	'student/quest04_end',
-	'student/quest05',
 	'student/quest_end',
 	'student/quest_video',
 	'student/resource_center',
@@ -171,23 +160,12 @@ const PageRoute = () => {
 	if (page === 'student/quest04') return <Quest04Page />
 	if (page === 'student/quest04_2') return <Quest04SecondPage />
 	if (page === 'student/quest04_end') return <QuestStepEndPage routeIndex={3} />
-	if (page === 'student/quest05') return <Quest05Page />
 	if (page === 'student/quest_end') return <QuestEndPage />
 	if (page === 'student/quest_video') return <QuestVideoPage />
 	if (page === 'student/resource_center') return <ResourceCenterPage />
 	if (page === 'student/mission_welcome') return <MissionWelcomePage />
 	if (page === 'student/mission_about') return <MissionAboutPage />
 	if (page === 'student/mission_play') return <MissionPlayPage />
-	if (page === 'student/mission01') return <Mission01Page />
-	if (page === 'student/mission02') return <Mission02Page />
-	if (page === 'student/mission03') return <Mission03Page />
-	if (page === 'student/mission03_end') return <Mission03EndPage />
-	if (page === 'student/mission04') return <Mission04Page />
-	if (page === 'student/mission04_end') return <Mission04EndPage />
-	if (page === 'student/mission05') return <Mission05Page />
-	if (page === 'student/mission05_end') return <Mission05EndPage />
-	if (page === 'student/mission06') return <Mission06Page />
-	if (page === 'student/mission06_end') return <Mission06EndPage />
 	if (page === 'student/mission_proto') return <MissionProtoPage />
 	if (page === 'student/mission_resource_center') return <MissionResourceCenterPage />
 	if (page === 'teacher/attendance') return <TeacherAttendancePage />
@@ -202,7 +180,7 @@ const PageRoute = () => {
 }
 
 const App = () => (
-	<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+	<BrowserRouter basename={BASE_PATH || undefined} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
 		<Routes>
 			<Route path="/" element={<PageRoute />} />
 			<Route path="/index" element={<PageRoute />} />

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicSiteSettingDAO">
+	<select id="selectSiteSetting" resultType="egovframework.let.usr.service.vo.PublicSiteSettingVO">
+		SELECT
+			S.SITE_TTL AS SITE_TITLE,
+			S.HMPG_ADDR AS HOMEPAGE_URL,
+			S.MNGR_EML_ADDR AS MANAGER_EMAIL,
+			S.EDNST_NM AS INSTITUTION_NAME,
+			S.EDNST_ADDR AS INSTITUTION_ADDRESS,
+			S.EDNST_TELNO AS INSTITUTION_TEL,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = S.LOGO_FILE_ID
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS LOGO_URL,
+			(
+				SELECT F.ATCH_FILE_PATH_NM
+				FROM ATCH_FILE_INFO F
+				WHERE F.ATCH_FILE_MNG_NO = S.FAVICON_FILE_ID
+				ORDER BY F.FILE_SEQ DESC
+				LIMIT 1
+			) AS FAVICON_URL,
+			S.FTR_CN AS FOOTER_CONTENT
+		FROM SITE_BASIC_STNG S
+		WHERE S.STNG_ID = 'DEFAULT'
+	</select>
+</mapper>

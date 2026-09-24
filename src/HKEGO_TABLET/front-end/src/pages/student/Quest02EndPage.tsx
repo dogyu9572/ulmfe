@@ -1,3 +1,4 @@
+import { pubUrl } from '../../config'
 import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 
@@ -16,7 +17,7 @@ export const Quest02EndPage = () => {
 					</div>
 					<div className="stamp_box">
 						<h3 className="tit">퀘스트2 도장 획득 !</h3>
-						<div className="large" aria-hidden="true"><img src="/pub/images/icon_stamp02_large.svg" alt="" /></div>
+						<div className="large" aria-hidden="true"><img src={pubUrl("/pub/images/icon_stamp02_large.svg")} alt="" /></div>
 						<ul className="stamp_area"><li className="i1 on">퀘스트1 도장</li><li className="i2 on">퀘스트2 도장</li><li className="i3">퀘스트3 도장</li><li className="i4">퀘스트4 도장</li></ul>
 					</div>
 					<div className="next_page_qr">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchTabletLearningResources, fetchTabletSession, TabletLearningResource, TabletSession } from '../../api/tabletApi'
+import { withBasePath } from '../../config'
 import { TeacherShell } from './teacherShared'
 
 type ResourceFilter = 'ALL' | 'DOC' | 'VIDEO'
@@ -16,7 +17,7 @@ const resourceHref = (resource: TabletLearningResource) => {
 	const hasTarget = resource.fileSeq != null || Boolean(resource.videoEmbedUrl || resource.linkUrl)
 	if (!hasTarget || !resource.pstSn) return ''
 	const params = resource.fileSeq != null ? `?fileSeq=${resource.fileSeq}` : ''
-	return `/api/tablet/learning-resources/${encodeURIComponent(resource.pstSn)}/open${params}`
+	return withBasePath(`/api/tablet/learning-resources/${encodeURIComponent(resource.pstSn)}/open${params}`)
 }
 
 const resourceButton = (resource: TabletLearningResource) => resource.dataTypeCd === 'VIDEO' || resource.dataTypeCd === 'LINK' ? '보기' : '다운로드'

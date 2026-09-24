@@ -4,12 +4,14 @@ import egovframework.com.cmm.ApiResponse;
 import egovframework.let.adm.service.vo.AuthGroupDto;
 import egovframework.let.adm.service.EgovAuthGroupService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin/auth")
 @RequiredArgsConstructor
@@ -36,15 +38,29 @@ public class EgovAuthGroupManageApiController {
 
 	@PostMapping("/groups")
 	public ApiResponse<Void> createAuthGroup(@RequestBody AuthGroupDto dto) {
-		authGroupService.createAuthGroup(dto);
-		return ApiResponse.success("권한 그룹이 등록되었습니다.", null);
+		try {
+			authGroupService.createAuthGroup(dto);
+			return ApiResponse.success("권한 그룹이 등록되었습니다.", null);
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(e.getMessage());
+		} catch (Exception e) {
+			log.error("권한 그룹 등록 오류", e);
+			return ApiResponse.error(ApiResponse.messageOf(e, "권한 그룹 등록 중 오류가 발생했습니다."));
+		}
 	}
 
 	@PutMapping("/groups/{agId}")
 	public ApiResponse<Void> updateAuthGroup(@PathVariable String agId, @RequestBody AuthGroupDto dto) {
-		dto.setAgId(agId);
-		authGroupService.updateAuthGroup(dto);
-		return ApiResponse.success("권한 그룹이 수정되었습니다.", null);
+		try {
+			dto.setAgId(agId);
+			authGroupService.updateAuthGroup(dto);
+			return ApiResponse.success("권한 그룹이 수정되었습니다.", null);
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(e.getMessage());
+		} catch (Exception e) {
+			log.error("권한 그룹 수정 오류: agId={}", agId, e);
+			return ApiResponse.error(ApiResponse.messageOf(e, "권한 그룹 수정 중 오류가 발생했습니다."));
+		}
 	}
 
 	@DeleteMapping("/groups/{agId}")
@@ -52,8 +68,11 @@ public class EgovAuthGroupManageApiController {
 		try {
 			authGroupService.deleteAuthGroup(agId);
 			return ApiResponse.success("권한 그룹이 삭제되었습니다.", null);
-		} catch (RuntimeException e) {
+		} catch (IllegalStateException e) {
 			return ApiResponse.error(e.getMessage());
+		} catch (Exception e) {
+			log.error("권한 그룹 삭제 오류: agId={}", agId, e);
+			return ApiResponse.error(ApiResponse.messageOf(e, "권한 그룹 삭제 중 오류가 발생했습니다."));
 		}
 	}
 

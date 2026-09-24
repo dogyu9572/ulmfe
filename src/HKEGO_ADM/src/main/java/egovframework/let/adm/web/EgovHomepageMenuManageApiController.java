@@ -30,7 +30,7 @@ public class EgovHomepageMenuManageApiController {
 			return ApiResponse.success("홈페이지 메뉴 목록을 조회했습니다.", homepageMenuService.getMenuList());
 		} catch (Exception e) {
 			log.error("홈페이지 메뉴 목록 조회 오류", e);
-			return ApiResponse.error("홈페이지 메뉴 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "홈페이지 메뉴 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -41,7 +41,7 @@ public class EgovHomepageMenuManageApiController {
 			return ApiResponse.success("홈페이지 메뉴가 수정되었습니다.", homepageMenuService.updateMenu(menu));
 		} catch (Exception e) {
 			log.error("홈페이지 메뉴 수정 오류", e);
-			return ApiResponse.error("홈페이지 메뉴 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "홈페이지 메뉴 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -52,7 +52,7 @@ public class EgovHomepageMenuManageApiController {
 			return ApiResponse.success("홈페이지 메뉴 순서가 수정되었습니다.", homepageMenuService.getMenuList());
 		} catch (Exception e) {
 			log.error("홈페이지 메뉴 순서 수정 오류", e);
-			return ApiResponse.error("홈페이지 메뉴 순서 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "홈페이지 메뉴 순서 수정 중 오류가 발생했습니다."));
 		}
 	}
 }

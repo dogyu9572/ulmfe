@@ -14,7 +14,7 @@
 	.faq_wrap .answer:before {content:"A"; color:#fff; background:var(--c_blue);}
 	.faq_wrap .question span {position:relative; color:var(--c_blue); font-weight:500; padding-right:13px; margin-right:12px;}
 	.faq_wrap .question span:after {content:""; position:absolute; top:50%; right:0; width:1px; height:14px; background:#E5E8EB; transform:translateY(-50%);}
-	.faq_wrap .question i {position:absolute; top:0; right:0; width:30px; height:100%; background:url('/pub/images/arrow_faq.svg') no-repeat 50% 50%; transition:.2s linear;}
+	.faq_wrap .question i {position:absolute; top:0; right:0; width:30px; height:100%; background:url('../images/arrow_faq.svg') no-repeat 50% 50%; transition:.2s linear;}
 	.faq_wrap .box.on,
 	.faq_wrap .box[open] {border-color:#00A6D9; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04);}
 	.faq_wrap .box.on .question i,

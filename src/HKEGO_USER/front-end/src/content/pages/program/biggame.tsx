@@ -1,3 +1,4 @@
+import { withBasePath } from '@/lib/basePath'
 export default function ProgramBiggameContent() {
 	return (
 		<>
@@ -22,7 +23,7 @@ export default function ProgramBiggameContent() {
 							</h2>
 							<div className="con">
 								<div className="imgfit" aria-hidden="true">
-									<img src="/pub/images/img_biggame01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame01.webp')} alt="" />
 								</div>
 								<p>
 									{"울산광역시미래교육관 3층 모험터에서 운영되는 대규모 체험형 게임 프로그램입니다."}
@@ -173,7 +174,7 @@ export default function ProgramBiggameContent() {
 							<ul className="con game_system_area flex colm">
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_biggame02_01.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_biggame02_01.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
@@ -188,7 +189,7 @@ export default function ProgramBiggameContent() {
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_biggame02_02.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_biggame02_02.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
@@ -203,7 +204,7 @@ export default function ProgramBiggameContent() {
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_biggame02_03.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_biggame02_03.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
@@ -226,7 +227,7 @@ export default function ProgramBiggameContent() {
 								<li>
 									<a href="#pop01" className="btn_popup" data-target="pop01">
 										<div className="imgfit" aria-hidden="true">
-											<img src="/pub/images/img_biggame03_01.webp" alt="" />
+											<img src={withBasePath('/pub/images/img_biggame03_01.webp')} alt="" />
 										</div>
 										<div className="txt">
 											<h3>
@@ -238,7 +239,7 @@ export default function ProgramBiggameContent() {
 								<li>
 									<a href="#pop02" className="btn_popup" data-target="pop02">
 										<div className="imgfit" aria-hidden="true">
-											<img src="/pub/images/img_biggame03_02.webp" alt="" />
+											<img src={withBasePath('/pub/images/img_biggame03_02.webp')} alt="" />
 										</div>
 										<div className="txt">
 											<h3>
@@ -250,7 +251,7 @@ export default function ProgramBiggameContent() {
 								<li>
 									<a href="#pop03" className="btn_popup" data-target="pop03">
 										<div className="imgfit" aria-hidden="true">
-											<img src="/pub/images/img_biggame03_03.webp" alt="" />
+											<img src={withBasePath('/pub/images/img_biggame03_03.webp')} alt="" />
 										</div>
 										<div className="txt">
 											<h3>
@@ -262,7 +263,7 @@ export default function ProgramBiggameContent() {
 								<li>
 									<a href="#pop04" className="btn_popup" data-target="pop04">
 										<div className="imgfit" aria-hidden="true">
-											<img src="/pub/images/img_biggame03_04.webp" alt="" />
+											<img src={withBasePath('/pub/images/img_biggame03_04.webp')} alt="" />
 										</div>
 										<div className="txt">
 											<h3>
@@ -282,7 +283,7 @@ export default function ProgramBiggameContent() {
 							<ul className="con game_list other_list">
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_biggame04_01.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_biggame04_01.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
@@ -295,7 +296,7 @@ export default function ProgramBiggameContent() {
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_biggame04_02.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_biggame04_02.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
@@ -308,7 +309,7 @@ export default function ProgramBiggameContent() {
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_biggame04_03.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_biggame04_03.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
@@ -337,10 +338,10 @@ export default function ProgramBiggameContent() {
 						<div className="imgfit swiper-container">
 							<div className="swiper-wrapper">
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_01_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_01_large01.webp')} alt="" />
 								</div>
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_01_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_01_large01.webp')} alt="" />
 								</div>
 							</div>
 							<div className="pagination"></div>
@@ -396,10 +397,10 @@ export default function ProgramBiggameContent() {
 						<div className="imgfit swiper-container">
 							<div className="swiper-wrapper">
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_02_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_02_large01.webp')} alt="" />
 								</div>
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_02_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_02_large01.webp')} alt="" />
 								</div>
 							</div>
 							<div className="pagination"></div>
@@ -453,10 +454,10 @@ export default function ProgramBiggameContent() {
 						<div className="imgfit swiper-container">
 							<div className="swiper-wrapper">
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_03_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_03_large01.webp')} alt="" />
 								</div>
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_03_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_03_large01.webp')} alt="" />
 								</div>
 							</div>
 							<div className="pagination"></div>
@@ -523,10 +524,10 @@ export default function ProgramBiggameContent() {
 						<div className="imgfit swiper-container">
 							<div className="swiper-wrapper">
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_04_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_04_large01.webp')} alt="" />
 								</div>
 								<div className="swiper-slide">
-									<img src="/pub/images/img_biggame03_04_large01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_biggame03_04_large01.webp')} alt="" />
 								</div>
 							</div>
 							<div className="pagination"></div>

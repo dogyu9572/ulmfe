@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { fetchTabletLearningResources, TabletLearningResource } from '../../api/tabletApi'
+import { withBasePath } from '../../config'
 
 type ResourceFilter = 'ALL' | 'DOC' | 'VIDEO'
 
@@ -15,7 +16,7 @@ const resourceHref = (resource: TabletLearningResource) => {
 	const hasTarget = resource.fileSeq != null || Boolean(resource.videoEmbedUrl || resource.linkUrl)
 	if (!hasTarget || !resource.pstSn) return ''
 	const params = resource.fileSeq != null ? `?fileSeq=${resource.fileSeq}` : ''
-	return `/api/tablet/learning-resources/${encodeURIComponent(resource.pstSn)}/open${params}`
+	return withBasePath(`/api/tablet/learning-resources/${encodeURIComponent(resource.pstSn)}/open${params}`)
 }
 const resourceButton = (resource: TabletLearningResource) => resource.dataTypeCd === 'VIDEO' || resource.dataTypeCd === 'LINK' ? '보기' : '다운로드'
 const textOnly = (value?: string) => value ? value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : ''

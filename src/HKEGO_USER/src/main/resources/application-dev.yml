@@ -1,0 +1,42 @@
+# 개발서버 — mvn package -Pdev 빌드 시 활성화
+# 비밀번호는 JAR에 넣지 말고 SPRING_DATASOURCE_PASSWORD 환경 변수로 주입
+
+server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        same-site: ${APP_SESSION_COOKIE_SAME_SITE:lax}
+        secure: ${APP_SESSION_COOKIE_SECURE:true}
+
+file:
+  upload:
+    path: ${FILE_UPLOAD_PATH:/home/ulmfe/uploads}
+
+app:
+  security:
+    csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
+    csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:true}
+  cors:
+    # 개발: 100.100.93.110 / SSLVPN + hosts → dev.use.go.kr
+    allowed-origins:
+      - https://dev.use.go.kr
+      - http://dev.use.go.kr
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://100.101.59.40:11306/dev_ulmfe?allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:dev_ulmfe}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+
+logging:
+  level:
+    root: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    egovframework: INFO
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl

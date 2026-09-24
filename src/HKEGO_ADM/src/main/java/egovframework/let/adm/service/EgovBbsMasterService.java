@@ -5,7 +5,7 @@ import java.util.Map;
 import egovframework.let.adm.service.vo.BbsMasterVO;
 
 public interface EgovBbsMasterService {
-	Map<String, Object> getBbsMasterListPage(int page, int size);
+	Map<String, Object> getBbsMasterListPage(int page, int size, String useYn);
 	BbsMasterVO getBbsMasterById(String bbsId);
 	BbsMasterVO createBbsMaster(BbsMasterVO bbsMaster, String adminId);
 	BbsMasterVO updateBbsMaster(BbsMasterVO bbsMaster, String adminId);

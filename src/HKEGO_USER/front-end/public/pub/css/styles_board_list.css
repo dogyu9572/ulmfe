@@ -35,10 +35,13 @@
 	.board_basic td.board_edu_type.type3 span {color:#F5A200; background:#FFFAEC; border-color:#F5A2001A;}
 	.board_basic .btn {display:inline-block; width:auto; height:auto; padding:4px 20px;}
 	.board_basic i.file {display:block; width:32px; height:32px; background:url('../images/icon_file.svg') no-repeat 50% 50%; margin:0 auto; border:#E5E8EB 1px solid; border-radius:50%;}
+	.board_category_tabs {display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+	.board_category_tabs button {min-width:88px; padding:9px 18px; border:1px solid #DDE2E8; border-radius:24px; color:#4E5968; background:#fff; font-weight:600; transition:background .2s, border-color .2s, color .2s;}
+	.board_category_tabs button.active {border-color:#58B431; color:#fff; background:#58B431;}
 /* 1:1문의 */
 	.pop_password .input_password {background:#FAFAFA; border:#E5E8EB 1px solid; border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:24px;}
 	.pop_password .input_password p {font-weight:500; text-align:center;}
-	.pop_password .input_password p:before {content:""; display:block; width:40px; height:40px; background:url('/pub/images/icon_excl.svg') no-repeat 50% 50% / contain; margin:0 auto 16px;}
+	.pop_password .input_password p:before {content:""; display:block; width:40px; height:40px; background:url('../images/icon_excl.svg') no-repeat 50% 50% / contain; margin:0 auto 16px;}
 	.pop_password .input_password .text {font-size:16px; padding:0 20px;}
 
 /* 반응형 */
@@ -59,6 +62,8 @@
 }
 
 @media screen and (max-width:767px){
+	.board_category_tabs {gap:6px;}
+	.board_category_tabs button {min-width:auto; padding:8px 14px; font-size:14px;}
 	.board_basic table {border-top:var(--c_iden) 2px solid;}
 	.board_basic thead {display:none;}
 	.board_basic table,

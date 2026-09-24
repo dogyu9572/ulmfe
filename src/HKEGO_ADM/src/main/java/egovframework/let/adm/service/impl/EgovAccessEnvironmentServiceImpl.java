@@ -87,7 +87,11 @@ public class EgovAccessEnvironmentServiceImpl extends EgovAbstractServiceImpl im
 		if (allowedIp.getPrmIpSn() == null) {
 			accessEnvironmentDAO.insertAllowedIp(allowedIp);
 		} else {
-			accessEnvironmentDAO.updateAllowedIp(allowedIp);
+			// 수정 화면을 열어 둔 사이 다른 곳에서 삭제되면 갱신 건수가 0 이 된다.
+			// 이때 성공으로 돌려주면 저장되지 않은 값을 저장했다고 안내하게 된다.
+			if (accessEnvironmentDAO.updateAllowedIp(allowedIp) <= 0) {
+				throw new IllegalArgumentException("수정할 접속 IP를 찾을 수 없습니다.");
+			}
 		}
 		return getAllowedIp(allowedIp.getPrmIpSn());
 	}

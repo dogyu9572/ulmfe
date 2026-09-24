@@ -12,10 +12,15 @@
 	.terms_box ol {list-style:decimal; padding-left:20px;}
 	.terms_box .dots li {position:relative; padding-left:20px;}
 	.terms_box .dots li:before {content:""; position:absolute; top:12px; left:8px; width:3px; height:3px; background:#4E5968; border-radius:50%;}
+	.terms_box table {width:100%; margin:16px 0 24px; border-top:#333D4B 2px solid; border-collapse:collapse; table-layout:fixed;}
+	.terms_box th, .terms_box td {padding:14px 16px; border:#E5E8EB 1px solid; color:#4E5968; font-size:15px; line-height:1.5; text-align:left; vertical-align:middle; word-break:keep-all;}
+	.terms_box th {background:#F7F8FA; color:#333D4B; font-weight:600; text-align:center;}
+	.terms_box th:first-child, .terms_box td:first-child {border-left:0;}
+	.terms_box th:last-child, .terms_box td:last-child {border-right:0;}
 /* 이메일 무단수집 거부 */
 	.terms_box.email_box {padding:64px; text-align:center;}
 	.terms_box.email_box h2 {font-size:32px; font-weight:600; line-height:1.45; margin-bottom:16px;}
-	.terms_box.email_box h2:before {content:""; display:block; width:80px; height:80px; background:#fff url('/pub/images/icon_email.svg') no-repeat 50% 50%; border:#E5E8EB 1px solid; border-radius:50%; margin:0 auto 32px;}
+	.terms_box.email_box h2:before {content:""; display:block; width:80px; height:80px; background:#fff url('../images/icon_email.svg') no-repeat 50% 50%; border:#E5E8EB 1px solid; border-radius:50%; margin:0 auto 32px;}
 	.terms_box.email_box p {font-size:20px; color:#4E5968; line-height:1.5;}
 
 /* 반응형 */
@@ -36,6 +41,7 @@
 	.terms_box ol {padding-left:18px;}
 	.terms_box .dots li {padding-left:18px;}
 	.terms_box .dots li:before {top:10px; left:6px;}
+	.terms_box th, .terms_box td {padding:12px 14px; font-size:14px;}
 /* 이메일 무단수집 거부 */
 	.terms_box.email_box {padding:50px;}
 	.terms_box.email_box h2 {font-size:24px; margin-bottom:12px;}
@@ -55,6 +61,8 @@
 	.terms_box ol {padding-left:14px;}
 	.terms_box .dots li {padding-left:14px;}
 	.terms_box .dots li:before {top:9px; left:3px;}
+	.terms_box table {margin:12px 0 20px;}
+	.terms_box th, .terms_box td {padding:10px 8px; font-size:13px; word-break:break-all;}
 /* 이메일 무단수집 거부 */
 	.terms_box.email_box {padding:24px;}
 	.terms_box.email_box h2 {font-size:18px; margin-bottom:8px;}

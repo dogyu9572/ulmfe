@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ListPagination } from '../components/ListPagination'
 import { AdminLayout } from '../components/AdminLayout'
@@ -95,6 +95,13 @@ function step2Lines(student: FlatStudent): Array<{ label: string; status: string
 	return [1, 2, 3, 4].map((n) => ({ label: `퀘스트 ${n}`, status: '진행 전' }))
 }
 
+/** 학생 한 명의 종합 학습상태. STEP 별 상태는 이 값에서 파생되므로 필터 기준은 이 값이어야 한다. */
+function learningStatusLabel(student: FlatStudent): string {
+	if (student.lrnSttsCd === 'DONE') return '완료'
+	if (student.lrnSttsCd === 'ING') return '진행 중'
+	return '진행 전'
+}
+
 function stepLabels(student: FlatStudent): { step1: string; step2: Array<{ label: string; status: string }>; step3: string; step4: string } {
 	const progress = progressRate(student)
 	if (student.lrnSttsCd === 'DONE') {
@@ -111,9 +118,20 @@ function stepLabels(student: FlatStudent): { step1: string; step2: Array<{ label
 	return { step1: '진행 전', step2: step2Lines(student), step3: '진행 전', step4: '진행 전' }
 }
 
+type BonusClassRow = {
+	rsvtSn: number
+	schlNm: string
+	clasNm: string
+	total: number
+	done: number
+	opened: boolean
+}
+
 export const LearningFieldStatusPage: React.FC = () => {
 	const [searchParams] = useSearchParams()
 	const initialDate = searchParams.get('date') || todayYmd()
+	/** 캘린더의 '현황보기' 가 넘기는 예약 번호. 목록이 로드되면 그 예약의 학교로 필터를 맞춘다. */
+	const initialRsvtSn = searchParams.get('rsvtSn')
 	const [rsvtYmd, setRsvtYmd] = useState(initialDate)
 	const [school, setSchool] = useState('all')
 	const [team, setTeam] = useState('all')
@@ -124,6 +142,10 @@ export const LearningFieldStatusPage: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [page, setPage] = useState(1)
 	const [pageSize, setPageSize] = useState(20)
+
+	// 예약별로 열려 있는 반 이름 목록. 행의 존재가 곧 개방이라 목록만 받아 대조한다
+	const [openedClasses, setOpenedClasses] = useState<Record<number, string[]>>({})
+	const [bonusBusy, setBonusBusy] = useState<string | null>(null)
 
 	const fetchStatus = useCallback(async () => {
 		setLoading(true)
@@ -149,10 +171,91 @@ export const LearningFieldStatusPage: React.FC = () => {
 		void fetchStatus()
 	}, [fetchStatus])
 
+	const fetchOpenedClasses = useCallback(async (reservations: Reservation[]) => {
+		const entries = await Promise.all(reservations.map(async (row) => {
+			try {
+				const res = await fetch(`${BACKEND}/api/admin/field-operation-status/${row.rsvtSn}/bonus`, { credentials: 'include' })
+				const result: ApiResponse<string[]> = await res.json()
+				return [row.rsvtSn, result.success ? (result.data ?? []) : []] as const
+			} catch {
+				return [row.rsvtSn, []] as const
+			}
+		}))
+		setOpenedClasses(Object.fromEntries(entries))
+	}, [])
+
+	useEffect(() => {
+		if (rows.length === 0) {
+			setOpenedClasses({})
+			return
+		}
+		void fetchOpenedClasses(rows)
+	}, [rows, fetchOpenedClasses])
+
+	const bonusRows = useMemo<BonusClassRow[]>(() => {
+		const grouped = new Map<string, BonusClassRow>()
+		rows.forEach((row) => {
+			(row.students ?? []).forEach((student) => {
+				const clasNm = String(student.clasNm ?? '').trim()
+				if (!clasNm) return
+				const key = `${row.rsvtSn}::${clasNm}`
+				const found = grouped.get(key) ?? {
+					rsvtSn: row.rsvtSn,
+					schlNm: row.schlNm,
+					clasNm,
+					total: 0,
+					done: 0,
+					opened: (openedClasses[row.rsvtSn] ?? []).includes(clasNm)
+				}
+				found.total += 1
+				if (student.lrnSttsCd === 'DONE') found.done += 1
+				grouped.set(key, found)
+			})
+		})
+		return Array.from(grouped.values()).sort((a, b) => a.schlNm.localeCompare(b.schlNm) || a.clasNm.localeCompare(b.clasNm))
+	}, [rows, openedClasses])
+
+	const toggleBonus = async (row: BonusClassRow) => {
+		if (row.opened && !window.confirm(`${row.schlNm} ${row.clasNm}의 보너스 스테이지를 닫습니다. 이미 참여 중인 학생도 진행할 수 없게 됩니다.`)) return
+		const key = `${row.rsvtSn}::${row.clasNm}`
+		setBonusBusy(key)
+		setError(null)
+		try {
+			const url = row.opened
+				? `${BACKEND}/api/admin/field-operation-status/${row.rsvtSn}/bonus/${encodeURIComponent(row.clasNm)}`
+				: `${BACKEND}/api/admin/field-operation-status/${row.rsvtSn}/bonus`
+			const res = await fetch(url, {
+				method: row.opened ? 'DELETE' : 'POST',
+				credentials: 'include',
+				headers: row.opened ? undefined : { 'Content-Type': 'application/json' },
+				body: row.opened ? undefined : JSON.stringify({ clasNm: row.clasNm })
+			})
+			const result: ApiResponse<unknown> = await res.json()
+			if (!result.success) {
+				setError(result.message || '보너스 스테이지 처리에 실패했습니다.')
+				return
+			}
+			await fetchOpenedClasses(rows)
+		} catch {
+			setError('보너스 스테이지 처리 중 오류가 발생했습니다.')
+		} finally {
+			setBonusBusy(null)
+		}
+	}
+
 	const schools = useMemo(() => Array.from(new Set(rows.map((row) => row.schlNm).filter(Boolean))), [rows])
+
+	const rsvtPresetDone = useRef(false)
+	useEffect(() => {
+		if (rsvtPresetDone.current || !initialRsvtSn || rows.length === 0) return
+		const target = rows.find((row) => String(row.rsvtSn) === initialRsvtSn)
+		if (target?.schlNm) setSchool(target.schlNm)
+		rsvtPresetDone.current = true
+	}, [initialRsvtSn, rows])
 	const teams = useMemo(() => {
 		const fromData = rows.flatMap((row) => row.students ?? []).map((student) => student.teamNm).filter(Boolean) as string[]
-		return Array.from(new Set([...fromData, 'A', 'B', 'C', 'D']))
+		// 하드코딩된 A~D 는 실데이터 형식('1팀')과 달라 어떤 옵션을 골라도 0건이었다. 데이터에서만 만든다.
+		return Array.from(new Set(fromData)).sort()
 	}, [rows])
 	const students = useMemo<FlatStudent[]>(() => rows.flatMap((row) => (row.students ?? []).map((student) => ({
 		...student,
@@ -168,9 +271,7 @@ export const LearningFieldStatusPage: React.FC = () => {
 	const filteredStudents = useMemo(() => students.filter((student) => {
 		const matchesSchool = school === 'all' || student.schlNm === school
 		const matchesTeam = team === 'all' || student.teamNm === team
-		const labels = stepLabels(student)
-		const flatStatuses = [labels.step1, ...labels.step2.map((line) => line.status), labels.step3, labels.step4]
-		const matchesStep = stepStatus === 'all' || flatStatuses.includes(stepStatus)
+		const matchesStep = stepStatus === 'all' || learningStatusLabel(student) === stepStatus
 		const matchesName = !studentName.trim() || String(student.stdntNm ?? '').includes(studentName.trim())
 		return matchesSchool && matchesTeam && matchesStep && matchesName
 	}), [school, stepStatus, studentName, students, team])
@@ -246,7 +347,7 @@ export const LearningFieldStatusPage: React.FC = () => {
 						</select>
 					</div>
 					<div className="bbs-post-filter-row">
-						<label className="bbs-post-filter-label">STEP 활동 상태</label>
+						<label className="bbs-post-filter-label">학습 상태</label>
 						<select value={stepStatus} onChange={(e) => setStepStatus(e.target.value)} className="bbs-post-filter-select">
 							<option value="all">전체</option>
 							<option value="진행 전">진행 전</option>
@@ -272,6 +373,47 @@ export const LearningFieldStatusPage: React.FC = () => {
 						<button type="button" className="admin-filter-btn-reset" onClick={resetFilters} disabled={loading}>초기화</button>
 					</div>
 				</div>
+
+				<h3 className="bbs-post-filter-label">보너스 스테이지 개방</h3>
+				<table className="table">
+					<thead>
+						<tr>
+							<th>참여 학교</th>
+							<th>반</th>
+							<th>완료 / 전체</th>
+							<th>상태</th>
+							<th>처리</th>
+						</tr>
+					</thead>
+					<tbody>
+						{bonusRows.map((row) => {
+							const key = `${row.rsvtSn}::${row.clasNm}`
+							return (
+								<tr key={key}>
+									<td>{row.schlNm}</td>
+									<td>{row.clasNm}</td>
+									<td>{row.done} / {row.total}</td>
+									<td><span className={`field-status-badge ${row.opened ? 'is-done' : 'is-ready'}`}>{row.opened ? '개방' : '미개방'}</span></td>
+									<td>
+										<button
+											type="button"
+											className={row.opened ? 'admin-filter-btn-reset' : 'admin-list-btn-sky'}
+											onClick={() => void toggleBonus(row)}
+											disabled={bonusBusy === key || loading}
+										>
+											{row.opened ? '개방 취소' : '개방'}
+										</button>
+									</td>
+								</tr>
+							)
+						})}
+						{bonusRows.length === 0 && (
+							<tr>
+								<td colSpan={5} style={{ textAlign: 'center' }}>반이 배정된 학생이 없습니다.</td>
+							</tr>
+						)}
+					</tbody>
+				</table>
 
 				<table className="table">
 					<thead>

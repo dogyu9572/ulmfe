@@ -161,6 +161,11 @@ export const UserVisitorStatsPage: React.FC = () => {
 			setError('연도를 입력하세요.')
 			return
 		}
+		// 날짜 범위에는 가드가 있는데 연도 범위에는 없어, 거꾸로 넣으면 서버가 조용히 순서를 뒤집었다.
+		if (Number(s) > Number(e)) {
+			setError('시작 연도가 종료 연도보다 늦습니다. 연도를 다시 확인해주세요.')
+			return
+		}
 		setYearlyLoading(true)
 		setError(null)
 		try {
@@ -193,6 +198,11 @@ export const UserVisitorStatsPage: React.FC = () => {
 			setError('연도를 입력하세요.')
 			return
 		}
+		// 날짜 범위에는 가드가 있는데 연도 범위에는 없어, 거꾸로 넣으면 서버가 조용히 순서를 뒤집었다.
+		if (Number(s) > Number(e)) {
+			setError('시작 연도가 종료 연도보다 늦습니다. 연도를 다시 확인해주세요.')
+			return
+		}
 		setMonthlyLoading(true)
 		setError(null)
 		try {
@@ -223,6 +233,11 @@ export const UserVisitorStatsPage: React.FC = () => {
 		const e = Number(endYearValue)
 		if (!s || !e) {
 			setError('연도를 입력하세요.')
+			return
+		}
+		// 날짜 범위에는 가드가 있는데 연도 범위에는 없어, 거꾸로 넣으면 서버가 조용히 순서를 뒤집었다.
+		if (Number(s) > Number(e)) {
+			setError('시작 연도가 종료 연도보다 늦습니다. 연도를 다시 확인해주세요.')
 			return
 		}
 		setError(null)

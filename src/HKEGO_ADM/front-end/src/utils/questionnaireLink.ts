@@ -14,9 +14,16 @@ export const questionnairePreviewUrl = (linkCode: string) => {
 	if (configuredBaseUrl) return `${configuredBaseUrl}${path}`
 
 	const url = new URL(window.location.href)
+	// path 배포: use.go.kr/usfec-adm → use.go.kr/usfec-tab
+	if (url.pathname.startsWith('/usfec-adm')) {
+		url.pathname = `/usfec-tab${path}`
+		url.search = ''
+		url.hash = ''
+		return url.toString()
+	}
 	if (url.hostname.includes('ulmfe-adm')) url.hostname = url.hostname.replace('ulmfe-adm', 'ulmfe-tablet')
 	if (url.port === '9131') url.port = '9133'
-	url.pathname = path
+	url.pathname = path.startsWith('/') ? `/usfec-tab${path}` : path
 	url.search = ''
 	url.hash = ''
 	return url.toString()

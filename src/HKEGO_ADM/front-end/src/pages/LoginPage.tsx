@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { API_BASE_URL } from '../config'
 
 export const LoginPage: React.FC = () => {
 	const navigate = useNavigate()
+	const [searchParams] = useSearchParams()
+	/** 세션이 끊겨 밀려온 경우. AdminLayout 의 타이머 만료와 main.tsx 의 401 처리가 이 파라미터를 붙인다. */
+	const sessionExpired = searchParams.get('expired') === '1'
 	const [userId, setUserId] = useState('')
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState<string | null>(null)
@@ -70,7 +73,7 @@ export const LoginPage: React.FC = () => {
 	return (
 		<div className="login-page">
 			<div className="login-card">
-				<h1>HKSTS 관리자 로그인</h1>
+				<h1>울산광역시미래교육관 관리자 로그인</h1>
 				<form onSubmit={handleSubmit} className="login-form">
 					<label className="form-field">
 						<span>아이디</span>
@@ -103,6 +106,7 @@ export const LoginPage: React.FC = () => {
 							</svg>
 							<input
 								type="text"
+								autoComplete="username"
 								value={userId}
 								onChange={(e) => setUserId(e.target.value)}
 								placeholder="관리자 아이디"
@@ -143,6 +147,7 @@ export const LoginPage: React.FC = () => {
 							</svg>
 							<input
 								type="password"
+								autoComplete="current-password"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								placeholder="비밀번호"
@@ -150,6 +155,11 @@ export const LoginPage: React.FC = () => {
 							/>
 						</div>
 					</label>
+					{sessionExpired && !error && (
+						<p className="form-error" role="alert">
+							로그인 유효 시간이 지나 자동으로 로그아웃되었습니다. 다시 로그인해 주세요.
+						</p>
+					)}
 					{error && <p className="form-error">{error}</p>}
 					<button type="submit" className="primary-button" disabled={loading}>
 						{loading ? '로그인 중...' : '로그인'}

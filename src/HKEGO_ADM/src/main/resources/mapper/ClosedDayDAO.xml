@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.ClosedDayDAO">
+
+	<sql id="closedDayListWhere">
+		FROM CLSR_DAY_MST
+		WHERE DEL_DT IS NULL
+		<if test="useYn != null and useYn != ''">
+			AND USE_YN = #{useYn}
+		</if>
+		<if test="clsrSeCd != null and clsrSeCd != ''">
+			AND CLSR_SE_CD = #{clsrSeCd}
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND END_YMD &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND BGNG_YMD &lt;= #{endDate}
+		</if>
+		<if test="searchKeyword != null and searchKeyword != ''">
+			AND CLSR_RESN_CN LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</sql>
+
+	<select id="selectClosedDayCount" resultType="int">
+		SELECT COUNT(*)
+		<include refid="closedDayListWhere"/>
+	</select>
+
+	<select id="selectClosedDayList" resultType="egovframework.let.adm.service.vo.ClosedDayVO">
+		SELECT
+			CLSR_SN,
+			CLSR_SE_CD,
+			BGNG_YMD,
+			END_YMD,
+			CLSR_RESN_CN,
+			USE_YN,
+			RGTR_NM,
+			REG_DT,
+			MDFR_NM,
+			MDFCN_DT
+		<include refid="closedDayListWhere"/>
+		ORDER BY BGNG_YMD DESC, CLSR_SN DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<select id="selectClosedDayById" resultType="egovframework.let.adm.service.vo.ClosedDayVO">
+		SELECT
+			CLSR_SN,
+			CLSR_SE_CD,
+			BGNG_YMD,
+			END_YMD,
+			CLSR_RESN_CN,
+			USE_YN,
+			RGTR_NM,
+			REG_DT,
+			MDFR_NM,
+			MDFCN_DT
+		FROM CLSR_DAY_MST
+		WHERE CLSR_SN = #{clsrSn}
+		  AND DEL_DT IS NULL
+	</select>
+
+	<insert id="insertClosedDay" parameterType="egovframework.let.adm.service.vo.ClosedDayVO"
+			useGeneratedKeys="true" keyProperty="clsrSn">
+		INSERT INTO CLSR_DAY_MST (
+			CLSR_SE_CD, BGNG_YMD, END_YMD, CLSR_RESN_CN, USE_YN, RGTR_NM, REG_DT
+		) VALUES (
+			#{clsrSeCd}, #{bgngYmd}, #{endYmd}, #{clsrResnCn}, #{useYn}, #{rgtrNm}, NOW()
+		)
+	</insert>
+
+	<update id="updateClosedDay" parameterType="egovframework.let.adm.service.vo.ClosedDayVO">
+		UPDATE CLSR_DAY_MST
+		SET CLSR_SE_CD = #{clsrSeCd},
+			BGNG_YMD = #{bgngYmd},
+			END_YMD = #{endYmd},
+			CLSR_RESN_CN = #{clsrResnCn},
+			USE_YN = #{useYn},
+			MDFR_NM = #{mdfrNm},
+			MDFCN_DT = NOW()
+		WHERE CLSR_SN = #{clsrSn}
+		  AND DEL_DT IS NULL
+	</update>
+
+	<update id="deleteClosedDay">
+		UPDATE CLSR_DAY_MST
+		SET DEL_DT = NOW(),
+			DLTR_NM = #{dltrNm}
+		WHERE CLSR_SN = #{clsrSn}
+		  AND DEL_DT IS NULL
+	</update>
+
+	<update id="deleteClosedDays" parameterType="map">
+		UPDATE CLSR_DAY_MST
+		SET DEL_DT = NOW(),
+			DLTR_NM = #{dltrNm}
+		WHERE DEL_DT IS NULL
+			AND CLSR_SN IN
+			<foreach collection="clsrSnList" item="clsrSn" open="(" separator="," close=")">
+				#{clsrSn}
+			</foreach>
+	</update>
+
+	<select id="selectRegularClosedDayCode" resultType="string">
+		SELECT RGLR_CLSR_DAY_CD
+		FROM SITE_BASIC_STNG
+		WHERE STNG_ID = 'DEFAULT'
+	</select>
+
+	<!--
+		SITE_BASIC_STNG 은 사이트 기본설정 화면과 한 행(STNG_ID='DEFAULT')을 나눠 쓴다.
+		RGLR_CLSR_DAY_CD 만 이 매퍼가 소유하므로 MDFR_NM·MDFCN_DT 같은 그 화면의 감사 컬럼은 건드리지 않는다.
+		DEFAULT 행이 아직 없는 초기 상태에서도 설정이 저장되도록 SiteBasicSettingDAO 와 같은 upsert 형태를 쓴다.
+	-->
+	<update id="updateRegularClosedDayCode">
+		INSERT INTO SITE_BASIC_STNG (STNG_ID, SITE_TTL, HMPG_ADDR, MNGR_EML_ADDR, RGLR_CLSR_DAY_CD)
+		VALUES ('DEFAULT', '', '', '', #{rglrClsrDayCd})
+		ON DUPLICATE KEY UPDATE RGLR_CLSR_DAY_CD = VALUES(RGLR_CLSR_DAY_CD)
+	</update>
+
+</mapper>

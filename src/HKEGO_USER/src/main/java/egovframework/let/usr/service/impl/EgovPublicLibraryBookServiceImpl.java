@@ -31,8 +31,9 @@ public class EgovPublicLibraryBookServiceImpl implements EgovPublicLibraryBookSe
 	) {
 		int safePage = Math.max(1, page);
 		int safeSize = Math.min(100, Math.max(1, size));
+		// 화면의 '내용' 선택이 all 로 뭉개지면 제목·저자·출판사까지 함께 검색되어 내용 전용 검색이 사라진다.
 		String safeSearchType = switch (searchType == null ? "" : searchType) {
-			case "title", "content" -> searchType;
+			case "title", "author", "content" -> searchType;
 			default -> "all";
 		};
 		String safeKeyword = keyword == null ? "" : keyword.trim();

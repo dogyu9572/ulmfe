@@ -9,6 +9,7 @@ import {
 	getQnaCaptchaUrl,
 	updatePublicQna
 } from '@/lib/publicQnaApi'
+import { withBasePath } from '@/lib/basePath'
 import { QNA_LIST_RETURN_KEY, qnaListHref, qnaPageHref } from './qnaNavigation'
 
 type Props = { mode: 'create' | 'modify' }
@@ -157,7 +158,7 @@ export default function QnaForm({ mode }: Props) {
 				{error && <p role="alert" className="tac" style={{ color: '#e5484d' }}>{error}</p>}
 				<div className="board_bottom">
 					<div className="flex_center btns">
-						<a href={listHref} className="btn btn_bwb btn_large" onClick={returnToList}>목록</a>
+						<a href={withBasePath(listHref)} className="btn btn_bwb btn_large" onClick={returnToList}>목록</a>
 						<button type="submit" id="btn_submit" className="btn btn_wbb btn_large" disabled={loading || submitting}>{submitting ? '처리 중' : '등록'}</button>
 					</div>
 				</div>

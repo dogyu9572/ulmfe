@@ -54,14 +54,14 @@ export const MaterialDownloadStatsPage: React.FC = () => {
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-	const buildSearchParams = (targetPage?: number, includePaging = true) => {
+	const buildSearchParams = (targetPage?: number, includePaging = true, o?: Record<string, string>) => {
 		const params = new URLSearchParams()
-		if (lrnTypeCd) params.set('lrnTypeCd', lrnTypeCd)
-		if (dataTypeCd) params.set('dataTypeCd', dataTypeCd)
-		if (startDate) params.set('startDate', startDate)
-		if (endDate) params.set('endDate', endDate)
-		params.set('searchType', searchType)
-		if (keyword.trim()) params.set('keyword', keyword.trim())
+		if (o?.lrnTypeCd ?? lrnTypeCd) params.set('lrnTypeCd', o?.lrnTypeCd ?? lrnTypeCd)
+		if (o?.dataTypeCd ?? dataTypeCd) params.set('dataTypeCd', o?.dataTypeCd ?? dataTypeCd)
+		if (o?.startDate ?? startDate) params.set('startDate', o?.startDate ?? startDate)
+		if (o?.endDate ?? endDate) params.set('endDate', o?.endDate ?? endDate)
+		params.set('searchType', o?.searchType ?? searchType)
+		if ((o?.keyword ?? keyword).trim()) params.set('keyword', (o?.keyword ?? keyword).trim())
 		if (includePaging) {
 			params.set('page', String(targetPage ?? page))
 			params.set('size', String(pageSize))
@@ -77,12 +77,12 @@ export const MaterialDownloadStatsPage: React.FC = () => {
 		return true
 	}
 
-	const fetchStats = async (targetPage = page) => {
+	const fetchStats = async (targetPage = page, o?: Record<string, string>) => {
 		setError(null)
-		if (!validateDates()) return
+		if (!o && !validateDates()) return
 		try {
 			setLoading(true)
-			const response = await fetch(`${API_BASE_URL}/api/admin/material-download-stats?${buildSearchParams(targetPage).toString()}`, { credentials: 'include' })
+			const response = await fetch(`${API_BASE_URL}/api/admin/material-download-stats?${buildSearchParams(targetPage, true, o).toString()}`, { credentials: 'include' })
 			const result: ApiResponse<StatsPage> = await response.json()
 			if (!response.ok || !result.success) {
 				setError(result.message || '자료실 다운로드 통계 조회에 실패했습니다.')
@@ -122,13 +122,16 @@ export const MaterialDownloadStatsPage: React.FC = () => {
 	}
 
 	const reset = () => {
-		setLrnTypeCd('')
-		setDataTypeCd('')
-		setStartDate(firstDayOfMonthIso())
-		setEndDate(todayIso())
-		setSearchType('all')
-		setKeyword('')
+		// state 만 되돌리면 화면 조건과 결과가 어긋난다. 기본 조건으로 즉시 다시 조회한다.
+		const d = { lrnTypeCd: '', dataTypeCd: '', startDate: firstDayOfMonthIso(), endDate: todayIso(), searchType: 'all', keyword: '' }
+		setLrnTypeCd(d.lrnTypeCd)
+		setDataTypeCd(d.dataTypeCd)
+		setStartDate(d.startDate)
+		setEndDate(d.endDate)
+		setSearchType(d.searchType)
+		setKeyword(d.keyword)
 		setPage(1)
+		void fetchStats(1, d)
 	}
 
 	useEffect(() => {

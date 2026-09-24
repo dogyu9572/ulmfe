@@ -137,7 +137,7 @@ input[type="text"],
 input[type="password"],
 input[type="date"],
 select {height:48px; padding:0 24px;}
-select {color:#222; -webkit-appearance:none; -moz-appearance:none; appearance:none; background:#fff url('/pub/images/arrow_select.svg') no-repeat right 24px center / 20px;}
+select {color:#222; -webkit-appearance:none; -moz-appearance:none; appearance:none; background:#fff url('../images/arrow_select.svg') no-repeat right 24px center / 20px;}
 textarea {padding:10px;}
 ::placeholder {color:#6B7684 !important;}
 

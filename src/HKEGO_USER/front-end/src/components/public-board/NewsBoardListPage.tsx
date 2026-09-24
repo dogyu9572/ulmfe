@@ -1,53 +1,47 @@
-import NewsBoardList from './NewsBoardList'
-import type { PageSearchParams } from '@/content/pageRegistry'
-import type { BoardListParams, PublicBoardId } from '@/lib/publicApi'
-import { getPublicBoardPostsServer } from '@/lib/publicApiServer'
+import NewsBoardList, { type CategoryFilter } from './NewsBoardList'
+import type { PublicBoardId } from '@/lib/publicApi'
+
+const LEARNING_TYPE_FILTER: CategoryFilter = {
+	label: '학습 유형',
+	options: [
+		{ value: 'PRE', label: '사전학습' },
+		{ value: 'MAIN', label: '본학습' },
+		{ value: 'POST', label: '사후학습' }
+	]
+}
+
+const ESD_ZONE_FILTER: CategoryFilter = {
+	label: 'ESD 체험터',
+	queryKey: 'zone',
+	display: 'tabs',
+	options: [
+		{ value: 'FUTURE', label: '미래존' },
+		{ value: 'EARTH', label: '지구존' },
+		{ value: 'SOCIETY', label: '사회존' }
+	]
+}
 
 type Props = {
 	boardId: PublicBoardId
 	title: string
 	detailPath: string
 	variant: 'notice' | 'gallery-large' | 'gallery-small'
-	searchParams: PageSearchParams
 	programType?: 'EXPLORE' | 'MISSION'
 	showLearningTypeFilter?: boolean
+	showEsdZoneFilter?: boolean
+	categoryFilter?: CategoryFilter
 }
 
-function firstValue(value: string | string[] | undefined): string {
-	return (Array.isArray(value) ? value[0] : value)?.trim() ?? ''
-}
-
-export default async function NewsBoardListPage({ boardId, title, detailPath, variant, searchParams, programType, showLearningTypeFilter }: Props) {
-	const query = await searchParams
-	const pageValue = Number(firstValue(query.page))
-	const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1
-	const searchTypeValue = firstValue(query.search_condition || query.searchType)
-	const searchType: NonNullable<BoardListParams['searchType']> =
-		searchTypeValue === 'title' || searchTypeValue === 'content' ? searchTypeValue : 'all'
-	const keyword = firstValue(query.search_keyword || query.keyword)
-	const category = firstValue(query.category)
-	const size = variant === 'notice' ? 10 : 6
-	const initialResult = await getPublicBoardPostsServer(boardId, {
-		page,
-		size,
-		searchType,
-		keyword,
-		category,
-		programType
-	}).catch(() => undefined)
-
+export default function NewsBoardListPage({ boardId, title, detailPath, variant, programType, showLearningTypeFilter, showEsdZoneFilter, categoryFilter }: Props) {
+	const resolvedCategoryFilter = categoryFilter ?? (showEsdZoneFilter ? ESD_ZONE_FILTER : showLearningTypeFilter ? LEARNING_TYPE_FILTER : undefined)
 	return (
 		<NewsBoardList
 			boardId={boardId}
 			title={title}
 			detailPath={detailPath}
 			variant={variant}
-			initialResult={initialResult}
-			initialSearchType={searchType}
-			initialKeyword={keyword}
-			initialCategory={category}
 			programType={programType}
-			showLearningTypeFilter={showLearningTypeFilter}
+			categoryFilter={resolvedCategoryFilter}
 		/>
 	)
 }

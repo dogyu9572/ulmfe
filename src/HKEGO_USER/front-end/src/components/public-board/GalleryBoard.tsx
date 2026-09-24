@@ -1,9 +1,11 @@
 'use client'
+import { withBasePath } from '@/lib/basePath'
 
 import BoardPagination from './BoardPagination'
 import BoardSearchForm from './BoardSearchForm'
 import { usePublicBoardList, type SearchType } from './usePublicBoardList'
 import type { PublicBoardPost, PublicPageResult } from '@/lib/publicApi'
+import { resolvePublicMediaUrl } from '@/lib/publicApi'
 
 type Props = {
 	initialResult?: PublicPageResult<PublicBoardPost>
@@ -43,7 +45,7 @@ function imageUrls(post: PublicBoardPost) {
 	return Array.from(new Set(
 		post.attachments
 			.filter((file) => file.contentType?.startsWith('image/'))
-			.map((file) => file.fileUrl)
+			.map((file) => resolvePublicMediaUrl(file.fileUrl))
 			.filter(Boolean)
 	))
 }
@@ -59,7 +61,7 @@ export default function GalleryBoard({
 	const selectedPost = initialSelectedPost ?? null
 	const { result } = board
 	const listHref = board.buildHref(result.page)
-	const emptyMessage = board.error || (!board.loading && result.list.length === 0 ? '등록된 갤러리가 없습니다.' : '')
+	const emptyMessage = board.error || (!board.loading && result.list.length === 0 ? (board.filtered ? '검색 결과가 없습니다.' : '등록된 갤러리가 없습니다.') : '')
 
 	const popupImages = selectedPost ? imageUrls(selectedPost) : []
 	const popupIsVideo = selectedPost ? isVideoPost(selectedPost) : false
@@ -87,7 +89,8 @@ export default function GalleryBoard({
 						const typeLabel = (post.categoryName || post.categoryCode || '').trim() || (video ? '동영상' : '사진')
 						const popupQuery = new URLSearchParams(listHref.split('?')[1] || '')
 						popupQuery.set('post_id', post.postId)
-						const popupHref = `${listHref.split('?')[0]}?${popupQuery.toString()}`
+						const listPath = listHref.split('?')[0]
+						const popupHref = withBasePath(`${listPath}?${popupQuery.toString()}`)
 						return (
 							<li key={post.postId}>
 								<a
@@ -96,7 +99,7 @@ export default function GalleryBoard({
 								>
 									<span className="imgarea">
 										<span className={`type ${video ? 'video' : 'photo'}`}><i aria-hidden="true" />{typeLabel}</span>
-										<span className="imgfit"><img src={post.thumbnailUrl || '/pub/images/no_image.svg'} alt="" /></span>
+										<span className="imgfit"><img src={resolvePublicMediaUrl(post.thumbnailUrl) || withBasePath('/pub/images/no_image.svg')} alt="" /></span>
 									</span>
 									<span className="txt">
 										<h3 className="tit">{post.title}</h3>
@@ -115,14 +118,14 @@ export default function GalleryBoard({
 
 			{selectedPost ? (
 				<div className="popup pop_gallery open" id="pop_gallery" role="dialog" aria-modal="true" aria-labelledby="gallery-popup-title">
-					<a href={listHref} className="dm" aria-label="팝업 닫기" />
+					<a href={withBasePath(listHref)} className="dm" aria-label="팝업 닫기" />
 					<div className="inbox">
-						<a href={listHref} className="btn_close">팝업 닫기</a>
+						<a href={withBasePath(listHref)} className="btn_close">팝업 닫기</a>
 						<h2 className="tit" id="gallery-popup-title">{selectedPost.title}</h2>
 						<div className="con">
 							<div className="gallery_for swiper-container">
 								{popupIsVideo && selectedPost.videoUrl ? (
-									<video className="media_frame" src={selectedPost.videoUrl} controls />
+									<video className="media_frame" src={resolvePublicMediaUrl(selectedPost.videoUrl)} controls />
 								) : popupIsVideo && embedUrl ? (
 									<iframe className="media_frame" src={embedUrl} title={selectedPost.title} allowFullScreen />
 								) : popupImages.length > 0 ? (
@@ -150,7 +153,7 @@ export default function GalleryBoard({
 								</div>
 							) : null}
 							<div className="btns_btm">
-								<a href={listHref} className="btn btn_small btn_wbb btn_clo">확인</a>
+								<a href={withBasePath(listHref)} className="btn btn_small btn_wbb btn_clo">확인</a>
 							</div>
 						</div>
 					</div>

@@ -1,3 +1,4 @@
+import { pubUrl } from '../../config'
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { fetchTabletSession, TabletReservation } from '../../api/tabletApi'
@@ -39,7 +40,7 @@ export const TeacherHeader = () => {
 	return (
 		<header className="header">
 			<h2 className="sound_only">메인메뉴 영역</h2>
-			<Link to="/" className="logo"><img src="/pub/images/logo.svg" alt="logo" /></Link>
+			<Link to="/" className="logo"><img src={pubUrl("/pub/images/logo.svg")} alt="logo" /></Link>
 			<div className="head_info">
 				<h3 className="tit">현재 프로그램</h3>
 				<div className="program">

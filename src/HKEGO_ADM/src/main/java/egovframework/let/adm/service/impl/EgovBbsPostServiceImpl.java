@@ -1,18 +1,23 @@
 package egovframework.let.adm.service.impl;
 
 import jakarta.annotation.Resource;
+import egovframework.com.cmm.util.HtmlSanitizer;
 import egovframework.let.adm.service.vo.BbsPostVO;
 import egovframework.let.adm.service.impl.BbsPostDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 
 import egovframework.let.adm.service.EgovBbsPostService;
+import egovframework.let.adm.service.EgovFileInfoService;
+import egovframework.let.adm.service.vo.FileInfoVO;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Random;
 
@@ -22,6 +27,9 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 
 	@Resource(name = "bbsPostDAO")
 	private BbsPostDAO bbsPostDAO;
+
+	@Resource(name = "egovFileInfoService")
+	private EgovFileInfoService fileInfoService;
 
 	public List<BbsPostVO> getBbsPostListForAdmin(String bbsId, int page, int size) {
 		int offset = (page - 1) * size;
@@ -62,13 +70,15 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 	public BbsPostVO getBbsPostById(String bbsId, String pstSn) {
 		BbsPostVO result = bbsPostDAO.selectBbsPostById(bbsId, pstSn);
 		if (result == null) {
-			throw new RuntimeException("게시글을 찾을 수 없습니다.");
+			throw new IllegalArgumentException("게시글을 찾을 수 없습니다.");
 		}
 		return result;
 	}
 
 	@Transactional
 	public BbsPostVO createBbsPost(BbsPostVO bbsPost) {
+		validate(bbsPost);
+		bbsPost.setInqCnt(0);
 		String pstSn = generatePostId(bbsPost.getBbsId());
 		bbsPost.setPstSn(pstSn);
 		setDefaultValues(bbsPost);
@@ -86,9 +96,14 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 
 	@Transactional
 	public BbsPostVO updateBbsPost(BbsPostVO bbsPost) {
-		if (bbsPostDAO.selectBbsPostById(bbsPost.getBbsId(), bbsPost.getPstSn()) == null) {
-			throw new RuntimeException("수정할 게시글을 찾을 수 없습니다.");
+		validate(bbsPost);
+		BbsPostVO existing = bbsPostDAO.selectBbsPostById(bbsPost.getBbsId(), bbsPost.getPstSn());
+		if (existing == null) {
+			throw new IllegalArgumentException("수정할 게시글을 찾을 수 없습니다.");
 		}
+		// 작성자는 등록 시점 값을 유지한다. 수정하는 관리자가 원 작성자를 덮어쓰지 않게 한다.
+		bbsPost.setWrtrId(existing.getWrtrId());
+		bbsPost.setWrtrNm(existing.getWrtrNm());
 		setDefaultValues(bbsPost);
 		bbsPost.setMdfcnDt(LocalDateTime.now());
 		int rows = bbsPostDAO.updateBbsPost(bbsPost);
@@ -101,7 +116,7 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 	@Transactional
 	public BbsPostVO updateBbsPostAnswer(BbsPostVO bbsPost) {
 		if (bbsPostDAO.selectBbsPostById(bbsPost.getBbsId(), bbsPost.getPstSn()) == null) {
-			throw new RuntimeException("답변할 게시글을 찾을 수 없습니다.");
+			throw new IllegalArgumentException("답변할 게시글을 찾을 수 없습니다.");
 		}
 		String answerStatus = bbsPost.getAnsSttsCd();
 		if (answerStatus == null || answerStatus.isBlank()) {
@@ -115,7 +130,9 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 			bbsPost.setAnswrId(null);
 			bbsPost.setAnsYmd(null);
 		} else if (bbsPost.getAnsCn() == null || bbsPost.getAnsCn().isBlank()) {
-			throw new RuntimeException("답변내용을 입력하세요.");
+			throw new IllegalArgumentException("답변내용을 입력하세요.");
+		} else {
+			bbsPost.setAnsCn(HtmlSanitizer.clean(bbsPost.getAnsCn()));
 		}
 		bbsPost.setMdfcnDt(LocalDateTime.now());
 		int rows = bbsPostDAO.updateBbsPostAnswer(bbsPost);
@@ -127,14 +144,20 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 
 	@Transactional
 	public void deleteBbsPost(String bbsId, String pstSn) {
-		if (bbsPostDAO.selectBbsPostById(bbsId, pstSn) == null) {
-			throw new RuntimeException("삭제할 게시글을 찾을 수 없습니다.");
+		BbsPostVO target = bbsPostDAO.selectBbsPostById(bbsId, pstSn);
+		if (target == null) {
+			throw new IllegalArgumentException("삭제할 게시글을 찾을 수 없습니다.");
 		}
 		int rows = bbsPostDAO.deleteBbsPost(bbsId, pstSn);
 		if (rows <= 0) {
 			throw new RuntimeException("게시글 삭제에 실패했습니다.");
 		}
+		// 첨부만 지우면 썸네일·영상 파일이 고아로 남아 URL 로 계속 접근된다.
+		fileInfoService.deleteFileGroup(target.getAtchFileMngNo());
+		fileInfoService.deleteFileGroup(target.getThmbFileId());
+		fileInfoService.deleteFileGroup(target.getVodFileId());
 	}
+
 
 	@Transactional
 	public void incrementViewCount(String bbsId, String pstSn) {
@@ -152,6 +175,50 @@ public class EgovBbsPostServiceImpl extends EgovAbstractServiceImpl implements E
 			}
 		} while (bbsPostDAO.checkPostIdExists(bbsId, sb.toString()) > 0);
 		return sb.toString();
+	}
+
+	/** 화면 검증을 우회한 API 직접 호출도 같은 규칙으로 막는다. */
+	private void validate(BbsPostVO bbsPost) {
+		String title = bbsPost.getPstTtl();
+		if (title == null || title.isBlank()) {
+			throw new IllegalArgumentException("제목을 입력하세요.");
+		}
+		bbsPost.setPstTtl(title.trim());
+		bbsPost.setPstCn(HtmlSanitizer.clean(bbsPost.getPstCn()));
+		maxLength(bbsPost.getPstTtl(), 500, "제목");
+		maxLength(bbsPost.getWrtrNm(), 100, "작성자명");
+		maxLength(bbsPost.getWrtrId(), 100, "작성자ID");
+		maxLength(bbsPost.getCtgrCd(), 100, "카테고리");
+		maxLength(bbsPost.getLnkgUrlAddr(), 1000, "링크");
+		yesOrNo(bbsPost.getNtcYn(), "공지사항 여부");
+		yesOrNo(bbsPost.getUpendFixYn(), "상단고정 여부");
+		yesOrNo(bbsPost.getLckYn(), "비밀글 여부");
+		yesOrNo(bbsPost.getUseYn(), "사용여부");
+		yyyyMmDd(bbsPost.getPstgYmd(), "등록일자");
+		yyyyMmDd(bbsPost.getAnsYmd(), "답변일자");
+	}
+
+	private void maxLength(String value, int limit, String label) {
+		if (value != null && value.length() > limit) {
+			throw new IllegalArgumentException(label + "은(는) " + limit + "자 이내로 입력하세요.");
+		}
+	}
+
+	private void yesOrNo(String value, String label) {
+		if (value != null && !value.isBlank() && !"Y".equals(value) && !"N".equals(value)) {
+			throw new IllegalArgumentException(label + "은(는) Y 또는 N 이어야 합니다.");
+		}
+	}
+
+	private void yyyyMmDd(String value, String label) {
+		if (value == null || value.isBlank()) {
+			return;
+		}
+		try {
+			LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException(label + "은(는) yyyy-MM-dd 형식이어야 합니다.");
+		}
 	}
 
 	private void setDefaultValues(BbsPostVO bbsPost) {

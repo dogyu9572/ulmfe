@@ -9,6 +9,7 @@ import java.util.Map;
 public interface EgovLearningSupportMaterialService {
 	Map<String, Object> getLearningSupportMaterialListPage(
 		String lrnTypeCd,
+		String zoneCd,
 		String dataTypeCd,
 		String startRegYmd,
 		String endRegYmd,

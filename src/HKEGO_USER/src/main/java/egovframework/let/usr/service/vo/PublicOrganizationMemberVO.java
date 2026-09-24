@@ -15,6 +15,7 @@ public class PublicOrganizationMemberVO {
 	private String firstCategoryName;
 	private String secondCategoryCode;
 	private String secondCategoryName;
+	private String position;
 	private String task;
 	private String telephone;
 	private Integer sortSequence;

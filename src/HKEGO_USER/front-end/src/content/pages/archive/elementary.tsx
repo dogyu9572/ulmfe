@@ -1,16 +1,14 @@
 import NewsBoardListPage from '@/components/public-board/NewsBoardListPage'
-import type { PageContentProps } from '@/content/pageRegistry'
 
-export default function ArchiveElementaryContent({ searchParams }: PageContentProps) {
+export default function ArchiveElementaryContent() {
 	return (
 		<NewsBoardListPage
 			boardId="LRNSUP"
-			title="사건탐구 프로그램"
+			title="ESD 체험터"
 			detailPath="/archive/elementary_view"
 			variant="notice"
 			programType="EXPLORE"
-			showLearningTypeFilter
-			searchParams={searchParams}
+			showEsdZoneFilter
 		/>
 	)
 }

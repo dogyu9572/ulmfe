@@ -383,11 +383,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 
 	useEffect(() => {
 		if (sessionRemaining !== null && sessionRemaining <= 0) {
-			navigate('/admin/login', { replace: true })
+			// 왜 로그인 화면으로 왔는지 알려준다. 이유가 없으면 작성 중이던 내용이 사라진 채
+			// 로그아웃된 것으로만 보여 원인을 알 수 없다. main.tsx 의 401 처리도 같은 파라미터를 쓴다.
+			navigate('/admin/login?expired=1', { replace: true })
 		}
 	}, [sessionRemaining, navigate])
 
 	const sessionTimerActive = sessionRemaining !== null && sessionRemaining > 0
+	/** 만료 임박. 작성 중인 내용을 저장하거나 연장할 시간을 주기 위해 눈에 띄게 알린다. */
+	const sessionExpiringSoon = sessionRemaining !== null && sessionRemaining > 0 && sessionRemaining <= 120
 
 	useEffect(() => {
 		if (!sessionTimerActive) return
@@ -564,7 +568,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 			<div className="dashboard-container">
 				<aside className="sidebar" id="admin-sidebar">
 					<div className="sidebar-header">
-						<h3>HKSTS ADMIN</h3>
+						<h3>ULMFE ADMIN</h3>
 					</div>
 					<ul className="sidebar-menu">
 						{menuError && (
@@ -669,7 +673,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 									{adminName ? `${adminName}님` : '관리자님'}
 									{adminRoleName ? ` (${adminRoleName})` : adminRole ? ` (${adminRole})` : ''}
 								</span>
-								<span className="session-timer" id="sessionTimer">
+								<span
+									className="session-timer"
+									id="sessionTimer"
+									style={sessionExpiringSoon ? { color: '#d32f2f', fontWeight: 700 } : undefined}
+									title={sessionExpiringSoon ? '곧 로그아웃됩니다. 작성 중인 내용을 저장하거나 연장을 누르세요.' : undefined}
+								>
 									<i className="fas fa-clock" aria-hidden="true" />
 									<span className="session-timer-text">
 										<span id="sessionTimeLeft">
@@ -677,6 +686,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 										</span>
 									</span>
 								</span>
+								{sessionExpiringSoon && (
+									<span role="alert" style={{ color: '#d32f2f', fontWeight: 700 }}>
+										곧 로그아웃됩니다. 작성 중인 내용을 저장하세요.
+									</span>
+								)}
 								<button
 									type="button"
 									className="session-extend-btn"

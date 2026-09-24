@@ -14,6 +14,7 @@ public interface EgovPublicBoardService {
 		String searchType,
 		String keyword,
 		String category,
+		String zone,
 		String programType
 	);
 

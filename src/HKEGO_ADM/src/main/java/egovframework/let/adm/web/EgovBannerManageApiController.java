@@ -67,8 +67,16 @@ public class EgovBannerManageApiController {
 	}
 
 	@PutMapping("/{bnrIdx}/seq")
-	public ApiResponse<Void> updateBannerSeq(@PathVariable Integer bnrIdx, @RequestParam Integer bnrSeq) {
-		bannerService.updateBannerSeq(bnrIdx, bnrSeq);
-		return ApiResponse.success("배너 순서 변경 성공", null);
+	public ApiResponse<Void> updateBannerSeq(
+			@PathVariable Integer bnrIdx,
+			// 화면과 다른 이름(bnrSeq)을 요구해 순서 변경이 항상 400 이었다. 다른 관리 화면과 같은 sortSeq 로 맞춘다.
+			@RequestParam(name = "sortSeq") Integer sortSeq) {
+		try {
+			bannerService.updateBannerSeq(bnrIdx, sortSeq);
+			return ApiResponse.success("배너 순서 변경 성공", null);
+		} catch (Exception e) {
+			log.error("배너 순서 변경 오류: bnrIdx={}", bnrIdx, e);
+			return ApiResponse.error(ApiResponse.messageOf(e, "배너 순서 변경 중 오류가 발생했습니다."));
+		}
 	}
 }

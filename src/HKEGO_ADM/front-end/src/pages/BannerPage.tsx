@@ -6,6 +6,7 @@ import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL, resolveBackendUrl } from '../config'
 
 type ApiResponse<T> = {
@@ -165,10 +166,25 @@ export const BannerPage: React.FC = () => {
 		return `?${p.join('&')}`
 	}, [useYnFilter, startPublishDate, endPublishDate, startRegDate, endRegDate, searchType, searchKeyword, pageSize])
 
-	const fetchList = useCallback(async (targetPage = page) => {
+	const fetchList = useCallback(async (targetPage = page, ignoreFilters = false) => {
 		setError(null)
+		// 초기화 조회는 조건을 비우고 보내므로, 화면에 남아 있는 잘못된 날짜로 막으면 안 된다.
+		const startPublishDateWarning = ignoreFilters ? null : checkDateRange(startPublishDate, endPublishDate, '게시기간')
+		if (startPublishDateWarning) {
+			setError(startPublishDateWarning)
+			return
+		}
+		const startRegDateWarning = ignoreFilters ? null : checkDateRange(startRegDate, endRegDate, '등록일')
+		if (startRegDateWarning) {
+			setError(startRegDateWarning)
+			return
+		}
 		try {
-			const qs = buildSearchParams(targetPage)
+			// buildSearchParams 는 '?' 를 붙여 돌려준다. 초기화 경로도 같은 형태로 맞춰야
+			// '/banner/listpage=1' 같은 주소가 만들어지지 않는다.
+			const qs = ignoreFilters
+				? `?${new URLSearchParams({ page: String(targetPage), size: String(pageSize) }).toString()}`
+				: buildSearchParams(targetPage)
 			const hasSearch = useYnFilter || startPublishDate || endPublishDate || startRegDate || endRegDate || searchKeyword.trim()
 			const url = hasSearch ? `${BACKEND}/api/admin/banner/search${qs}` : `${BACKEND}/api/admin/banner/list${qs}`
 			const res = await fetch(url, { credentials: 'include' })
@@ -213,11 +229,14 @@ export const BannerPage: React.FC = () => {
 		} catch {
 			setError('배너 목록 조회 중 오류가 발생했습니다.')
 		}
-	}, [buildSearchParams, page, useYnFilter, startPublishDate, endPublishDate, startRegDate, endRegDate, searchKeyword])
+	}, [buildSearchParams, page, pageSize, useYnFilter, startPublishDate, endPublishDate, startRegDate, endRegDate, searchKeyword])
 
 	useEffect(() => {
+		// fetchList 가 검색 조건을 의존성으로 갖는 탓에, 여기서 함께 추적하면 타이핑 한 글자마다
+		// 목록이 다시 불려 검색 버튼이 무의미해진다. 조건 반영은 검색·초기화 버튼이 담당한다.
 		void fetchList(page)
-	}, [fetchList, page])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [page])
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
@@ -404,8 +423,12 @@ export const BannerPage: React.FC = () => {
 	}
 
 	const handleSearch = () => {
-		setPage(1)
-		void fetchList(1)
+		// setPage(1) 은 조회 effect 를 트리거한다. 이미 1페이지면 effect 가 돌지 않으므로 직접 조회한다.
+		if (page === 1) {
+			void fetchList(1)
+		} else {
+			setPage(1)
+		}
 	}
 	const clearSearch = () => {
 		setUseYnFilter('')
@@ -415,7 +438,12 @@ export const BannerPage: React.FC = () => {
 		setEndRegDate('')
 		setSearchType('title')
 		setSearchKeyword('')
-		setPage(1)
+		// 조회 effect 는 page 만 추적하므로, 이미 1페이지면 직접 조회해야 목록이 전체로 돌아온다.
+		if (page === 1) {
+			void fetchList(1, true)
+		} else {
+			setPage(1)
+		}
 	}
 
 	const handleSave = async () => {
@@ -771,7 +799,7 @@ export const BannerPage: React.FC = () => {
 							<tr>
 								<th>번호</th>
 								<td><input type="text" value={form.bnrSn} readOnly /></td>
-								<th>제목</th>
+								<th>제목 <span className="required">*</span></th>
 								<td>
 									<input
 										type="text"
@@ -783,7 +811,7 @@ export const BannerPage: React.FC = () => {
 						)}
 						{popupMode === 'new' && (
 							<tr>
-								<th>제목</th>
+								<th>제목 <span className="required">*</span></th>
 								<td colSpan={3}>
 									<input
 										type="text"

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { studentFlowExploreVideoRows } from '../../state/tabletStudentFlowSession'
+import { markIntroVideoWatched, studentFlowExploreVideoRows } from '../../state/tabletStudentFlowSession'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
 import { youtubeEmbedUrl } from '../../utils/youtube'
 
@@ -23,11 +23,20 @@ export const QuestVideoPage = () => {
 	const [duration, setDuration] = useState(0)
 	const [volume, setVolume] = useState(1)
 
-	const video = flowSession ? studentFlowExploreVideoRows(flowSession)[0] : undefined
+	// 목록에서 고른 영상 번호. 없으면 첫 영상을 연다.
+	const videoIndex = Math.max(0, Number(new URLSearchParams(window.location.search).get('v')) || 0)
+	const video = flowSession ? studentFlowExploreVideoRows(flowSession)[videoIndex] : undefined
 	const videoSrc = video?.videoUrl || ''
+	const introPath = flowSession?.prgrmTypeCd === 'MISSION' ? '/student/mission02' : '/student/quest00'
 	const nextPath = flowSession?.prgrmTypeCd === 'MISSION' ? '/student/mission02' : '/student/quest01'
 	const embedUrl = youtubeEmbedUrl(videoSrc)
 	const storageKey = flowSession ? `video_progress_${flowSession.rsvtSn}_${videoSrc}` : ''
+
+	// 재생 화면을 열었으면 그 영상은 시청한 것으로 본다. 목록의 시청률 표시가 이 값을 읽는다.
+	const leaveTo = (path: string) => {
+		if (flowSession && videoSrc) markIntroVideoWatched(flowSession.rsvtSn, videoSrc)
+		navigate(path)
+	}
 
 	useEffect(() => {
 		if (!storageKey) return
@@ -64,7 +73,7 @@ export const QuestVideoPage = () => {
 			<main className="container flex_center" id="mainContent">
 				<h1 className="sound_only">도입 영상 시청하기</h1>
 				<section className="video_page custom_video_wrap flex_center">
-					<div className="wbox a_card_box"><h3 className="tit">관리자에 등록된 영상이 없습니다.</h3><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate(nextPath)}>다음</button></div></div>
+					<div className="wbox a_card_box"><h3 className="tit">등록된 영상이 없습니다.</h3><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate(nextPath)}>다음</button></div></div>
 				</section>
 			</main>
 		)
@@ -80,7 +89,7 @@ export const QuestVideoPage = () => {
 					<div className="video_controls">
 						<div className="control_row">
 							<span className="time_label">{video?.contentName || '도입 영상'}</span>
-							<button type="button" id="exitBtn" className="btn_exit_fullscreen" aria-label="다음 화면으로" onClick={() => navigate(nextPath)}></button>
+							<button type="button" id="exitBtn" className="btn_exit_fullscreen" aria-label="영상 목록으로" onClick={() => leaveTo(introPath)}></button>
 						</div>
 					</div>
 				</section>
@@ -96,7 +105,7 @@ export const QuestVideoPage = () => {
 					<div className="wbox a_card_box">
 						<h3 className="tit">{video?.contentName || '도입 영상'}</h3>
 						<p>외부 영상 링크가 등록되어 있습니다.</p>
-						<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => window.open(videoSrc, '_blank', 'noopener,noreferrer')}>영상 열기</button><button type="button" className="btn btn_wbb" onClick={() => navigate(nextPath)}>다음</button></div>
+						<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => window.open(videoSrc, '_blank', 'noopener,noreferrer')}>영상 열기</button><button type="button" className="btn btn_wbb" onClick={() => leaveTo(introPath)}>다음</button></div>
 					</div>
 				</section>
 			</main>
@@ -148,10 +157,10 @@ export const QuestVideoPage = () => {
 								setMuted(currentVideo.muted)
 							}} />
 						</div>
-						<button type="button" id="exitBtn" className="btn_exit_fullscreen" aria-label="다음 화면으로" onClick={() => {
+						<button type="button" id="exitBtn" className="btn_exit_fullscreen" aria-label="영상 목록으로" onClick={() => {
 							const currentVideo = videoRef.current
 							if (currentVideo) sessionStorage.setItem(storageKey, String(currentVideo.currentTime))
-							navigate(nextPath)
+							leaveTo(introPath)
 						}}></button>
 					</div>
 				</div>

@@ -118,6 +118,26 @@ export const TeacherMonitoringPage = () => {
 	const totalAverageProgress = averageProgress(students)
 	const completedStudents = students.filter((student) => (Number(student.prgrsRt) || 0) >= 100).length
 
+	/**
+	 * 완료된 단계들의 실제 소요시간 평균(분).
+	 * 시작 시각을 남기기 전에 쌓인 기록은 시작·완료가 같아 0분이 되므로 계산에서 뺀다.
+	 */
+	const averageStepMinutes = useMemo(() => {
+		const durations = logs.reduce<number[]>((acc, log) => {
+			if (!log.bgngDt || !log.cmptnDt) return acc
+			const begin = new Date(log.bgngDt.replace(' ', 'T')).getTime()
+			const end = new Date(log.cmptnDt.replace(' ', 'T')).getTime()
+			if (!Number.isFinite(begin) || !Number.isFinite(end)) return acc
+			const seconds = Math.round((end - begin) / 1000)
+			if (seconds <= 0) return acc
+			acc.push(seconds)
+			return acc
+		}, [])
+		if (durations.length === 0) return null
+		const averageSeconds = durations.reduce((sum, value) => sum + value, 0) / durations.length
+		return Math.round((averageSeconds / 60) * 10) / 10
+	}, [logs])
+
 	const teamSummaries = useMemo<TeamSummary[]>(() => teamNames.map((teamName, index) => {
 		const teamStudents = students.filter((student) => normalizeTeamName(student.teamNm) === teamName)
 		return {
@@ -159,7 +179,7 @@ export const TeacherMonitoringPage = () => {
 	return (
 		<TeacherShell title="모니터링" info="학생 참여 현황 및 팀 확인">
 			<div className="page_scroll">
-				<div className="monitoring_top"><h2 className="sound_only">간소화된 정보</h2><ul><li className="i1"><h3>전체 학생</h3><p><strong>{totalStudents}</strong>명</p></li><li className="i2"><h3>활동 진척률(전체평균)</h3><p><strong>{totalAverageProgress}</strong>%</p></li><li className="i3"><h3>STEP별 소요시간(전체평균)</h3><p><strong>-</strong>분</p></li><li className="i4"><h3>진척률 100%</h3><p><strong>{completedStudents}</strong>명</p></li></ul></div>
+				<div className="monitoring_top"><h2 className="sound_only">간소화된 정보</h2><ul><li className="i1"><h3>전체 학생</h3><p><strong>{totalStudents}</strong>명</p></li><li className="i2"><h3>활동 진척률(전체평균)</h3><p><strong>{totalAverageProgress}</strong>%</p></li><li className="i3"><h3>STEP별 소요시간(전체평균)</h3><p><strong>{averageStepMinutes ?? '-'}</strong>분</p></li><li className="i4"><h3>진척률 100%</h3><p><strong>{completedStudents}</strong>명</p></li></ul></div>
 				<h2 className="stit">팀 참여 현황</h2>
 				<ul className="participation_teams">
 					{teamSummaries.map((team) => <li className={team.className} key={team.name}><div className="tit_area"><h3>{team.name}</h3><p><span>{team.students.length}명</span><span>{team.place}</span></p><div className="pct"><strong>{team.averageProgress}</strong>%</div></div><ul className="chart">{team.bars.map((bar, index) => <li className={`step${index + 1}`} key={index}><div className="line"><div className="bar" style={{ width: `${bar}%` }}></div></div><p><span>{bar}</span>%</p></li>)}</ul></li>)}

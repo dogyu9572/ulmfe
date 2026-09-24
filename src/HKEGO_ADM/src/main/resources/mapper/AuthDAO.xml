@@ -35,7 +35,7 @@
 	<select id="selectAuthGroupList" resultMap="AuthGroupMap">
 		SELECT AUTHRT_CD, AUTHRT_NM, AUTHRT_CN, USE_YN, REG_DT, MDFCN_DT
 		<include refid="authGroupListWhere"/>
-		ORDER BY REG_DT DESC
+		ORDER BY REG_DT DESC, AUTHRT_CD DESC
 		LIMIT #{offset}, #{limit}
 	</select>
 

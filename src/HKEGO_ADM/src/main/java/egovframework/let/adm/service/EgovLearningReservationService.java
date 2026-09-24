@@ -40,4 +40,10 @@ public interface EgovLearningReservationService {
 	LearningReservationVO importStudents(Integer rsvtSn, MultipartFile file) throws IOException;
 
 	void deleteLearningReservation(Integer rsvtSn);
+
+	List<String> getOpenedBonusClasses(Integer rsvtSn);
+
+	void openBonusStage(Integer rsvtSn, String clasNm);
+
+	void closeBonusStage(Integer rsvtSn, String clasNm);
 }

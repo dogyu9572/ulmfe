@@ -21,13 +21,14 @@ public class EgovBbsMasterManageApiController {
 	@GetMapping
 	public ApiResponse<Map<String, Object>> getBbsMasterList(
 			@RequestParam(defaultValue = "1") int page,
-			@RequestParam(defaultValue = "10") int size) {
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(required = false) String useYn) {
 		try {
-			Map<String, Object> data = bbsMasterService.getBbsMasterListPage(page, size);
+			Map<String, Object> data = bbsMasterService.getBbsMasterListPage(page, size, useYn);
 			return ApiResponse.success("게시판 마스터 목록 조회 성공", data);
 		} catch (Exception e) {
 			log.error("게시판 마스터 목록 조회 오류", e);
-			return ApiResponse.error("게시판 마스터 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시판 마스터 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -40,7 +41,7 @@ public class EgovBbsMasterManageApiController {
 			return ApiResponse.success("사용 중인 게시판 마스터 목록 조회 성공", data);
 		} catch (Exception e) {
 			log.error("사용 중인 게시판 마스터 목록 조회 오류", e);
-			return ApiResponse.error("사용 중인 게시판 마스터 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "사용 중인 게시판 마스터 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -51,7 +52,7 @@ public class EgovBbsMasterManageApiController {
 			return ApiResponse.success("게시판 마스터 상세 조회 성공", bbsMaster);
 		} catch (Exception e) {
 			log.error("게시판 마스터 상세 조회 오류: {}", bbsId, e);
-			return ApiResponse.error("게시판 마스터 상세 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시판 마스터 상세 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -63,7 +64,7 @@ public class EgovBbsMasterManageApiController {
 			return ApiResponse.success("게시판 마스터 등록 성공", created);
 		} catch (Exception e) {
 			log.error("게시판 마스터 등록 오류", e);
-			return ApiResponse.error("게시판 마스터 등록 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시판 마스터 등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -79,7 +80,7 @@ public class EgovBbsMasterManageApiController {
 			return ApiResponse.success("게시판 마스터 수정 성공", updated);
 		} catch (Exception e) {
 			log.error("게시판 마스터 수정 오류: {}", bbsId, e);
-			return ApiResponse.error("게시판 마스터 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시판 마스터 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -90,7 +91,7 @@ public class EgovBbsMasterManageApiController {
 			return ApiResponse.success("게시판 마스터 삭제 성공", null);
 		} catch (Exception e) {
 			log.error("게시판 마스터 삭제 오류: {}", bbsId, e);
-			return ApiResponse.error("게시판 마스터 삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시판 마스터 삭제 중 오류가 발생했습니다."));
 		}
 	}
 }

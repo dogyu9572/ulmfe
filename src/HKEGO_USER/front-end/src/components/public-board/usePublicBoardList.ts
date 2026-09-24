@@ -36,7 +36,8 @@ export function usePublicBoardList(
 	initialKeyword = '',
 	initialCategory = '',
 	programType?: 'EXPLORE' | 'MISSION',
-	fixedSearchType?: SearchType
+	fixedSearchType?: SearchType,
+	filterKey: 'category' | 'zone' = 'category'
 ) {
 	const router = useRouter()
 	const pathname = usePathname()
@@ -62,7 +63,7 @@ export function usePublicBoardList(
 			const nextSearchType = fixedSearchType
 				?? searchTypeValue(query.get('search_condition') ?? query.get('searchType'))
 			const nextKeyword = (query.get('search_keyword') ?? query.get('keyword'))?.trim() ?? ''
-			const nextCategory = query.get('category')?.trim() ?? ''
+			const nextCategory = query.get(filterKey)?.trim() ?? ''
 			setPage(nextPage)
 			setSearchType(nextSearchType)
 			setKeyword(nextKeyword)
@@ -75,7 +76,7 @@ export function usePublicBoardList(
 		syncQuery()
 		window.addEventListener('popstate', syncQuery)
 		return () => window.removeEventListener('popstate', syncQuery)
-	}, [fixedSearchType, pathname])
+	}, [filterKey, fixedSearchType, pathname])
 
 	useEffect(() => {
 		if (!queryReady) return
@@ -84,7 +85,14 @@ export function usePublicBoardList(
 		const load = () => {
 			setLoading(true)
 			setError('')
-			void getPublicBoardPosts(boardId, { page, size: pageSize, searchType, keyword, category, programType })
+			void getPublicBoardPosts(boardId, {
+				page,
+				size: pageSize,
+				searchType,
+				keyword,
+				...(filterKey === 'zone' ? { zone: category as 'FUTURE' | 'EARTH' | 'SOCIETY' } : { category }),
+				programType
+			})
 				.then((data) => {
 					if (cancelled) return
 					setResult(data)
@@ -103,17 +111,18 @@ export function usePublicBoardList(
 			cancelled = true
 			if (retryTimer) clearTimeout(retryTimer)
 		}
-	}, [boardId, page, pageSize, programType, queryReady, searchType, keyword, category])
+	}, [boardId, category, filterKey, keyword, page, pageSize, programType, queryReady, searchType])
 
 	const buildHref = useCallback((targetPage: number) => {
 		const query = new URLSearchParams()
 		if (searchType !== 'all') query.set('search_condition', searchType)
 		if (keyword) query.set('search_keyword', keyword)
-		if (category) query.set('category', category)
+		if (category) query.set(filterKey, category)
 		if (targetPage > 1) query.set('page', String(targetPage))
 		const value = query.toString()
+		// usePathname() 은 basePath(/usfec) 제외. BoardPagination(<a>) 에서 withBasePath 처리.
 		return value ? `${pathname}?${value}` : pathname
-	}, [category, keyword, pathname, searchType])
+	}, [category, filterKey, keyword, pathname, searchType])
 
 	const submitSearch = useCallback((event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
@@ -122,31 +131,33 @@ export function usePublicBoardList(
 		const query = new URLSearchParams()
 		if (nextSearchType !== 'all') query.set('search_condition', nextSearchType)
 		if (nextKeyword) query.set('search_keyword', nextKeyword)
-		if (draftCategory) query.set('category', draftCategory)
+		if (draftCategory) query.set(filterKey, draftCategory)
 		setPage(1)
 		setSearchType(nextSearchType)
 		setDraftSearchType(nextSearchType)
 		setKeyword(nextKeyword)
 		const value = query.toString()
 		router.push(value ? `${pathname}?${value}` : pathname)
-	}, [draftCategory, draftKeyword, draftSearchType, fixedSearchType, pathname, router])
+	}, [draftCategory, draftKeyword, draftSearchType, filterKey, fixedSearchType, pathname, router])
 
 	const selectCategory = useCallback((nextCategory: string) => {
 		const query = new URLSearchParams()
 		if (searchType !== 'all') query.set('search_condition', searchType)
 		if (keyword) query.set('search_keyword', keyword)
-		if (nextCategory) query.set('category', nextCategory)
+		if (nextCategory) query.set(filterKey, nextCategory)
 		setPage(1)
 		setCategory(nextCategory)
 		setDraftCategory(nextCategory)
 		const value = query.toString()
 		router.push(value ? `${pathname}?${value}` : pathname)
-	}, [keyword, pathname, router, searchType])
+	}, [filterKey, keyword, pathname, router, searchType])
 
 	return useMemo(() => ({
 		result,
 		loading,
 		error,
+		// 검색·분류가 걸린 상태의 0건은 "등록된 게시물 없음"이 아니라 "검색 결과 없음"이다
+		filtered: Boolean(keyword || category),
 		draftSearchType,
 		draftKeyword,
 		draftCategory,
@@ -155,5 +166,5 @@ export function usePublicBoardList(
 		selectCategory,
 		submitSearch,
 		buildHref
-	}), [result, loading, error, draftSearchType, draftKeyword, draftCategory, selectCategory, submitSearch, buildHref])
+	}), [result, loading, error, keyword, category, draftSearchType, draftKeyword, draftCategory, selectCategory, submitSearch, buildHref])
 }

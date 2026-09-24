@@ -146,6 +146,37 @@ public class EgovLearningReservationServiceImpl extends EgovAbstractServiceImpl 
 		learningReservationDAO.delete(rsvtSn);
 	}
 
+	@Override
+	public List<String> getOpenedBonusClasses(Integer rsvtSn) {
+		return learningReservationDAO.selectOpenedBonusClasses(rsvtSn);
+	}
+
+	@Override
+	@Transactional
+	public void openBonusStage(Integer rsvtSn, String clasNm) {
+		learningReservationDAO.insertBonusOpen(rsvtSn, requireBonusClass(rsvtSn, clasNm));
+	}
+
+	@Override
+	@Transactional
+	public void closeBonusStage(Integer rsvtSn, String clasNm) {
+		learningReservationDAO.deleteBonusOpen(rsvtSn, requireBonusClass(rsvtSn, clasNm));
+	}
+
+	private String requireBonusClass(Integer rsvtSn, String clasNm) {
+		if (learningReservationDAO.findById(rsvtSn) == null) {
+			throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
+		}
+		String normalized = normalizeRequired(clasNm, "반");
+		// 예약에 없는 반을 열면 학생 조인이 비어 개방이 조용히 무효가 되므로 미리 막는다
+		boolean exists = learningReservationDAO.selectStudents(rsvtSn).stream()
+			.anyMatch(student -> normalized.equals(normalize(student.getClasNm())));
+		if (!exists) {
+			throw new IllegalArgumentException("해당 예약에 없는 반입니다.");
+		}
+		return normalized;
+	}
+
 	private LearningReservationVO toReservation(Integer rsvtSn, LearningReservationDto dto, String adminId) {
 		String prgrmTypeCd = normalizeRequired(dto.getPrgrmTypeCd(), "프로그램 구분");
 		if (!List.of("MISSION", "EXPLORE").contains(prgrmTypeCd)) {

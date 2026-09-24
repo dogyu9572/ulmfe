@@ -43,7 +43,7 @@ public class EgovHomepageSearchPageManageApiController {
 					startRegDate, endRegDate, page, size));
 		} catch (Exception e) {
 			log.error("통합검색 페이지 목록 조회 오류", e);
-			return ApiResponse.error("통합검색 페이지 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "통합검색 페이지 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -56,7 +56,7 @@ public class EgovHomepageSearchPageManageApiController {
 				: ApiResponse.error("통합검색 페이지 정보를 찾을 수 없습니다.");
 		} catch (Exception e) {
 			log.error("통합검색 페이지 상세 조회 오류", e);
-			return ApiResponse.error("통합검색 페이지 상세 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "통합검색 페이지 상세 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -66,7 +66,7 @@ public class EgovHomepageSearchPageManageApiController {
 			return ApiResponse.success("통합검색 페이지가 등록되었습니다.", homepageSearchPageService.saveSearchPage(searchPage));
 		} catch (Exception e) {
 			log.error("통합검색 페이지 등록 오류", e);
-			return ApiResponse.error("통합검색 페이지 등록 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "통합검색 페이지 등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -79,7 +79,7 @@ public class EgovHomepageSearchPageManageApiController {
 			return ApiResponse.success("통합검색 페이지가 수정되었습니다.", homepageSearchPageService.saveSearchPage(searchPage));
 		} catch (Exception e) {
 			log.error("통합검색 페이지 수정 오류", e);
-			return ApiResponse.error("통합검색 페이지 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "통합검색 페이지 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -92,7 +92,7 @@ public class EgovHomepageSearchPageManageApiController {
 			return ApiResponse.success("통합검색 페이지가 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("통합검색 페이지 삭제 오류", e);
-			return ApiResponse.error("통합검색 페이지 삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "통합검색 페이지 삭제 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -111,7 +111,7 @@ public class EgovHomepageSearchPageManageApiController {
 			return ApiResponse.success("선택한 통합검색 페이지가 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("통합검색 페이지 선택삭제 오류", e);
-			return ApiResponse.error("통합검색 페이지 선택삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "통합검색 페이지 선택삭제 중 오류가 발생했습니다."));
 		}
 	}
 }

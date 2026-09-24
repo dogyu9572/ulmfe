@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
@@ -222,7 +222,8 @@ export const EducationContentPage: React.FC = () => {
 	const [useYnFilter, setUseYnFilter] = useState('')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	// select 옵션이 20 부터라 기본값을 10 으로 두면 표시(20)와 실제 조회(10)가 어긋난다.
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [totalCount, setTotalCount] = useState(0)
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 	const [selectedQuestionIndexes, setSelectedQuestionIndexes] = useState<Set<number>>(new Set())
@@ -254,10 +255,14 @@ export const EducationContentPage: React.FC = () => {
 		return qs.toString()
 	}, [cardClsfFilter, cntnTypeFilter, pageSize, searchKeyword, useYnFilter])
 
-	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
+	// 초기화 직후에는 setState 가 아직 반영되지 않아 buildSearchParams 가 옛 필터를 읽는다.
+	// 그 경우 ignoreFilters 로 조건 없는 쿼리를 직접 만들어 조회한다.
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, ignoreFilters = false) => {
 		setError(null)
 		try {
-			const qs = buildSearchParams(targetPage, targetSize)
+			const qs = ignoreFilters
+				? new URLSearchParams({ page: String(targetPage), size: String(targetSize) }).toString()
+				: buildSearchParams(targetPage, targetSize)
 			const res = await fetch(`${BACKEND}/api/admin/education-contents?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<EducationContent>> = await res.json()
 			if (!result.success || !result.data) {
@@ -275,7 +280,7 @@ export const EducationContentPage: React.FC = () => {
 	}, [buildSearchParams, page, pageSize])
 
 	useEffect(() => {
-		void fetchList(1, DEFAULT_LIST_PAGE_SIZE)
+		void fetchList(1, PAGE_SIZE_OPTIONS[0])
 		return () => {
 			if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
 		}
@@ -419,7 +424,7 @@ export const EducationContentPage: React.FC = () => {
 		setUseYnFilter('')
 		setSearchKeyword('')
 		setPage(1)
-		void fetchList(1, pageSize)
+		void fetchList(1, pageSize, true)
 	}
 
 	const openNewPopup = () => {
@@ -1377,7 +1382,7 @@ export const EducationContentPage: React.FC = () => {
 							</tr>
 							{(form.prvdTypeCd || 'IMAGE') === 'IMAGE' && (
 								<tr>
-									<th>이미지 업로드</th>
+									<th>이미지 업로드 <span className="required">*</span></th>
 									<td colSpan={3}>
 										<div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
 											{imagePreviewUrl ? <img src={imagePreviewUrl} alt="" className="product-list-thumb" /> : null}

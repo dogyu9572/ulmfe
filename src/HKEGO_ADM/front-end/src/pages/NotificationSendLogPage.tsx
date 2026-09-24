@@ -50,17 +50,17 @@ export const NotificationSendLogPage: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const firstSizeEffect = useRef(true)
 
-	const buildSearchParams = (targetPage?: number) => {
+	const buildSearchParams = (targetPage?: number, o?: Record<string, string>) => {
 		const params = new URLSearchParams()
 		if (targetPage) {
 			params.set('page', String(targetPage))
 			params.set('size', String(size))
 		}
-		if (targetCd) params.set('targetCd', targetCd)
-		if (startDate) params.set('startDate', startDate)
-		if (endDate) params.set('endDate', endDate)
-		params.set('searchType', searchType)
-		if (keyword.trim()) params.set('keyword', keyword.trim())
+		if (o?.targetCd ?? targetCd) params.set('targetCd', o?.targetCd ?? targetCd)
+		if (o?.startDate ?? startDate) params.set('startDate', o?.startDate ?? startDate)
+		if (o?.endDate ?? endDate) params.set('endDate', o?.endDate ?? endDate)
+		params.set('searchType', o?.searchType ?? searchType)
+		if ((o?.keyword ?? keyword).trim()) params.set('keyword', (o?.keyword ?? keyword).trim())
 		return params
 	}
 
@@ -72,12 +72,12 @@ export const NotificationSendLogPage: React.FC = () => {
 		return true
 	}
 
-	const fetchList = async (targetPage = page) => {
+	const fetchList = async (targetPage = page, o?: Record<string, string>) => {
 		setError(null)
-		if (!validateDates()) return
+		if (!o && !validateDates()) return
 		try {
 			setLoading(true)
-			const params = buildSearchParams(targetPage)
+			const params = buildSearchParams(targetPage, o)
 			const response = await fetch(`${API_BASE_URL}/api/admin/notification-log?${params.toString()}`, {
 				credentials: 'include'
 			})
@@ -123,11 +123,14 @@ export const NotificationSendLogPage: React.FC = () => {
 	}
 
 	const reset = () => {
-		setTargetCd('')
-		setStartDate(firstDayOfMonthIso())
-		setEndDate(todayIso())
-		setSearchType('all')
-		setKeyword('')
+		// state 만 되돌리면 화면 조건과 결과가 어긋난다. 기본 조건으로 즉시 다시 조회한다.
+		const d = { targetCd: '', startDate: firstDayOfMonthIso(), endDate: todayIso(), searchType: 'all', keyword: '' }
+		setTargetCd(d.targetCd)
+		setStartDate(d.startDate)
+		setEndDate(d.endDate)
+		setSearchType(d.searchType)
+		setKeyword(d.keyword)
+		void fetchList(1, d)
 	}
 
 	useEffect(() => {

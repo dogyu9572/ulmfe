@@ -1,3 +1,4 @@
+import { pubUrl } from '../../../config'
 import { ReactNode, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { submitTabletMissionFinal } from '../../../api/tabletApi'
@@ -11,7 +12,8 @@ import {
 	studentFlowMissionRegularStickerCount,
 	studentFlowNextMissionLabelAfterRouteIndex,
 	studentFlowNextMissionPathAfterRouteIndex,
-	studentFlowRouteItems
+	studentFlowRouteItems,
+	finishTabletStudentFlow
 } from '../../../state/tabletStudentFlowSession'
 
 export const agreement = ['매우 그렇다', '그렇다', '보통이다', '아니다', '매우 아니다']
@@ -42,14 +44,14 @@ export const questionnaireQuestions = [
 ]
 
 export const missionRouteIconSrc = (label: string) => {
-	if (label.includes('미래')) return '/pub/images/icon_activity_mission04.webp'
-	if (label.includes('사회')) return '/pub/images/icon_activity_mission05.webp'
-	if (label.includes('도서') || label.includes('열람')) return '/pub/images/icon_activity_mission_book.webp'
-	if (label.includes('정리') || label.includes('일반화')) return '/pub/images/icon_activity_order06.webp'
-	if (label.includes('완료')) return '/pub/images/icon_activity_order06.webp'
-	if (label.includes('탐색')) return '/pub/images/icon_activity_mission02.webp'
-	if (label.includes('사건') || label.includes('제시')) return '/pub/images/icon_activity_order01.webp'
-	return '/pub/images/icon_activity_mission03.webp'
+	if (label.includes('미래')) return pubUrl('/pub/images/icon_activity_mission04.webp')
+	if (label.includes('사회')) return pubUrl('/pub/images/icon_activity_mission05.webp')
+	if (label.includes('도서') || label.includes('열람')) return pubUrl('/pub/images/icon_activity_mission_book.webp')
+	if (label.includes('정리') || label.includes('일반화')) return pubUrl('/pub/images/icon_activity_order06.webp')
+	if (label.includes('완료')) return pubUrl('/pub/images/icon_activity_order06.webp')
+	if (label.includes('탐색')) return pubUrl('/pub/images/icon_activity_mission02.webp')
+	if (label.includes('사건') || label.includes('제시')) return pubUrl('/pub/images/icon_activity_order01.webp')
+	return pubUrl('/pub/images/icon_activity_mission03.webp')
 }
 
 export const MissionTitle = ({ step, subtitle, location }: { step: string; subtitle: string; location: string }) => (
@@ -121,7 +123,7 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 	const regularStickerClasses = Array.from({ length: Math.min(3, regularStickerCount) }, (_, index) => `i${index + 1}`)
 	const bonusStickerClasses = Array.from({ length: Math.min(4, bonusStickerCount) }, (_, index) => `i${index + 1}`)
 	const largeStickerImages = regularStickerClasses.length > 0
-		? regularStickerClasses.map((className) => `/pub/images/icon_sticker_a${className.slice(1).padStart(2, '0')}_large.svg`)
+		? regularStickerClasses.map((className) => pubUrl(`/pub/images/icon_sticker_a${className.slice(1).padStart(2, '0')}_large.svg`))
 		: [image]
 	const endClassNumber = hasDynamicNext ? Math.max(1, Math.min(4, (routeIndex ?? 0) + 1)) : Math.max(1, Math.min(4, onClass.length))
 
@@ -182,7 +184,7 @@ export const MissionEndSticker = ({ title, text, image, onClass, nextTitle, next
 					<div className="next_page_qr"><h3 className="tit">{isFinalRoute ? '미션 완료' : dynamicNextLabel || nextTitle}</h3><p>{hasDynamicNext ? dynamicNextText : nextText}</p><button className="btn_after flex_center" onClick={() => void moveNext()} disabled={saving}>{saving ? '처리 중' : hasDynamicNext ? dynamicNextButton : nextButton}</button></div>
 				</div>
 			</section>
-			<StudentProgramCompletionPopup open={completedOpen} variant="mission" displayName={studentFlowDisplayName(flowSession)} missionAreaCount={studentFlowRouteItems(flowSession).length} onClose={() => setCompletedOpen(false)} onComplete={() => navigate('/select-user')} />
+			<StudentProgramCompletionPopup open={completedOpen} variant="mission" displayName={studentFlowDisplayName(flowSession)} areaCount={studentFlowRouteItems(flowSession).length} onClose={() => setCompletedOpen(false)} onComplete={() => finishTabletStudentFlow(navigate)} />
 		</main>
 	)
 }

@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL } from '../config'
 import { timestampedExcelFileName } from '../utils/downloadFileName'
 import { questionnaireLinkCode, questionnairePreviewUrl } from '../utils/questionnaireLink'
@@ -86,7 +87,8 @@ export const EvaluationFormPage: React.FC = () => {
 	const [endRegYmd, setEndRegYmd] = useState('')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	// select 옵션이 20 부터라 기본값을 10 으로 두면 표시(20)와 실제 조회(10)가 어긋난다.
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [totalCount, setTotalCount] = useState(0)
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 	const [selectedQuestionIndexes, setSelectedQuestionIndexes] = useState<Set<number>>(new Set())
@@ -105,10 +107,20 @@ export const EvaluationFormPage: React.FC = () => {
 		return qs.toString()
 	}, [endRegYmd, evlSeFilter, pageSize, searchKeyword, startRegYmd])
 
-	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
+	// 초기화 직후에는 setState 가 아직 반영되지 않아 buildSearchParams 가 옛 필터를 읽는다.
+	// 그 경우 ignoreFilters 로 조건 없는 쿼리를 직접 만들어 조회한다.
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, ignoreFilters = false) => {
 		setError(null)
+		// 초기화 조회는 조건을 비우고 보내므로, 화면에 남아 있는 잘못된 날짜로 막으면 안 된다.
+		const rangeWarning = ignoreFilters ? null : checkDateRange(startRegYmd, endRegYmd, '등록일')
+		if (rangeWarning) {
+			setError(rangeWarning)
+			return
+		}
 		try {
-			const qs = buildSearchParams(targetPage, targetSize)
+			const qs = ignoreFilters
+				? new URLSearchParams({ page: String(targetPage), size: String(targetSize) }).toString()
+				: buildSearchParams(targetPage, targetSize)
 			const res = await fetch(`${BACKEND}/api/admin/evaluation-forms?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<EvaluationForm>> = await res.json()
 			if (!result.success || !result.data) {
@@ -126,7 +138,7 @@ export const EvaluationFormPage: React.FC = () => {
 	}, [buildSearchParams, page, pageSize])
 
 	useEffect(() => {
-		void fetchList(1, DEFAULT_LIST_PAGE_SIZE)
+		void fetchList(1, PAGE_SIZE_OPTIONS[0])
 	}, [])
 
 	const handleSearch = () => {
@@ -140,7 +152,7 @@ export const EvaluationFormPage: React.FC = () => {
 		setEndRegYmd('')
 		setSearchKeyword('')
 		setPage(1)
-		void fetchList(1, pageSize)
+		void fetchList(1, pageSize, true)
 	}
 
 	const openNewPopup = () => {
@@ -225,9 +237,20 @@ export const EvaluationFormPage: React.FC = () => {
 		const current = nextQuestions[index]
 		nextQuestions[index] = nextQuestions[nextIndex]
 		nextQuestions[nextIndex] = current
+		// 문항 번호는 직접 입력할 수 있는 값이라 함부로 덮지 않는다.
+		// 다만 1..n 자동 번호를 그대로 쓰고 있으면 순서와 어긋나므로 함께 재부여한다.
+		const isAutoNumbered = form.questions.length > 0 && form.questions
+			.map((q) => q.qstnNo.trim())
+			.slice()
+			.sort((a, b) => Number(a) - Number(b))
+			.every((no, i) => no === String(i + 1))
 		setForm({
 			...form,
-			questions: nextQuestions.map((question, i) => ({ ...question, sortSeq: i + 1 }))
+			questions: nextQuestions.map((question, i) => ({
+				...question,
+				sortSeq: i + 1,
+				qstnNo: isAutoNumbered ? String(i + 1) : question.qstnNo
+			}))
 		})
 		setSelectedQuestionIndexes(new Set())
 	}
@@ -264,6 +287,10 @@ export const EvaluationFormPage: React.FC = () => {
 		}
 		if (!form.qstnrNm.trim()) {
 			showPopupError('평가지 이름을 입력하세요.')
+			return
+		}
+		if (form.questions.length === 0) {
+			showPopupError('문항을 1개 이상 추가하세요.')
 			return
 		}
 		for (const question of form.questions) {

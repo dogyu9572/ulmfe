@@ -30,12 +30,13 @@ public class EgovPublicBoardApiController {
 		@RequestParam(defaultValue = "all") String searchType,
 		@RequestParam(required = false) String keyword,
 		@RequestParam(required = false) String category,
+		@RequestParam(required = false) String zone,
 		@RequestParam(required = false) String programType
 	) {
 		try {
 			return ResponseEntity.ok(ApiResponse.success(
 				"게시글 목록을 조회했습니다.",
-				publicBoardService.getPosts(boardId, page, size, searchType, keyword, category, programType)
+				publicBoardService.getPosts(boardId, page, size, searchType, keyword, category, zone, programType)
 			));
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));

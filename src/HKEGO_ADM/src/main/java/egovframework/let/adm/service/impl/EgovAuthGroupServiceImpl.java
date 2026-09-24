@@ -44,6 +44,10 @@ public class EgovAuthGroupServiceImpl extends EgovAbstractServiceImpl implements
 
 	@Transactional
 	public void createAuthGroup(AuthGroupDto dto) {
+		// 중복 키를 DB 까지 보내면 500 이 떠서 원인이 화면에 드러나지 않는다.
+		if (dto.getAuthrtCd() != null && authDAO.selectAuthGroup(dto.getAuthrtCd()) != null) {
+			throw new IllegalArgumentException("이미 등록된 권한그룹 ID입니다.");
+		}
 		AuthGroupVO g = AuthGroupVO.builder()
 			.authrtCd(dto.getAuthrtCd())
 			.authrtNm(dto.getAuthrtNm())
@@ -68,7 +72,7 @@ public class EgovAuthGroupServiceImpl extends EgovAbstractServiceImpl implements
 	public void deleteAuthGroup(String authrtCd) {
 		int cnt = authDAO.countUsersByAuthGroup(authrtCd);
 		if (cnt > 0) {
-			throw new RuntimeException("해당 권한 그룹을 사용하는 관리자가 있어 삭제할 수 없습니다.");
+			throw new IllegalStateException("해당 권한 그룹을 사용하는 관리자가 있어 삭제할 수 없습니다.");
 		}
 		authDAO.deleteAllAuthInfo(authrtCd);
 		authDAO.deleteAuthGroup(authrtCd);

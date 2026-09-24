@@ -13,14 +13,17 @@
 	<groupId>egovframework</groupId>
 	<artifactId>hkego-user</artifactId>
 	<version>1.0.0</version>
+	<packaging>war</packaging>
 	<name>HKEGO User System</name>
-	<description>HKEGO 사용자 포털 (Next.js + eGov Spring Boot)</description>
+	<description>HKEGO 사용자 포털 (Next 정적 export + eGov Spring Boot WAR)</description>
 
 	<properties>
 		<java.version>21</java.version>
 		<mybatis.version>3.0.3</mybatis.version>
 		<skipFrontend>true</skipFrontend>
 		<skipFrontendCleanup>false</skipFrontendCleanup>
+		<!-- mvn spring-boot:run 기본 프로파일 (-Dspring-boot.run.profiles=dev|prod 로 변경 가능) -->
+		<spring-boot.run.profiles>awsdev</spring-boot.run.profiles>
 	</properties>
 
 	<repositories>
@@ -50,6 +53,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -140,6 +148,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>usfec</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -245,11 +254,49 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<profiles>
+						<profile>${spring-boot.run.profiles}</profile>
+					</profiles>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
+		<!-- AWS 개발 WAR: mvn clean package -Pawsdev -->
+		<profile>
+			<id>awsdev</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>src/main/resources-profile/awsdev</directory>
+						<filtering>false</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		<!-- 개발서버 WAR: mvn clean package -Pdev -->
+		<profile>
+			<id>dev</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>src/main/resources-profile/dev</directory>
+						<filtering>false</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		<!-- 운영 WAR: mvn clean package -Pprod -->
 		<profile>
 			<id>prod</id>
 			<build>

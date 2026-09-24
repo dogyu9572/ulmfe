@@ -37,7 +37,7 @@
 		C.VIDEO_TTL,
 		C.USE_YN,
 		C.REG_DT,
-		C.RGTR_NM,
+		C.RGTR_NM AS RGTR,
 		C.MDFCN_DT,
 		C.MDFR_NM,
 		C.DEL_DT,

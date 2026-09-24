@@ -186,7 +186,7 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 	const title = quest?.title || questName || '퀘스트'
 	const location = quest?.place || ''
 	const timerStorageKey = flowSession ? `hkegoTabletQuestTimer:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}` : ''
-	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
+	const { isTimeLimitMet, remainingLabel, getElapsedSeconds } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
 
 	useEffect(() => {
 		if (!draftStorageKey) return
@@ -229,10 +229,6 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 
 	const handleSubmit = async () => {
 		if (saving) return
-		if (!isTimeLimitMet) {
-			alert(`${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`)
-			return
-		}
 		if (!quest) {
 			alert('저장할 퀘스트 정보가 없습니다.')
 			return
@@ -256,6 +252,16 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 			})
 			return acc
 		}, [])
+		// 제한 시간이 남아 있으면 답변부터 받는다. 답변을 냈더라도 시간이 다 되기 전에는 넘어가지 않고,
+		// 시간이 지나면 답변이 없어도 다음 활동으로 보낸다.
+		if (!isTimeLimitMet) {
+			if (cards.length > 0 && answers.length === 0) {
+				alert('답변을 입력한 뒤 다음으로 이동할 수 있습니다.')
+				return
+			}
+			alert(`${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`)
+			return
+		}
 		try {
 			setSaving(true)
 			const payload = {
@@ -264,6 +270,7 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 				routeName: questName,
 				stepCd: studentFlowExploreStepCode(routeIndex),
 				totalRouteCount: routeItems.length,
+				elapsedSeconds: getElapsedSeconds(),
 				answers
 			}
 			if (Object.keys(filesByFieldName).length > 0) {
@@ -304,7 +311,7 @@ export const QuestStepPage = ({ routeIndex, submitPath, pageKey }: { routeIndex:
 							<h3 className="tit">{question.qstnNm}</h3>
 							<div className="con">{renderQuestionControl(question, index, pageKey, answerForQuestion(visibleAnswersByQuestion, content.cntnSn, question) || '')}</div>
 						</div>
-					)) : <div className="wbox a_card_box"><h3 className="tit">관리자에 연결된 콘텐츠가 없습니다.</h3></div>}
+					)) : <div className="wbox a_card_box"><h3 className="tit">표시할 활동 내용이 없습니다.</h3></div>}
 					<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button><button type="button" className="btn btn_wbb" onClick={handleSubmit} disabled={saving}>{saving ? '저장 중' : '제출'}</button></div>
 				</div>
 			</section>

@@ -1,4 +1,5 @@
 import { unregisterAndroidPushContext } from '../push/androidPush'
+import { BASE_PATH, appPath, withBasePath } from '../config'
 
 export type ApiResponse<T> = {
 	success: boolean
@@ -65,6 +66,9 @@ export type TabletProgressLog = {
 	stepCd: string
 	actvtNm?: string
 	stepSttsCd: string
+	/** 단계 시작·완료 시각('YYYY-MM-DD HH:mm:ss'). 교사 모니터링의 평균 소요시간에 쓴다. */
+	bgngDt?: string
+	cmptnDt?: string
 }
 
 export type TabletSavedAnswer = {
@@ -234,17 +238,21 @@ const readCookie = (name: string) => {
 
 const redirectToLoginOnAuthExpired = (url: string, response: Response) => {
 	if (typeof window === 'undefined') return false
-	if (url === '/api/tablet/auth/login') return false
+	const apiLogin = withBasePath('/api/tablet/auth/login')
+	if (url === '/api/tablet/auth/login' || url === apiLogin) return false
+	// 공개 설문은 익명 접속이라 로그인 화면으로 보내면 안 된다.
+	if (url.includes('/api/public/')) return false
 	if (response.status !== 401 && response.status !== 403) return false
 	if (authRedirecting) return true
 
 	authRedirecting = true
 	unregisterAndroidPushContext()
-	window.sessionStorage.removeItem('hkegoTabletStudentFlowSession')
+	window.localStorage.removeItem('hkegoTabletStudentFlowSession')
 	window.sessionStorage.removeItem('hkegoTabletAdminId')
-	if (window.location.pathname !== '/') {
+	const homePath = BASE_PATH || '/'
+	if (window.location.pathname !== homePath && window.location.pathname !== `${homePath}/`) {
 		window.alert('로그인이 필요합니다.')
-		window.location.replace('/')
+		window.location.replace(appPath('/'))
 	}
 	return true
 }
@@ -261,12 +269,13 @@ const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
 		headers.set('Content-Type', 'application/json')
 	}
 
-	const response = await fetch(url, {
+	const requestUrl = url.startsWith('http') ? url : withBasePath(url)
+	const response = await fetch(requestUrl, {
 		...init,
 		headers,
 		credentials: 'include'
 	})
-	if (redirectToLoginOnAuthExpired(url, response)) {
+	if (redirectToLoginOnAuthExpired(requestUrl, response)) {
 		return new Promise<T>(() => undefined)
 	}
 	const nextToken = response.headers.get(CSRF_HEADER)
@@ -329,6 +338,8 @@ export const submitTabletMission = (rsvtSn: number, payload: {
 	routeName: string
 	stepCd?: string
 	totalRouteCount: number
+	/** 이 단계를 시작한 뒤 흐른 시간(초). 서버가 이만큼 거슬러 시작 시각을 남긴다. */
+	elapsedSeconds?: number
 	answers: TabletMissionAnswer[]
 }) => request<void>(`/api/tablet/reservations/${rsvtSn}/mission`, {
 	method: 'POST',
@@ -341,6 +352,8 @@ export const submitTabletMissionFiles = (rsvtSn: number, payload: {
 	routeName: string
 	stepCd?: string
 	totalRouteCount: number
+	/** 이 단계를 시작한 뒤 흐른 시간(초). 서버가 이만큼 거슬러 시작 시각을 남긴다. */
+	elapsedSeconds?: number
 	answers: TabletMissionAnswer[]
 }, files: Record<string, File>) => {
 	const formData = new FormData()
@@ -387,6 +400,13 @@ export const fetchPublicQuestionnaire = (linkCd: string) => request<TabletQuesti
 	{ cache: 'no-store' }
 )
 
+/** 링크·QR 접속자의 익명 제출. 문항 지문은 서버가 채우므로 번호와 답변만 보낸다. */
+export const submitPublicQuestionnaire = (linkCd: string, answers: { qstnSn: number; ansCn: string }[]) =>
+	request<number>(`/api/public/questionnaires/${encodeURIComponent(linkCd)}/responses`, {
+		method: 'POST',
+		body: JSON.stringify({ answers })
+	})
+
 export const fetchTabletLearningResources = (prgrmTypeCd: string, prgrmSn: number) => {
 	const params = new URLSearchParams({
 		prgrmTypeCd,
@@ -425,6 +445,15 @@ export const fetchUnreadTabletTeacherMessages = (rsvtSn: number, studentSns: num
 	const params = new URLSearchParams()
 	studentSns.forEach((studentSn) => params.append('studentSns', String(studentSn)))
 	return request<TabletTeacherMessage[]>(`/api/tablet/reservations/${rsvtSn}/teacher-messages/unread?${params.toString()}`, {
+		cache: 'no-store'
+	})
+}
+
+// 보너스 스테이지(추가미션) 개방 여부 — 관리자가 반 단위로 열어준다
+export const fetchTabletBonusOpened = (rsvtSn: number, studentSns: number[]) => {
+	const params = new URLSearchParams()
+	studentSns.forEach((studentSn) => params.append('studentSns', String(studentSn)))
+	return request<{ opened: boolean }>(`/api/tablet/reservations/${rsvtSn}/bonus?${params.toString()}`, {
 		cache: 'no-store'
 	})
 }

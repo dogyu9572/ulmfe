@@ -91,7 +91,7 @@ export const TeacherCallHistoryPage = () => {
 					<ul className="call_history_wrap">
 						{callItems.map((item) => <li className={item.callSttsCd === 'READ' ? 'read' : undefined} key={item.callSn}>
 							<div className="left"><div className="tit"><span className={teamClassName(item.teamNm)}>{item.teamNm || '-'}</span>{item.placeNm || '-'}</div><div className="con">{item.callCn || '선생님을 호출했어요.'}</div><p>{item.studentNames || ''}</p></div>
-							<div className="right"><time className="time">{displayTime(item.regDt)}</time><button type="button" className="btn btn_wbb" onClick={() => markRead(item.callSn)} disabled={item.callSttsCd === 'READ'}>{item.callSttsCd === 'READ' ? '읽음' : '읽음'}</button></div>
+							<div className="right"><time className="time">{displayTime(item.regDt)}</time><button type="button" className="btn btn_wbb" onClick={() => markRead(item.callSn)} disabled={item.callSttsCd === 'READ'}>{item.callSttsCd === 'READ' ? '읽음' : '읽음 처리'}</button></div>
 						</li>)}
 					</ul>
 				)}

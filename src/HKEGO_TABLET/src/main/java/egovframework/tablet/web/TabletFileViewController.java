@@ -26,8 +26,14 @@ public class TabletFileViewController {
 	@GetMapping("/**")
 	public ResponseEntity<Resource> serveFile(HttpServletRequest request) {
 		try {
+			String contextPath = request.getContextPath() == null ? "" : request.getContextPath();
 			String requestUri = request.getRequestURI();
-			String filePath = requestUri.startsWith("/uploads") ? requestUri.substring("/uploads".length()) : requestUri;
+			String pathWithinContext = contextPath.isEmpty() || !requestUri.startsWith(contextPath)
+				? requestUri
+				: requestUri.substring(contextPath.length());
+			String filePath = pathWithinContext.startsWith("/uploads")
+				? pathWithinContext.substring("/uploads".length())
+				: pathWithinContext;
 			if (filePath.startsWith("/")) {
 				filePath = filePath.substring(1);
 			}

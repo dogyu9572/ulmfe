@@ -103,8 +103,11 @@ public class EgovLearningReservationManageApiController {
 	public ApiResponse<LearningReservationVO> importStudents(@PathVariable Integer rsvtSn, @RequestParam("file") MultipartFile file) throws Exception {
 		try {
 			return ApiResponse.success("학생명단 일괄등록 성공", learningReservationService.importStudents(rsvtSn, file));
-		} catch (Exception e) {
+		} catch (IllegalArgumentException e) {
 			return ApiResponse.error(e.getMessage());
+		} catch (Exception e) {
+			log.error("학생명단 일괄등록 오류: rsvtSn={}", rsvtSn, e);
+			return ApiResponse.error(ApiResponse.messageOf(e, "학생명단 일괄등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -112,8 +115,11 @@ public class EgovLearningReservationManageApiController {
 	public ApiResponse<Integer> importReservations(@RequestParam("file") MultipartFile file) throws Exception {
 		try {
 			return ApiResponse.success("예약 일괄등록 성공", learningReservationService.importReservations(file));
-		} catch (Exception e) {
+		} catch (IllegalArgumentException e) {
 			return ApiResponse.error(e.getMessage());
+		} catch (Exception e) {
+			log.error("예약 일괄등록 오류", e);
+			return ApiResponse.error(ApiResponse.messageOf(e, "예약 일괄등록 중 오류가 발생했습니다."));
 		}
 	}
 

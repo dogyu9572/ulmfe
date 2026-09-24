@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 public class QuestionnaireResponseVO {
 	private String responseKey;
 	private LocalDateTime submittedDt;
-	private String participationType;
 	private String schoolLevel;
 	private String gender;
 	private String residence;

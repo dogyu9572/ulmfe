@@ -6,6 +6,7 @@ import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL } from '../config'
 
 type ApiResponse<T> = {
@@ -130,10 +131,20 @@ export const AccessEnvironmentPage: React.FC = () => {
 		return qs.toString()
 	}, [pageSize, searchIp, startDate, endDate])
 
-	const fetchList = useCallback(async (targetPage = page) => {
+	// 초기화 직후에는 setState 가 아직 반영되지 않아 buildSearchParams 가 옛 필터를 읽는다.
+	// 그 경우 ignoreFilters 로 조건 없는 쿼리를 직접 만들어 조회한다.
+	const fetchList = useCallback(async (targetPage = page, ignoreFilters = false) => {
 		setError(null)
+		// 초기화 조회는 조건을 비우고 보내므로, 화면에 남아 있는 잘못된 날짜로 막으면 안 된다.
+		const rangeWarning = ignoreFilters ? null : checkDateRange(startDate, endDate, '등록일')
+		if (rangeWarning) {
+			setError(rangeWarning)
+			return
+		}
 		try {
-			const qs = buildSearchParams(targetPage)
+			const qs = ignoreFilters
+				? new URLSearchParams({ page: String(targetPage) }).toString()
+				: buildSearchParams(targetPage)
 			const res = await fetch(`${BACKEND}/api/admin/access-env/allowed-ips?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<AllowedIp>> = await res.json()
 			if (!result.success || !result.data) {
@@ -324,7 +335,7 @@ export const AccessEnvironmentPage: React.FC = () => {
 		setSearchIp('')
 		setStartDate('')
 		setEndDate('')
-		window.setTimeout(() => void fetchList(1), 0)
+		void fetchList(1, true)
 	}
 
 	return (

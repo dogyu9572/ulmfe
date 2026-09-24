@@ -161,6 +161,54 @@ public class TabletServiceImpl implements TabletService {
 	}
 
 	@Override
+	@Transactional
+	public int submitPublicQuestionnaire(String linkCd, List<TabletQuestionnaireAnswerVO> answers) {
+		QuestionnaireLinkTarget target = parseQuestionnaireLink(linkCd);
+		if (tabletMapper.selectQuestionnaireByLink(target.qstnrSn(), target.qstnrTypeCd(), target.evlSeCd()) == null) {
+			throw new IllegalArgumentException("등록된 평가지 또는 설문지를 찾을 수 없습니다.");
+		}
+		if (answers == null || answers.isEmpty()) {
+			throw new IllegalArgumentException("제출할 답변이 없습니다.");
+		}
+
+		// 문항 번호·지문은 서버가 가진 값만 쓴다. 요청 본문의 값을 그대로 저장하면 위변조된 지문이 결과에 섞인다.
+		Map<Integer, TabletQuestionnaireQuestionVO> questions = tabletMapper
+			.selectQuestionnaireQuestions(target.qstnrSn(), target.qstnrTypeCd()).stream()
+			.collect(Collectors.toMap(TabletQuestionnaireQuestionVO::getQstnSn, question -> question, (a, b) -> a));
+		if (questions.isEmpty()) {
+			throw new IllegalArgumentException("연결된 문항이 없습니다.");
+		}
+
+		// 운영 평가(op-eval-*)는 학생 평가와 결과 화면에서 따로 집계된다. evlSeCd 를 반영하지 않으면 학생 평가로 섞인다.
+		String ansTypeCd = "SURVEY".equals(target.qstnrTypeCd())
+			? "SURVEY"
+			: ("TEACHER".equals(target.evlSeCd()) ? "TEACHER_EVALUATION" : "EVALUATION");
+		// 익명 제출은 예약·학생으로 응답을 묶을 수 없다. 제출 한 번에 식별자 하나를 발급해 이 제출의 모든 답변에 같은 값을 넣는다.
+		String rspnsNo = UUID.randomUUID().toString();
+		int saved = 0;
+		for (TabletQuestionnaireAnswerVO answer : answers) {
+			if (answer == null || answer.getQstnSn() == null || isBlank(answer.getAnsCn())) continue;
+			TabletQuestionnaireQuestionVO question = questions.get(answer.getQstnSn());
+			if (question == null) {
+				throw new IllegalArgumentException("이 설문지의 문항이 아닙니다: " + answer.getQstnSn());
+			}
+			TabletQuestionnaireAnswerVO stored = new TabletQuestionnaireAnswerVO();
+			stored.setQstnrSn(target.qstnrSn());
+			stored.setQstnSn(question.getQstnSn());
+			stored.setQstnCn(question.getQstnCn());
+			stored.setAnsCn(answer.getAnsCn());
+			stored.setRspnsNo(rspnsNo);
+			// 익명 수집이라 예약·학생에 붙이지 않는다. 0은 "귀속 없음"을 뜻한다 (컬럼이 NOT NULL).
+			tabletMapper.insertTypedAnswer(0, 0, ansTypeCd, "STEP4", stored, "public");
+			saved++;
+		}
+		if (saved == 0) {
+			throw new IllegalArgumentException("제출할 답변이 없습니다.");
+		}
+		return saved;
+	}
+
+	@Override
 	public List<TabletLearningResourceVO> getLearningResources(String prgrmTypeCd, Integer prgrmSn) {
 		String normalizedType = normalizeText(prgrmTypeCd);
 		if (isBlank(normalizedType) || prgrmSn == null || prgrmSn <= 0) {
@@ -263,6 +311,17 @@ public class TabletServiceImpl implements TabletService {
 	}
 
 	@Override
+	public boolean isBonusStageOpened(Integer rsvtSn, List<Integer> studentSns) {
+		if (rsvtSn == null || rsvtSn <= 0 || studentSns == null || studentSns.isEmpty()) return false;
+		List<Integer> normalizedStudentSns = studentSns.stream()
+			.filter(studentSn -> studentSn != null && studentSn > 0)
+			.distinct()
+			.toList();
+		if (normalizedStudentSns.isEmpty()) return false;
+		return tabletMapper.countOpenedBonusStage(rsvtSn, normalizedStudentSns) > 0;
+	}
+
+	@Override
 	@Transactional
 	public void markAttendance(Integer rsvtSn, List<Integer> studentSns) {
 		if (rsvtSn == null || rsvtSn <= 0) {
@@ -272,6 +331,8 @@ public class TabletServiceImpl implements TabletService {
 			throw new IllegalArgumentException("출석 처리할 학생을 선택하세요.");
 		}
 		tabletMapper.syncAttendance(rsvtSn, studentSns);
+		// 출석 인원이 바뀌면 완료 판정 모수도 달라지므로 예약 상태를 다시 계산한다.
+		tabletMapper.syncReservationStatus(rsvtSn);
 	}
 
 	@Override
@@ -315,11 +376,14 @@ public class TabletServiceImpl implements TabletService {
 				answer.setAnsCn(buildWorksheetAnswerValue(answer, filesByFieldName));
 				tabletMapper.insertMissionAnswer(rsvtSn, studentSn, stepCd, answer);
 			}
-			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, stepCd, activityName) == 0) {
-				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, stepCd, activityName);
+			Integer elapsedSeconds = request.getElapsedSeconds();
+			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, stepCd, activityName, elapsedSeconds) == 0) {
+				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, stepCd, activityName, elapsedSeconds);
 			}
 			tabletMapper.updateStudentProgress(rsvtSn, studentSn, progressRate, learningStatus);
 		}
+		// 학생 상태가 바뀌었으니 예약 단위 학습상태도 따라가게 한다.
+		tabletMapper.syncReservationStatus(rsvtSn);
 	}
 
 	@Override
@@ -356,8 +420,8 @@ public class TabletServiceImpl implements TabletService {
 				answer.setAnsCn(buildMakerAnswerJson(description, file));
 				tabletMapper.insertMissionAnswer(rsvtSn, studentSn, "STEP3", answer);
 			}
-			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, "STEP3", "사건해결") == 0) {
-				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, "STEP3", "사건해결");
+			if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, "STEP3", "사건해결", null) == 0) {
+				tabletMapper.insertProgressLogDone(rsvtSn, studentSn, "STEP3", "사건해결", null);
 			}
 		}
 	}
@@ -391,12 +455,13 @@ public class TabletServiceImpl implements TabletService {
 			if (updateEvaluation) saveTypedAnswers(rsvtSn, studentSn, "EVALUATION", "STEP4", request.getEvaluationAnswers());
 			if (updateSurvey) saveTypedAnswers(rsvtSn, studentSn, "SURVEY", "STEP4", request.getSurveyAnswers());
 			if (complete) {
-				if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, "STEP4", "실천력 부여") == 0) {
-					tabletMapper.insertProgressLogDone(rsvtSn, studentSn, "STEP4", "실천력 부여");
+				if (tabletMapper.updateProgressLogDone(rsvtSn, studentSn, "STEP4", "실천력 부여", null) == 0) {
+					tabletMapper.insertProgressLogDone(rsvtSn, studentSn, "STEP4", "실천력 부여", null);
 				}
 				tabletMapper.updateStudentProgress(rsvtSn, studentSn, 100, "DONE");
 			}
 		}
+		tabletMapper.syncReservationStatus(rsvtSn);
 	}
 
 	@Override
@@ -557,7 +622,7 @@ public class TabletServiceImpl implements TabletService {
 		if (answers == null) return;
 		for (TabletQuestionnaireAnswerVO answer : answers) {
 			if (answer == null || isBlank(answer.getAnsCn())) continue;
-			tabletMapper.insertTypedAnswer(rsvtSn, studentSn, ansTypeCd, stepCd, answer);
+			tabletMapper.insertTypedAnswer(rsvtSn, studentSn, ansTypeCd, stepCd, answer, "tablet");
 		}
 	}
 

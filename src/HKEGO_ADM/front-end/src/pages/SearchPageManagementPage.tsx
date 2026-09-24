@@ -6,6 +6,7 @@ import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL } from '../config'
 
 type ApiResponse<T> = {
@@ -60,6 +61,43 @@ const stripText = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/\s+
 
 const formatMenuPath = (row: SearchPage) =>
 	[row.menu1DepthNm, row.menu2DepthNm, row.menu3DepthNm].filter(Boolean).join(' > ')
+
+/** 사용자 사이트 path 배포(/usfec)에 맞게 앱 경로만 저장한다. */
+const KNOWN_USER_HOSTS = new Set([
+	'ulmfe-user.hk-test.co.kr',
+	'use.go.kr',
+	'dev.use.go.kr',
+	'localhost',
+	'127.0.0.1'
+])
+const USER_BASE_PATH = '/usfec'
+
+const normalizeSearchPageUrl = (value: string) => {
+	const trimmed = value.trim()
+	if (!trimmed) return ''
+	try {
+		const toAppPath = (pathname: string, search: string, hash: string) => {
+			let path = pathname || '/'
+			if (path === USER_BASE_PATH || path.startsWith(`${USER_BASE_PATH}/`)) {
+				path = path.slice(USER_BASE_PATH.length) || '/'
+			}
+			return `${path}${search}${hash}`
+		}
+		if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+			const url = new URL(trimmed, 'https://use.go.kr')
+			return toAppPath(url.pathname, url.search, url.hash)
+		}
+		if (/^https?:\/\//i.test(trimmed)) {
+			const url = new URL(trimmed)
+			if (KNOWN_USER_HOSTS.has(url.hostname)) {
+				return toAppPath(url.pathname, url.search, url.hash)
+			}
+		}
+	} catch {
+		return trimmed
+	}
+	return trimmed
+}
 
 export const SearchPageManagementPage: React.FC = () => {
 	const [form, setForm] = useState<SearchPage>(defaultForm)
@@ -165,10 +203,20 @@ export const SearchPageManagementPage: React.FC = () => {
 		return qs.toString()
 	}, [pageSize, menu1FilterCd, menu2FilterCd, menu3FilterCd, menus, startRegDate, endRegDate, searchType, searchKeyword])
 
-	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
+	// 초기화 직후에는 setState 가 아직 반영되지 않아 buildSearchParams 가 옛 필터를 읽는다.
+	// 그 경우 ignoreFilters 로 조건 없는 쿼리를 직접 만들어 조회한다.
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, ignoreFilters = false) => {
 		setError(null)
+		// 초기화 조회는 조건을 비우고 보내므로, 화면에 남아 있는 잘못된 날짜로 막으면 안 된다.
+		const startRegDateWarning = ignoreFilters ? null : checkDateRange(startRegDate, endRegDate, '등록일')
+		if (startRegDateWarning) {
+			setError(startRegDateWarning)
+			return
+		}
 		try {
-			const qs = buildSearchParams(targetPage, targetSize)
+			const qs = ignoreFilters
+				? new URLSearchParams({ page: String(targetPage), size: String(targetSize) }).toString()
+				: buildSearchParams(targetPage, targetSize)
 			const res = await fetch(`${BACKEND}/api/admin/search-pages?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<SearchPage>> = await res.json()
 			if (!result.success || !result.data) {
@@ -248,7 +296,7 @@ export const SearchPageManagementPage: React.FC = () => {
 				menu3DepthNm: form.menu3DepthNm.trim(),
 				pageTtl: form.pageTtl.trim(),
 				pageCn: form.pageCn.trim(),
-				pageUrl: form.pageUrl.trim(),
+				pageUrl: normalizeSearchPageUrl(form.pageUrl),
 				rgtr: currentAdmin.adminId,
 				rgtrNm: currentAdmin.adminName,
 				mdtr: currentAdmin.adminId
@@ -343,7 +391,7 @@ export const SearchPageManagementPage: React.FC = () => {
 		setEndRegDate('')
 		setSearchType('title')
 		setSearchKeyword('')
-		setTimeout(() => void fetchList(1, pageSize), 0)
+		void fetchList(1, pageSize, true)
 	}
 
 	const changeFilterMenu1 = (menuCd: string) => {
@@ -666,6 +714,7 @@ export const SearchPageManagementPage: React.FC = () => {
 									type="text"
 									value={form.pageUrl}
 									onChange={(e) => setForm({ ...form, pageUrl: e.target.value })}
+									placeholder="/about/greeting (앱 경로만 입력)"
 									style={{ width: '100%', maxWidth: '100%' }}
 								/>
 							</td>

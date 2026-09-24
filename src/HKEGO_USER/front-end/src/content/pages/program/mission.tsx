@@ -1,3 +1,4 @@
+import { withBasePath } from '@/lib/basePath'
 export default function ProgramMissionContent() {
 	return (
 		<>
@@ -10,7 +11,7 @@ export default function ProgramMissionContent() {
 						{"스토리 속 미션을 해결하며 "}
 						<br />
 						{"지속가능한 미래를 발견하는 체험 프로그램 입니다. "}
-						<a href="/program/reserve" className="btn_link">
+						<a href={withBasePath("/program/reserve")} className="btn_link">
 							{"프로그램 예약하기"}
 						</a>
 					</div>
@@ -23,7 +24,7 @@ export default function ProgramMissionContent() {
 							</h2>
 							<div className="con">
 								<div className="imgfit" aria-hidden="true">
-									<img src="/pub/images/img_mission01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_mission01.webp')} alt="" />
 								</div>
 								<p>
 									{"울산광역시미래교육관 안에 구축된 80여 종의 체험 콘텐츠를 탐색하며 주어진 미션을 수행하는 스토리 기반 체험 프로그램입니다. "}
@@ -121,7 +122,7 @@ export default function ProgramMissionContent() {
 							</h2>
 							<div className="con mission_program">
 								<div className="imgfit" aria-hidden="true">
-									<img src="/pub/images/img_mission02.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_mission02.webp')} alt="" />
 								</div>
 								<div className="txt">
 									<h3>
@@ -148,39 +149,39 @@ export default function ProgramMissionContent() {
 							<ul className="con program_list program_types">
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_mission03_1.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_mission03_1.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"소비습관 구출 작전"}
 										</h3>
-										<a href="/program/mission1" className="btn_link">
+										<a href={withBasePath("/program/mission1")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_mission03_2.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_mission03_2.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"이상한 날씨 해결 작전"}
 										</h3>
-										<a href="/program/mission2" className="btn_link">
+										<a href={withBasePath("/program/mission2")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>
 								</li>
 								<li>
 									<div className="imgfit" aria-hidden="true">
-										<img src="/pub/images/img_mission03_3.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_mission03_3.webp')} alt="" />
 									</div>
 									<div className="txt">
 										<h3>
 											{"미래를 위한 오늘의 실천 작전"}
 										</h3>
-										<a href="/program/mission3" className="btn_link">
+										<a href={withBasePath("/program/mission3")} className="btn_link">
 											{"자세히 보기"}
 										</a>
 									</div>

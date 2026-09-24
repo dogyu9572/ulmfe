@@ -1,22 +1,38 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import BoardPagination from '@/components/public-board/BoardPagination'
 import LibraryBookCard from '@/components/public-library/LibraryBookCard'
-import type { PageContentProps } from '@/content/pageRegistry'
-import type { LibraryBookListParams } from '@/lib/publicApi'
-import { getPublicLibraryBooksServer } from '@/lib/publicApiServer'
+import { withBasePath } from '@/lib/basePath'
+import { getPublicLibraryBooks, type LibraryBookListParams, type PublicLibraryBook, type PublicPageResult } from '@/lib/publicApi'
 
-const singleValue = (value: string | string[] | undefined) => Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
-
-export default async function LibrarySearchListContent({ searchParams }: PageContentProps) {
-	const params = await searchParams
-	const requestedPage = Number(singleValue(params.page))
+export default function LibrarySearchListContent() {
+	const params = useSearchParams()
+	const requestedPage = Number(params.get('page'))
 	const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
-	const requestedSearchType = singleValue(params.search_condition)
-	const searchType: LibraryBookListParams['searchType'] = requestedSearchType === 'title' || requestedSearchType === 'content'
+	const requestedSearchType = params.get('search_condition') ?? ''
+	const searchType: LibraryBookListParams['searchType'] = requestedSearchType === 'title' || requestedSearchType === 'author'
 		? requestedSearchType
 		: 'all'
-	const keyword = singleValue(params.search_keyword).trim().slice(0, 100)
-	const newOnly = singleValue(params.new_only).toUpperCase() === 'Y'
-	const result = await getPublicLibraryBooksServer({ page, size: 8, searchType, keyword, newOnly }).catch(() => null)
+	const keyword = (params.get('search_keyword') ?? '').trim().slice(0, 100)
+	const newOnly = (params.get('new_only') ?? '').toUpperCase() === 'Y'
+	const [result, setResult] = useState<PublicPageResult<PublicLibraryBook> | null>(null)
+
+	useEffect(() => {
+		let cancelled = false
+		void getPublicLibraryBooks({ page, size: 8, searchType, keyword, newOnly })
+			.then((data) => {
+				if (!cancelled) setResult(data)
+			})
+			.catch(() => {
+				if (!cancelled) setResult(null)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [keyword, newOnly, page, searchType])
+
 	const books = result?.list ?? []
 	const totalCount = result?.totalCount ?? 0
 	const totalPages = result?.totalPages ?? 1
@@ -34,14 +50,14 @@ export default async function LibrarySearchListContent({ searchParams }: PageCon
 		<section className="library_wrap inner" aria-labelledby="page-title">
 			<h1 id="page-title" className="subtitle">자료검색</h1>
 			<div className="board_top center_type">
-				<form action="/library/search_list" method="get" className="search_wrap">
+				<form action={withBasePath('/library/search_list')} method="get" className="search_wrap">
 					<fieldset>
 						<legend className="sound_only">게시글 검색</legend>
 						<label htmlFor="search-condition" className="sound_only">검색 조건 선택</label>
 						<select name="search_condition" id="search-condition" defaultValue={searchType}>
 							<option value="all">전체</option>
 							<option value="title">제목</option>
-							<option value="content">내용</option>
+							<option value="author">저자</option>
 						</select>
 						<div className="search_area">
 							<label htmlFor="search-keyword" className="sound_only">검색어 입력</label>

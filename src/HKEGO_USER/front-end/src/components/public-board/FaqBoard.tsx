@@ -4,6 +4,7 @@ import BoardPagination from './BoardPagination'
 import BoardSearchForm from './BoardSearchForm'
 import { usePublicBoardList, type SearchType } from './usePublicBoardList'
 import type { PublicBoardCategory, PublicBoardPost, PublicPageResult } from '@/lib/publicApi'
+import { resolvePublicHtmlMediaUrls } from '@/lib/publicApi'
 
 type Props = {
 	initialResult?: PublicPageResult<PublicBoardPost>
@@ -22,7 +23,7 @@ export default function FaqBoard({
 }: Props) {
 	const board = usePublicBoardList('FAQ01', 10, initialResult, initialSearchType, initialKeyword, initialCategory)
 	const { result } = board
-	const emptyMessage = board.error || (!board.loading && result.list.length === 0 ? '등록된 FAQ가 없습니다.' : '')
+	const emptyMessage = board.error || (!board.loading && result.list.length === 0 ? (board.filtered ? '검색 결과가 없습니다.' : '등록된 FAQ가 없습니다.') : '')
 
 	return (
 		<section className="board_wrap inner" aria-labelledby="page-title" aria-busy={board.loading}>
@@ -67,7 +68,7 @@ export default function FaqBoard({
 							<div
 								id={`faq-answer-${post.postId}`}
 								className="answer"
-								dangerouslySetInnerHTML={{ __html: post.content || '' }}
+								dangerouslySetInnerHTML={{ __html: resolvePublicHtmlMediaUrls(post.content || '') }}
 							/>
 						</details>
 					)

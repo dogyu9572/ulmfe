@@ -1,9 +1,11 @@
 'use client'
+import { withBasePath } from '@/lib/basePath'
 
 import BoardPagination from './BoardPagination'
 import BoardSearchForm from './BoardSearchForm'
 import { usePublicBoardList, type SearchType } from './usePublicBoardList'
 import type { PublicBoardId, PublicBoardPost, PublicPageResult } from '@/lib/publicApi'
+import { resolvePublicMediaUrl } from '@/lib/publicApi'
 
 type Props = {
 	boardId: PublicBoardId
@@ -15,7 +17,14 @@ type Props = {
 	initialKeyword?: string
 	initialCategory?: string
 	programType?: 'EXPLORE' | 'MISSION'
-	showLearningTypeFilter?: boolean
+	categoryFilter?: CategoryFilter
+}
+
+export type CategoryFilter = {
+	label: string
+	options: Array<{ value: string; label: string }>
+	queryKey?: 'category' | 'zone'
+	display?: 'select' | 'tabs'
 }
 
 const formatDate = (value: string | null) => value ? value.replaceAll('-', '.') : '-'
@@ -45,6 +54,8 @@ function NoticeRows({ posts, totalCount, page, size, detailPath, emptyMessage, l
 	return posts.map((post, index) => {
 		const number = Math.max(1, totalCount - (page - 1) * size - index)
 		const category = (post.categoryName || post.categoryCode || '').trim()
+		// 학습 유형에만 배지 스타일이 정의되어 있어, 그 밖의 분류는 평문으로 표시한다.
+		const categoryClass = getLearningTypeClass(category)
 		const rowClassName = [post.newYn === 'Y' ? 'new' : '', post.pinnedYn === 'Y' ? 'notice' : '']
 			.filter(Boolean).join(' ') || undefined
 		const detailQuery = new URLSearchParams(listHref.split('?')[1] || '')
@@ -53,12 +64,12 @@ function NoticeRows({ posts, totalCount, page, size, detailPath, emptyMessage, l
 			<tr key={post.postId} className={rowClassName}>
 				<td className="board_num">{number}</td>
 				{showLearningType ? (
-					<td className={`board_edu_type ${getLearningTypeClass(category)}`.trim()}>
-						{category ? <span>{category}</span> : null}
+					<td className={`board_edu_type ${categoryClass}`.trim()}>
+						{category ? (categoryClass ? <span>{category}</span> : category) : null}
 					</td>
 				) : null}
 				<td className="board_tit">
-					<a href={`${detailPath}?${detailQuery.toString()}`}>
+					<a href={withBasePath(`${detailPath}?${detailQuery.toString()}`)}>
 						{post.newYn === 'Y' && <span className="sound_only">[새 글]</span>}
 						{post.title}
 					</a>
@@ -81,9 +92,9 @@ function GalleryItems({ posts, detailPath, listHref }: { posts: PublicBoardPost[
 		detailQuery.set('id', post.postId)
 		return (
 			<li key={post.postId}>
-				<a href={`${detailPath}?${detailQuery.toString()}`}>
+				<a href={withBasePath(`${detailPath}?${detailQuery.toString()}`)}>
 					<span className="imgfit">
-						<img src={post.thumbnailUrl || '/pub/images/no_image.svg'} alt="" />
+						<img src={resolvePublicMediaUrl(post.thumbnailUrl) || withBasePath('/pub/images/no_image.svg')} alt="" />
 					</span>
 					<span className="txt">
 						<h3 className="tit">{post.title}</h3>
@@ -105,32 +116,40 @@ export default function NewsBoardList({
 	initialKeyword = '',
 	initialCategory = '',
 	programType,
-	showLearningTypeFilter = false
+	categoryFilter
 }: Props) {
+	const showCategory = Boolean(categoryFilter)
 	const pageSize = variant === 'notice' ? 10 : 6
-	const board = usePublicBoardList(boardId, pageSize, initialResult, initialSearchType, initialKeyword, initialCategory, programType)
+	const board = usePublicBoardList(boardId, pageSize, initialResult, initialSearchType, initialKeyword, initialCategory, programType, undefined, categoryFilter?.queryKey)
 	const { result } = board
 	const listHref = board.buildHref(result.page)
-	const emptyMessage = board.error || (!board.loading && result.list.length === 0 ? '등록된 게시물이 없습니다.' : '')
+	const emptyMessage = board.error || (!board.loading && result.list.length === 0 ? (board.filtered ? '검색 결과가 없습니다.' : '등록된 게시물이 없습니다.') : '')
 	return (
 		<section className="board_wrap inner" aria-labelledby="page-title" aria-busy={board.loading}>
 			<h1 id="page-title" className="subtitle">{title}</h1>
 			<div className="board_top">
 				<div className="flex left">
 					<div className="total">총 <strong>{result.totalCount}</strong>건</div>
-					{showLearningTypeFilter ? (
+					{categoryFilter?.display === 'tabs' ? (
+						<div className="board_category_tabs" role="tablist" aria-label={categoryFilter.label}>
+							<button type="button" role="tab" aria-selected={!board.draftCategory} className={!board.draftCategory ? 'active' : ''} onClick={() => board.selectCategory('')}>전체</button>
+							{categoryFilter.options.map((option) => (
+								<button type="button" role="tab" aria-selected={board.draftCategory === option.value} className={board.draftCategory === option.value ? 'active' : ''} key={option.value} onClick={() => board.selectCategory(option.value)}>{option.label}</button>
+							))}
+						</div>
+					) : categoryFilter ? (
 						<>
-							<label htmlFor={`${boardId.toLowerCase()}-learning-type`} className="sound_only">학습 유형</label>
+							<label htmlFor={`${boardId.toLowerCase()}-category`} className="sound_only">{categoryFilter.label}</label>
 							<select
-								id={`${boardId.toLowerCase()}-learning-type`}
+								id={`${boardId.toLowerCase()}-category`}
 								className="text"
 								value={board.draftCategory}
 								onChange={(event) => board.selectCategory(event.target.value)}
 							>
-								<option value="">학습 유형</option>
-								<option value="PRE">사전학습</option>
-								<option value="MAIN">본학습</option>
-								<option value="POST">사후학습</option>
+								<option value="">{categoryFilter.label}</option>
+								{categoryFilter.options.map((option) => (
+									<option key={option.value} value={option.value}>{option.label}</option>
+								))}
 							</select>
 						</>
 					) : null}
@@ -150,14 +169,14 @@ export default function NewsBoardList({
 						<caption className="sound_only">게시판 목록으로 번호, 제목, 작성일 정보를 제공합니다.</caption>
 						<colgroup>
 							<col className="board_num" />
-							{showLearningTypeFilter ? <col className="board_edu_type" /> : null}
+							{showCategory ? <col className="board_edu_type" /> : null}
 							<col className="board_tit" />
 							<col className="board_file" /><col className="board_date" /><col className="board_hit" />
 						</colgroup>
 						<thead>
 							<tr>
 								<th scope="col">번호</th>
-								{showLearningTypeFilter ? <th scope="col">학습 유형</th> : null}
+								{categoryFilter ? <th scope="col">{categoryFilter.label}</th> : null}
 								<th scope="col">제목</th>
 								<th scope="col">첨부파일</th>
 								<th scope="col">등록일</th>
@@ -173,7 +192,7 @@ export default function NewsBoardList({
 								detailPath={detailPath}
 								emptyMessage={emptyMessage}
 								listHref={listHref}
-								showLearningType={showLearningTypeFilter}
+								showLearningType={showCategory}
 							/>
 						</tbody>
 					</table>

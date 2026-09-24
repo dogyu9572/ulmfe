@@ -1,9 +1,33 @@
 'use client'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+
+/*
+ * 메뉴 링크는 prefetch 를 끈다.
+ * 헤더는 늘 화면에 떠 있어서 대메뉴 전부가 자동으로 프리페치되는데,
+ * 그때 각 페이지가 가진 이미지·CSS preload 힌트까지 현재 문서로 딸려온다.
+ * 도서관 안내 한 장을 여는데 전시 사진 28장을 미리 받아오던 것이 그 때문이다.
+ */
 import { usePathname, useRouter } from 'next/navigation'
-import { SITE_MENUS } from './siteNavigation'
+import { resolvePublicMediaUrl } from '@/lib/publicApi'
+import { getSiteChrome } from '@/lib/siteChrome'
+import { FAVICON_PATH, SITE_NAME } from '@/lib/siteMeta'
+import { SITE_MENUS, SiteMenu } from './siteNavigation'
+
+function applyFavicon(url: string | null | undefined) {
+    const href = resolvePublicMediaUrl(url?.trim() || FAVICON_PATH)
+    const type = href.toLowerCase().endsWith('.svg') ? 'image/svg+xml' : undefined
+    document.querySelectorAll("link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']").forEach((node) => {
+        const link = node as HTMLLinkElement
+        link.href = href
+        if (type) link.type = type
+        else link.removeAttribute('type')
+    })
+}
+
 export default function SiteHeader() {
+    const [siteMenus, setSiteMenus] = useState<SiteMenu[]>(SITE_MENUS)
+    const [logoUrl, setLogoUrl] = useState<string | null>(null)
     const pathname = usePathname()
     const router = useRouter()
     const [fixed, setFixed] = useState(false)
@@ -24,7 +48,20 @@ export default function SiteHeader() {
         .replace(/^\/news\/notice_view$/, '/news/notice')
         .replace(/^\/news\/exhibit_view$/, '/news/exhibit')
         .replace(/^\/news\/event_view$/, '/news/event')
-        .replace(/^\/support\/qna_(write|view|modify)$/, '/support/qna')
+    useEffect(() => {
+        let cancelled = false
+        void getSiteChrome().then(({ menus, setting }) => {
+            if (cancelled) return
+            setSiteMenus(menus)
+            setLogoUrl(setting?.logoUrl ?? null)
+            const siteName = setting?.siteTitle?.trim()
+            if (siteName) document.title = document.title.replace(SITE_NAME, siteName)
+            applyFavicon(setting?.faviconUrl)
+        })
+        return () => {
+            cancelled = true
+        }
+    }, [])
     useEffect(() => {
         const onScroll = () => setFixed(window.scrollY > 100)
         onScroll()
@@ -69,6 +106,10 @@ export default function SiteHeader() {
         setFocusedMenu(null)
         setHeaderHover(false)
     }
+    const showComingSoon = () => {
+        window.alert('준비중입니다.')
+        closeMenus()
+    }
     const submitSearch = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         const keyword = searchInputRef.current?.value.trim() || ''
@@ -91,10 +132,17 @@ export default function SiteHeader() {
     return (
         <header className={headerClasses}>
             <div className="sound_only">메인메뉴 영역</div>
-            <Link href="/" className="logo" aria-label="울산광역시미래교육관 메인" onClick={closeMenus} />
+            <Link
+                href="/"
+                className="logo"
+                aria-label="울산광역시미래교육관 메인"
+                onClick={closeMenus}
+                /* 관리자에서 로고를 올리면 CSS 배경 이미지를 그 파일로 덮어쓴다. */
+                style={logoUrl ? { backgroundImage: `url('${resolvePublicMediaUrl(logoUrl)}')` } : undefined}
+            />
             <div className="gnb">
                 <ul className="list">
-                    {SITE_MENUS.map((menu, index) => {
+                    {siteMenus.map((menu, index) => {
                         const menuActive = menu.children.some((child) => navigationPath === child.href)
                         return (
                         <li
@@ -107,15 +155,22 @@ export default function SiteHeader() {
                                 if (!event.currentTarget.contains(event.relatedTarget)) setFocusedMenu(null)
                             }}
                         >
-                            <Link href={menu.href} onClick={closeMenus}>{menu.label}</Link>
-                            <div className="snb">
+                            <Link href={menu.comingSoon ? currentPath : menu.href} prefetch={false} onClick={(event) => {
+                                if (menu.comingSoon) {
+                                    event.preventDefault()
+                                    showComingSoon()
+                                    return
+                                }
+                                closeMenus()
+                            }}>{menu.label}</Link>
+                            {!menu.comingSoon && <div className="snb">
                                 <div className="tit">{menu.label}</div>
                                 <ul>
                                     {menu.children.map((child) => (
-                                        <li className={navigationPath === child.href ? 'on' : ''} key={child.href}><Link href={child.href} onClick={closeMenus}>{child.label}</Link></li>
+                                        <li className={navigationPath === child.href ? 'on' : ''} key={child.href}><Link href={child.href} prefetch={false} onClick={closeMenus}>{child.label}</Link></li>
                                     ))}
                                 </ul>
-                            </div>
+                            </div>}
                         </li>
                         )
                     })}
@@ -143,14 +198,20 @@ export default function SiteHeader() {
             </button>
             <div className="sitemap" aria-hidden={!menuOpen}>
                 <ul className="list inner">
-                    {SITE_MENUS.map((menu, index) => {
+                    {siteMenus.map((menu, index) => {
                         const menuActive = menu.children.some((child) => navigationPath === child.href)
                         return (
                         <li className={`menu${menuActive ? ' on' : ''}${mobileMenu === index ? ' open' : ''}`} key={menu.label}>
                             <Link
-                                href={menu.href}
+                                href={menu.comingSoon ? currentPath : menu.href}
+                                prefetch={false}
                                 aria-expanded={mobileMenu === index}
                                 onClick={(event) => {
+                                    if (menu.comingSoon) {
+                                        event.preventDefault()
+                                        showComingSoon()
+                                        return
+                                    }
                                     if (window.innerWidth > 1023) {
                                         closeMenus()
                                         return
@@ -161,11 +222,11 @@ export default function SiteHeader() {
                             >
                                 {menu.label}
                             </Link>
-                            <ul className="snb">
+                            {!menu.comingSoon && <ul className="snb">
                                 {menu.children.map((child) => (
-                                    <li className={navigationPath === child.href ? 'on' : ''} key={child.href}><Link href={child.href} onClick={closeMenus}>{child.label}</Link></li>
+                                    <li className={navigationPath === child.href ? 'on' : ''} key={child.href}><Link href={child.href} prefetch={false} onClick={closeMenus}>{child.label}</Link></li>
                                 ))}
-                            </ul>
+                            </ul>}
                         </li>
                         )
                     })}

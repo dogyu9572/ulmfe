@@ -1,4 +1,5 @@
 import type { ApiResponse, PublicPageResult } from './publicApi'
+import { withBasePath } from './basePath'
 
 const CSRF_COOKIE_NAME = 'XSRF-TOKEN'
 const CSRF_HEADER_NAME = 'X-XSRF-TOKEN'
@@ -54,7 +55,7 @@ function readCsrfToken() {
 async function ensureCsrfToken() {
 	let token = readCsrfToken()
 	if (token) return token
-	const response = await fetch('/api/user/main', {
+	const response = await fetch(withBasePath('/api/user/main'), {
 		credentials: 'same-origin',
 		cache: 'no-store'
 	})
@@ -83,7 +84,7 @@ async function request<T>(url: string, init?: RequestInit) {
 		if (csrfToken) headers.set(CSRF_HEADER_NAME, csrfToken)
 	}
 	if (init?.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-	const response = await fetch(url, {
+	const response = await fetch(withBasePath(url), {
 		...init,
 		headers,
 		credentials: 'same-origin',
@@ -138,7 +139,7 @@ export function deletePublicQna(postId: string) {
 }
 
 export function getQnaCaptchaUrl(nonce: number) {
-	return `/api/user/qna/captcha?v=${nonce}`
+	return withBasePath(`/api/user/qna/captcha?v=${nonce}`)
 }
 
 export function extractCreatedPostId(data: { postId?: string } | string) {

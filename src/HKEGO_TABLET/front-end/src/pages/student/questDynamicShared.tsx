@@ -164,7 +164,7 @@ export const useQuestDynamicPage = (routeIndex: number, contentIndex: number) =>
 	}
 }
 
-export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blockedMessage = '' }: { routeIndex: number; nextPath: string; canSubmit?: boolean; blockedMessage?: string }) => {
+export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blockedMessage = '', getElapsedSeconds }: { routeIndex: number; nextPath: string; canSubmit?: boolean; blockedMessage?: string; getElapsedSeconds?: () => number }) => {
 	const navigate = useNavigate()
 	const pageRef = useRef<HTMLDivElement>(null)
 	const [saving, setSaving] = useState(false)
@@ -182,10 +182,6 @@ export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blocked
 
 	const submit = async () => {
 		if (!flowSession || !quest || saving) return
-		if (!canSubmit) {
-			if (blockedMessage) alert(blockedMessage)
-			return
-		}
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-cntn-sn][data-qstn-sn]') ?? [])
 		const filesByFieldName: Record<string, File> = {}
 		const answers = cards.reduce<TabletMissionAnswer[]>((acc, card, cardIndex) => {
@@ -202,6 +198,16 @@ export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blocked
 			})
 			return acc
 		}, [])
+		// 제한 시간이 남아 있으면 답변부터 받는다. 답변을 냈더라도 시간이 다 되기 전에는 넘어가지 않고,
+		// 시간이 지나면 답변이 없어도 다음 활동으로 보낸다.
+		if (!canSubmit) {
+			if (cards.length > 0 && answers.length === 0) {
+				alert('답변을 입력한 뒤 다음으로 이동할 수 있습니다.')
+				return
+			}
+			if (blockedMessage) alert(blockedMessage)
+			return
+		}
 		try {
 			setSaving(true)
 			const payload = {
@@ -210,6 +216,7 @@ export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blocked
 				routeName: quest.name,
 				stepCd: studentFlowExploreStepCode(routeIndex),
 				totalRouteCount: routeItems.length,
+				elapsedSeconds: getElapsedSeconds?.(),
 				answers
 			}
 			if (Object.keys(filesByFieldName).length > 0) {
@@ -230,7 +237,7 @@ export const useQuestSubmit = ({ routeIndex, nextPath, canSubmit = true, blocked
 	return { pageRef, submit, saving, restoreSavedAnswers }
 }
 
-export const DynamicQuestCard = ({ content, cardTypeClass, emptyMessage = '관리자에 연결된 콘텐츠가 없습니다.' }: { content: TabletContent | null; cardTypeClass: string; emptyMessage?: string }) => (
+export const DynamicQuestCard = ({ content, cardTypeClass, emptyMessage = '표시할 활동 내용이 없습니다.' }: { content: TabletContent | null; cardTypeClass: string; emptyMessage?: string }) => (
 	<div className={`wbox q_card_box ${cardTypeClass}`}>
 		<div className="card_top">{content?.cardClsfNm || '콘텐츠'}</div>
 		{content ? <>
@@ -309,7 +316,7 @@ const DynamicQuestionControl = ({ question, baseId, savedAnswer }: { question: T
 	return <input type="text" className="text w100p" placeholder="입력해주세요." />
 }
 
-export const DynamicQuestionCards = ({ content, questions, savedAnswers, emptyMessage = '관리자에 연결된 문항이 없습니다.', startIndex = 0 }: {
+export const DynamicQuestionCards = ({ content, questions, savedAnswers, emptyMessage = '풀어볼 문항이 없습니다.', startIndex = 0 }: {
 	content: TabletContent | null
 	questions: TabletContentQuestion[]
 	savedAnswers: Map<string, string>
@@ -384,12 +391,13 @@ export const QuestDynamicContentPage = ({ routeIndex, contentIndex }: { routeInd
 		[flowSession]
 	)
 	const timerStorageKey = flowSession ? `hkegoTabletQuestTimer:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}` : ''
-	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
+	const { isTimeLimitMet, remainingLabel, getElapsedSeconds } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
 	const { pageRef, submit, saving, restoreSavedAnswers } = useQuestSubmit({
 		routeIndex,
 		nextPath,
 		canSubmit: isTimeLimitMet,
-		blockedMessage: `${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`
+		blockedMessage: `${remainingLabel} 후 다음 학습으로 이동할 수 있습니다.`,
+		getElapsedSeconds
 	})
 
 	useEffect(() => restoreSavedAnswers(savedAnswers), [restoreSavedAnswers, savedAnswers])

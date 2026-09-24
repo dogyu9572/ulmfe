@@ -1,7 +1,14 @@
 server:
-  port: 9014
+  port: 9032
   address: 0.0.0.0
   servlet:
+    # 운영 공개 path: https://use.go.kr/usfec
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/usfec}
+    # 외부 톰캣이 HTML을 ISO-8859-1로 주면 정적 한글이 깨진다. 응답 charset을 UTF-8로 고정한다.
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     session:
       timeout: 30m
       cookie:
@@ -12,25 +19,29 @@ server:
 
 file:
   upload:
-    path: /home/hksts-webapp/uploads
+    path: ${FILE_UPLOAD_PATH:/home/ulmfe/uploads}
 
 app:
   crypto:
-    secret-key: ${APP_CRYPTO_SECRET_KEY:CHANGE_ME_32_BYTE_SECRET_KEY_123}
+    secret-key: ${APP_CRYPTO_SECRET_KEY:}
   security:
     login-max-attempts: ${APP_SECURITY_LOGIN_MAX_ATTEMPTS:5}
     login-lock-minutes: ${APP_SECURITY_LOGIN_LOCK_MINUTES:15}
     csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
     csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:false}
+  kakao:
+    # 오시는 길 카카오맵 JavaScript 키. 정적 프론트는 /api/user/site-setting 으로 받아 쓴다.
+    map-app-key: ${KAKAO_MAP_APP_KEY:fb0bc87a6e3abc550a07197cacf991f0}
+  # 포트: 백엔드 9032 / 프론트 9132
   cors:
     allowed-origins:
-      - http://localhost:3014
-      - http://127.0.0.1:3014
-      - http://192.168.0.5:3014
-      - http://106.240.255.10:3014
-      - http://106.240.255.10:9014
-      - http://localhost:9014
-      - http://127.0.0.1:9014
+      - http://localhost:9132
+      - http://127.0.0.1:9132
+      - http://192.168.0.5:9132
+      - http://106.240.255.10:9132
+      - http://106.240.255.10:9032
+      - https://ulmfe-user.hk-test.co.kr
+      - http://ulmfe-user.hk-test.co.kr
 
 spring:
   servlet:
@@ -52,6 +63,19 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:p6spy:mariadb://127.0.0.1:3306/ulmfe}
     username: ${SPRING_DATASOURCE_USERNAME:ulmfe}
     password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      # 관리자·사용자·태블릿이 같은 MySQL 을 쓰므로 앱당 기본 10(Hikari)을 두지 않는다.
+      # 요청이 없어도 풀이 유휴 연결을 유지하므로, 세 앱 합계가 max_connections 에 가깝지 않게 제한한다.
+      pool-name: HKEGO_USER
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:5}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:1}
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      # DB 서버 OS 가 UTC 라 NOW()·CURRENT_TIMESTAMP 가 UTC 로 저장됐다.
+      # 애플리케이션 코드는 Asia/Seoul 을 쓰므로 두 기준이 어긋났다.
+      # 커넥션마다 세션 타임존을 한국 시간으로 맞춘다.
+      # 컬럼이 전부 datetime 이라 이미 저장된 값의 해석은 바뀌지 않는다.
+      connection-init-sql: SET time_zone = '+09:00'
 
 Globals:
   LocalIp: 127.0.0.1

@@ -17,7 +17,7 @@
 	.search_list p {font-size:17px; color:#6B7684; margin:8px 0 24px; overflow:hidden; text-overflow:ellipsis; white-space:normal; word-wrap:break-word; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;}
 	.search_list .location {display:flex; gap:24px;}
 	.search_list .location span {position:relative; font-size:15px; color:#004C88; font-weight:500; line-height:1.45;}
-	.search_list .location span + span:before {content:""; position:absolute; top:0; left:-24px; width:24px; height:100%; background:url('/pub/images/arrow_search_location.svg') no-repeat 50% 50%;}
+	.search_list .location span + span:before {content:""; position:absolute; top:0; left:-24px; width:24px; height:100%; background:url('../images/arrow_search_location.svg') no-repeat 50% 50%;}
 
 /* 반응형 */
 @media screen and (max-width:1600px){

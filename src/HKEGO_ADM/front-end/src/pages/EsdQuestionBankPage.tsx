@@ -7,6 +7,7 @@ import { RowActionButtons } from '../components/RowActionButtons'
 import { API_BASE_URL } from '../config'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
 import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { ListLongTextCell } from '../utils/listLongText'
 
 type ApiResponse<T> = {
 	success: boolean
@@ -39,7 +40,7 @@ type UploadInfo = {
 }
 
 const BACKEND = API_BASE_URL
-const PAGE_SIZE_OPTIONS = [20, 50, 100]
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 const defaultForm = (): QuestionForm => ({
 	esdQstnSn: null,
@@ -421,7 +422,7 @@ export const EsdQuestionBankPage: React.FC = () => {
 							const correctOption = options[Math.max(0, Number(row.cransNo) - 1)] || '-'
 							return <tr key={row.esdQstnSn ?? row.qstnCn} onClick={() => void openEditPopup(row.esdQstnSn)}>
 								<td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={row.esdQstnSn != null && selectedIds.has(row.esdQstnSn)} onChange={() => toggleSelectRow(row.esdQstnSn)} aria-label={`${row.qstnCn} 선택`} /></td>
-								<td>{row.esdQstnSn}</td><td>{row.qstnTypeNm || (row.qstnTypeCd === 'OX' ? 'OX' : '객관식')}</td><td style={{ textAlign: 'left' }}>{row.qstnCn}</td><td style={{ textAlign: 'left' }}>{correctOption}</td><td>{row.useYn === 'Y' ? '사용' : '미사용'}</td><td>{formatDate(row.regDt)}</td>
+								<td>{row.esdQstnSn}</td><td>{row.qstnTypeNm || (row.qstnTypeCd === 'OX' ? 'OX' : '객관식')}</td><ListLongTextCell text={row.qstnCn} /><ListLongTextCell text={correctOption} /><td>{row.useYn === 'Y' ? '사용' : '미사용'}</td><td>{formatDate(row.regDt)}</td>
 								<td className="table-actions admin-list-manage-td" onClick={(e) => e.stopPropagation()}><RowActionButtons onEdit={() => void openEditPopup(row.esdQstnSn)} onDelete={() => void deleteQuestion(row)} disabled={loading} /></td>
 							</tr>
 						})}

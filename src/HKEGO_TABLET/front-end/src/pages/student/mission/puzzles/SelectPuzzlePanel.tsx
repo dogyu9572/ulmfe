@@ -1,19 +1,22 @@
 ﻿// E3 다중 선택 패널 — SDGs 17개 목표 그리드. 정답 개수 비공개, 문구는 지연 공개(1단계 색상만 → 2단계 문구)
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SelectPuzzle } from '../../../../state/missionPuzzleTypes'
 import { AnswerBox, DemoState } from './puzzleShared'
 
 export const SelectPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: SelectPuzzle; demo?: DemoState; onSubmit: (ok: boolean) => void }) => {
 	const [selected, setSelected] = useState<number[]>([])
-	const [labelShown, setLabelShown] = useState(puzzle.labelRevealAfterSec == null)
+	// labelRevealAfterSec(미래존 SDGs는 180초)이 지날 때까지 .unview로 목표 문구를 가린다
+	const [labelRevealed, setLabelRevealed] = useState(!puzzle.labelRevealAfterSec)
+	// 힌트 지연과 같은 배율로 압축한다 (시연 툴바의 speed)
+	const speedRef = useRef(1)
+	speedRef.current = demo?.speed || 1
 
-	// demo가 없는 실구현에서는 원문 지연값 그대로 공개한다
-	const speed = demo?.speed || 1
 	useEffect(() => {
-		if (puzzle.labelRevealAfterSec == null) return
-		const timer = window.setTimeout(() => setLabelShown(true), (puzzle.labelRevealAfterSec / speed) * 1000)
+		if (!puzzle.labelRevealAfterSec) return
+		setLabelRevealed(false)
+		const timer = window.setTimeout(() => setLabelRevealed(true), (puzzle.labelRevealAfterSec * 1000) / (speedRef.current || 1))
 		return () => window.clearTimeout(timer)
-	}, [puzzle.id, puzzle.labelRevealAfterSec, speed])
+	}, [puzzle.id, puzzle.labelRevealAfterSec])
 
 	const toggle = (index: number) =>
 		setSelected(selected.includes(index) ? selected.filter((v) => v !== index) : [...selected, index])
@@ -29,20 +32,20 @@ export const SelectPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: SelectPu
 
 	return (
 		<>
-			<p className="muted">{labelShown
-				? '2단계 — 지속가능발전목표 문구까지 제시'
-				: `1단계 — 색상과 이미지만 제시 (${Math.round((puzzle.labelRevealAfterSec || 0) / 60)}분 뒤 문구 공개)`}</p>
-			<div className="mproto_sdgs">
+			<p className="muted">지속가능발전목표 문구까지 제시</p>
+			<div className={`mproto_sdgs${labelRevealed ? '' : ' unview'}`}>
 				{puzzle.items.map((item, index) => (
 					<button
 						type="button"
-						className={`mproto_goal${selected.includes(index) ? ' sel' : ''}${labelShown ? '' : ' hide'}`}
+						className={`mproto_goal i${String(index + 1).padStart(2, '0')}${selected.includes(index) ? ' sel' : ''}`}
 						style={{ background: item.color }}
 						key={index}
 						onClick={() => toggle(index)}
 					>
-						<strong>{index + 1}</strong>
-						<span>{item.label}</span>
+						<span className="flex">
+							<strong>{index + 1}</strong>
+							<span>{item.label}</span>
+						</span>
 					</button>
 				))}
 			</div>

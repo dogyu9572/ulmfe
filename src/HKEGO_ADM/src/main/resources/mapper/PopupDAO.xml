@@ -63,7 +63,7 @@
 			DLTR_NM,
 			DEL_DT
 		<include refid="popupListWhere"/>
-		ORDER BY REG_DT DESC
+		ORDER BY REG_DT DESC, POPUP_SN DESC
 		LIMIT #{offset}, #{limit}
 	</select>
 

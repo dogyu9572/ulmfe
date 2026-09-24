@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.HomepageCiDAO">
+	<resultMap id="HomepageCiMap" type="egovframework.let.adm.service.vo.HomepageCiVO">
+		<id column="CI_SN" property="ciSn"/>
+		<result column="CI_SE_CD" property="ciSeCd"/>
+		<result column="CI_TTL" property="ciTtl"/>
+		<result column="IMG_FILE_ID" property="imgFileId"/>
+		<result column="FILE_URL" property="fileUrl"/>
+		<result column="FILE_NAME" property="fileName"/>
+		<result column="SORT_SEQ" property="sortSeq"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR_NM" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDFR_NM" property="mdtr"/>
+		<result column="DEL_DT" property="delDt"/>
+		<result column="DLTR_NM" property="deltr"/>
+	</resultMap>
+
+	<!-- 관리자 화면이 썸네일과 파일명을 따로 조회하지 않도록 첨부파일 정보를 함께 내려준다. -->
+	<sql id="ciSelectColumns">
+		C.CI_SN, C.CI_SE_CD, C.CI_TTL, C.IMG_FILE_ID, C.SORT_SEQ, C.USE_YN, C.DEL_YN,
+		C.REG_DT, C.RGTR_NM, C.MDFCN_DT, C.MDFR_NM, C.DEL_DT, C.DLTR_NM,
+		(
+			SELECT F.ATCH_FILE_PATH_NM
+			FROM ATCH_FILE_INFO F
+			WHERE F.ATCH_FILE_MNG_NO = C.IMG_FILE_ID
+			ORDER BY F.FILE_SEQ DESC
+			LIMIT 1
+		) AS FILE_URL,
+		(
+			SELECT F.ORGNL_FILE_NM
+			FROM ATCH_FILE_INFO F
+			WHERE F.ATCH_FILE_MNG_NO = C.IMG_FILE_ID
+			ORDER BY F.FILE_SEQ DESC
+			LIMIT 1
+		) AS FILE_NAME
+	</sql>
+
+	<select id="selectCiList" resultMap="HomepageCiMap">
+		SELECT <include refid="ciSelectColumns"/>
+		FROM HMPG_CI C
+		WHERE C.DEL_YN = 'N'
+			AND C.CI_SE_CD = #{ciSeCd}
+		ORDER BY C.SORT_SEQ ASC, C.CI_SN ASC
+	</select>
+
+	<select id="selectCi" parameterType="int" resultMap="HomepageCiMap">
+		SELECT <include refid="ciSelectColumns"/>
+		FROM HMPG_CI C
+		WHERE C.CI_SN = #{value}
+			AND C.DEL_YN = 'N'
+	</select>
+
+	<select id="selectNextSortSeq" parameterType="map" resultType="int">
+		SELECT COALESCE(MAX(SORT_SEQ), 0) + 1
+		FROM HMPG_CI
+		WHERE DEL_YN = 'N'
+			AND CI_SE_CD = #{ciSeCd}
+	</select>
+
+	<insert id="insertCi" parameterType="egovframework.let.adm.service.vo.HomepageCiVO"
+		useGeneratedKeys="true" keyProperty="ciSn">
+		INSERT INTO HMPG_CI (
+			CI_SE_CD, CI_TTL, IMG_FILE_ID, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
+		) VALUES (
+			#{ciSeCd}, #{ciTtl}, #{imgFileId}, #{sortSeq}, #{useYn}, 'N', NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateCi" parameterType="egovframework.let.adm.service.vo.HomepageCiVO">
+		UPDATE HMPG_CI
+		SET
+			CI_SE_CD = #{ciSeCd},
+			CI_TTL = #{ciTtl},
+			IMG_FILE_ID = #{imgFileId},
+			USE_YN = #{useYn},
+			MDFCN_DT = NOW(),
+			MDFR_NM = #{mdtr}
+		WHERE CI_SN = #{ciSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="updateCiSeq" parameterType="map">
+		UPDATE HMPG_CI
+		SET SORT_SEQ = #{sortSeq},
+			MDFCN_DT = NOW(),
+			MDFR_NM = #{mdtr}
+		WHERE CI_SN = #{ciSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="clearOtherUseYn" parameterType="map">
+		UPDATE HMPG_CI
+		SET USE_YN = 'N',
+			MDFCN_DT = NOW()
+		WHERE DEL_YN = 'N'
+			AND CI_SE_CD = #{ciSeCd}
+			AND CI_SN &lt;&gt; #{keepCiSn}
+			AND USE_YN = 'Y'
+	</update>
+
+	<update id="deleteCi" parameterType="map">
+		UPDATE HMPG_CI
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DLTR_NM = #{deltr}
+		WHERE CI_SN = #{ciSn}
+			AND DEL_YN = 'N'
+	</update>
+</mapper>

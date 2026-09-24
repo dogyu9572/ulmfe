@@ -3,6 +3,13 @@ server:
   address: 127.0.0.1
   forward-headers-strategy: framework
   servlet:
+    # 운영 공개 path: https://use.go.kr/usfec-tab
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/usfec-tab}
+    # 외부 톰캣이 HTML을 ISO-8859-1로 주면 정적 한글이 깨진다. 응답 charset을 UTF-8로 고정한다.
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     session:
       timeout: 30m
       cookie:
@@ -19,12 +26,15 @@ app:
   security:
     csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
     csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:false}
+  # 포트: 백엔드 9033 / 프론트 9133 · 공개 path /usfec-tab
   cors:
     allowed-origins:
       - http://localhost:9133
       - http://127.0.0.1:9133
       - https://ulmfe-tablet.hk-test.co.kr
       - http://ulmfe-tablet.hk-test.co.kr
+      - https://use.go.kr
+      - https://dev.use.go.kr
 
 file:
   upload:
@@ -36,6 +46,19 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:p6spy:mariadb://127.0.0.1:3306/ulmfe}
     username: ${SPRING_DATASOURCE_USERNAME:ulmfe}
     password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      # 관리자·사용자·태블릿이 같은 MySQL 을 쓰므로 앱당 기본 10(Hikari)을 두지 않는다.
+      # 요청이 없어도 풀이 유휴 연결을 유지하므로, 세 앱 합계가 max_connections 에 가깝지 않게 제한한다.
+      pool-name: HKEGO_TABLET
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:5}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:1}
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      # DB 서버 OS 가 UTC 라 NOW()·CURRENT_TIMESTAMP 가 UTC 로 저장됐다.
+      # 애플리케이션 코드는 Asia/Seoul 을 쓰므로 두 기준이 어긋났다.
+      # 커넥션마다 세션 타임존을 한국 시간으로 맞춘다.
+      # 컬럼이 전부 datetime 이라 이미 저장된 값의 해석은 바뀌지 않는다.
+      connection-init-sql: SET time_zone = '+09:00'
 
 logging:
   level:

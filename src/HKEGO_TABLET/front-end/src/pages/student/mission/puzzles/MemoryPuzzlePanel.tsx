@@ -7,11 +7,16 @@ type Card = { pairId: number; kind: 'color' | 'text' }
 
 const buildDeck = (puzzle: MemoryPuzzle): Card[] => {
 	const count = Math.min(puzzle.pairCount ?? puzzle.pairs.length, puzzle.pairs.length)
+	const defaultOrder = Array.from({ length: count }, (_, pairId) => pairId)
+	const specifiedOrder = puzzle.pairOrder?.filter((pairId, index, order) => pairId >= 0 && pairId < count && order.indexOf(pairId) === index) ?? []
+	const pairOrder = specifiedOrder.length > 0
+		? [...specifiedOrder, ...defaultOrder.filter((pairId) => !specifiedOrder.includes(pairId))]
+		: defaultOrder
 	const deck: Card[] = []
-	for (let pairId = 0; pairId < count; pairId++) {
+	for (const pairId of pairOrder) {
 		deck.push({ pairId, kind: 'color' }, { pairId, kind: 'text' })
 	}
-	return deck.sort(() => Math.random() - 0.5)
+	return specifiedOrder.length > 0 ? deck : deck.sort(() => Math.random() - 0.5)
 }
 
 export const MemoryPuzzlePanel = ({ puzzle, demo, onSubmit, onRequestQuiz }: { puzzle: MemoryPuzzle; demo?: DemoState; onSubmit: (ok: boolean) => void; onRequestQuiz: () => void }) => {
@@ -42,31 +47,33 @@ export const MemoryPuzzlePanel = ({ puzzle, demo, onSubmit, onRequestQuiz }: { p
 
 	return (
 		<>
-			<div className="mproto_mem" style={{ gridTemplateColumns: `repeat(${puzzle.columns || 8}, 1fr)` }}>
+			<div className="mproto_mem wbox">
 				{deck.map((card, index) => {
 					const isOpen = peek || open.includes(index) || matched.includes(card.pairId)
 					const isMatched = matched.includes(card.pairId)
 					const item = puzzle.pairs[card.pairId]
+					const itemClass = `i${String(card.pairId + 1).padStart(2, '0')}`
 					if (!isOpen) {
-						return <button type="button" className="mproto_card" key={index} onClick={() => flip(index)}>?</button>
+						return <button type="button" className={`mproto_goal mproto_card ${itemClass} flex_center`} key={index} onClick={() => flip(index)}>?</button>
 					}
 					return card.kind === 'color'
 						? (
 							<button
 								type="button"
-								className={`mproto_card open${isMatched ? ' matched' : ''}`}
+								className={`mproto_goal mproto_card ${itemClass} open${isMatched ? ' matched' : ''}`}
 								style={{ background: item.color, color: '#fff', borderColor: item.color }}
 								key={index}
 								onClick={() => flip(index)}
-							><strong>{card.pairId + 1}</strong></button>
+							><span className="flex"><strong>{card.pairId + 1}</strong><span>{item.label}</span></span></button>
 						)
 						: (
 							<button
 								type="button"
-								className={`mproto_card open${isMatched ? ' matched' : ''}`}
+								className={`mproto_goal mproto_card ${itemClass} open${isMatched ? ' matched' : ''}`}
+								style={{ background: item.color, color: '#fff', borderColor: item.color }}
 								key={index}
 								onClick={() => flip(index)}
-							><small>{item.label}</small></button>
+							><span className="flex"><strong>{card.pairId + 1}</strong><span>{item.label}</span></span></button>
 						)
 				})}
 			</div>

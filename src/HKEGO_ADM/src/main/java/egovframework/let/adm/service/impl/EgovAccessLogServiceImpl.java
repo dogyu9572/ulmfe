@@ -150,7 +150,10 @@ public class EgovAccessLogServiceImpl extends EgovAbstractServiceImpl implements
 			{"/api/admin/users", "/admin/users"},
 			{"/api/admin/user-visitor-stats", "/admin/user-visitor-stats"}, {"/api/admin/user-access-log", "/admin/user-access-log"},
 			{"/api/admin/notification-log", "/admin/notification-log"}, {"/api/admin/visitor-stats", "/admin/visitor-stats"},
-			{"/api/admin/education-program-stats", "/admin/education-program-stats"}, {"/api/admin/material-download-stats", "/admin/material-download-stats"}
+			{"/api/admin/education-program-stats", "/admin/education-program-stats"}, {"/api/admin/material-download-stats", "/admin/material-download-stats"},
+			// 아래 네 경로가 빠져 있어 해당 화면의 조작이 감사 로그에서 메뉴 미상(-)으로 남았다.
+			{"/api/admin/esd-questions", "/admin/esd-question-bank"}, {"/api/admin/ci", "/admin/ci"},
+			{"/api/admin/closed-day", "/admin/closed-days"}, {"/api/admin/edu-program-intros", "/admin/edu-program-intros"}
 		};
 		for (String[] mapping : mappings) if (uri.startsWith(mapping[0])) return mapping[1];
 		return "";

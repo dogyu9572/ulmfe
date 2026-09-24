@@ -1,3 +1,6 @@
+import { withBasePath } from '@/lib/basePath'
+import { CLOSED_DAYS_TEXT, hoursText, LUNCH_BREAK, OPENING_HOURS } from '@/lib/siteMeta'
+
 export default function ProgramReserveContent() {
 	return (
 		<>
@@ -25,7 +28,11 @@ export default function ProgramReserveContent() {
 											{"운영시간"}
 										</span>
 										<strong>
-											{"09:00 ~ 18:00"}
+											{`${OPENING_HOURS.weekday.label} ${hoursText(OPENING_HOURS.weekday)}`}
+											<br />
+											{`${OPENING_HOURS.weekend.label} ${hoursText(OPENING_HOURS.weekend)}`}
+											<br />
+											{`점심시간(${hoursText(LUNCH_BREAK)}) 제외`}
 										</strong>
 									</li>
 									<li className="c2">
@@ -33,7 +40,7 @@ export default function ProgramReserveContent() {
 											{"휴관일"}
 										</span>
 										<strong>
-											{"매주 월요일, 공휴일"}
+											{CLOSED_DAYS_TEXT}
 										</strong>
 									</li>
 									<li className="c3">
@@ -81,7 +88,7 @@ export default function ProgramReserveContent() {
 								<ul className="reservation_step wbox">
 									<li>
 										<i aria-hidden="true">
-											<img src="/pub/images/icon_reservation_step01.svg" alt="" />
+											<img src={withBasePath('/pub/images/icon_reservation_step01.svg')} alt="" />
 										</i>
 										<span>
 											{"STEP 01"}
@@ -94,7 +101,7 @@ export default function ProgramReserveContent() {
 									</li>
 									<li>
 										<i aria-hidden="true">
-											<img src="/pub/images/icon_reservation_step02.svg" alt="" />
+											<img src={withBasePath('/pub/images/icon_reservation_step02.svg')} alt="" />
 										</i>
 										<span>
 											{"STEP 02"}
@@ -107,7 +114,7 @@ export default function ProgramReserveContent() {
 									</li>
 									<li>
 										<i aria-hidden="true">
-											<img src="/pub/images/icon_reservation_step03.svg" alt="" />
+											<img src={withBasePath('/pub/images/icon_reservation_step03.svg')} alt="" />
 										</i>
 										<span>
 											{"STEP 03"}
@@ -120,7 +127,7 @@ export default function ProgramReserveContent() {
 									</li>
 									<li>
 										<i aria-hidden="true">
-											<img src="/pub/images/icon_reservation_step04.svg" alt="" />
+											<img src={withBasePath('/pub/images/icon_reservation_step04.svg')} alt="" />
 										</i>
 										<span>
 											{"STEP 04"}
@@ -131,7 +138,7 @@ export default function ProgramReserveContent() {
 									</li>
 									<li>
 										<i aria-hidden="true">
-											<img src="/pub/images/icon_reservation_step05.svg" alt="" />
+											<img src={withBasePath('/pub/images/icon_reservation_step05.svg')} alt="" />
 										</i>
 										<span>
 											{"STEP 05"}

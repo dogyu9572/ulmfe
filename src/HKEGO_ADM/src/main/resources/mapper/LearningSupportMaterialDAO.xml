@@ -17,6 +17,13 @@
 			WHEN 'POST' THEN '사후학습'
 			ELSE B.ETC1
 		END AS LRN_TYPE_NM,
+		B.CTGR_CD AS ZONE_CD,
+		CASE B.CTGR_CD
+			WHEN 'FUTURE' THEN '미래존'
+			WHEN 'EARTH' THEN '지구존'
+			WHEN 'SOCIETY' THEN '사회존'
+			ELSE B.CTGR_CD
+		END AS ZONE_NM,
 		B.ETC2 AS DATA_TYPE_CD,
 		CASE B.ETC2
 			WHEN 'LINK' THEN '링크'
@@ -51,6 +58,9 @@
 			<include refid="bbsIdCondition"/>
 			<if test="lrnTypeCd != null and lrnTypeCd != ''">
 				AND B.ETC1 = #{lrnTypeCd}
+			</if>
+			<if test="zoneCd != null and zoneCd != ''">
+				AND B.CTGR_CD = #{zoneCd}
 			</if>
 			<if test="dataTypeCd != null and dataTypeCd != ''">
 				AND B.ETC2 = #{dataTypeCd}
@@ -124,7 +134,7 @@
 			ANS_STTS_CD, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			'LRNSUP', #{pstSn}, #{pstTtl}, #{pstCn}, #{wrtrNm}, #{wrtrId}, 0,
-			NULL, 'N', 'N', 'N', #{linkUrl}, #{pstgYmd},
+			#{zoneCd}, 'N', 'N', 'N', #{linkUrl}, #{pstgYmd},
 			COALESCE(#{atchFileMngNo}, ''), NULL, NULL, #{useYn}, #{inqCnt},
 			#{lrnTypeCd}, #{dataTypeCd}, #{prgrmTypeCd}, #{prgrmSn}, #{videoEmbedUrl},
 			'WAIT', NOW(), #{rgtr}, NOW(), #{mdtr}
@@ -139,6 +149,7 @@
 			PSTG_YMD = #{pstgYmd},
 			ATCH_FILE_MNG_NO = COALESCE(#{atchFileMngNo}, ''),
 			USE_YN = #{useYn},
+			CTGR_CD = #{zoneCd},
 			ETC1 = #{lrnTypeCd},
 			ETC2 = #{dataTypeCd},
 			ETC3 = #{prgrmTypeCd},

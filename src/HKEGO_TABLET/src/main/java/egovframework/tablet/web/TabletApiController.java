@@ -168,6 +168,15 @@ public class TabletApiController {
 		return ApiResponse.success("선생님 메시지 수신 내역 조회 성공", tabletService.getUnreadTeacherMessages(rsvtSn, studentSns));
 	}
 
+	@GetMapping("/reservations/{rsvtSn}/bonus")
+	public ApiResponse<Map<String, Boolean>> getBonusStageOpened(
+		@PathVariable Integer rsvtSn,
+		@RequestParam List<Integer> studentSns
+	) {
+		boolean opened = tabletService.isBonusStageOpened(rsvtSn, studentSns);
+		return ApiResponse.success("보너스 스테이지 개방 여부 조회 성공", Map.of("opened", opened));
+	}
+
 	@PostMapping("/reservations/{rsvtSn}/attendance")
 	public ResponseEntity<ApiResponse<Void>> markAttendance(@PathVariable Integer rsvtSn, @RequestBody TabletAttendanceRequest request) {
 		try {

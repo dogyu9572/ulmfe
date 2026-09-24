@@ -34,7 +34,7 @@ public class EgovHomepageOrgChartManageApiController {
 				homepageOrgChartService.getOrgChartMembers(frstClsfCd, scndClsfCd));
 		} catch (Exception e) {
 			log.error("조직도 항목 조회 오류", e);
-			return ApiResponse.error("조직도 항목 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "조직도 항목 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -44,7 +44,7 @@ public class EgovHomepageOrgChartManageApiController {
 			return ApiResponse.success("조직도 항목이 등록되었습니다.", homepageOrgChartService.saveOrgChartMember(member));
 		} catch (Exception e) {
 			log.error("조직도 항목 등록 오류", e);
-			return ApiResponse.error("조직도 항목 등록 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "조직도 항목 등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -57,7 +57,7 @@ public class EgovHomepageOrgChartManageApiController {
 			return ApiResponse.success("조직도 항목이 수정되었습니다.", homepageOrgChartService.saveOrgChartMember(member));
 		} catch (Exception e) {
 			log.error("조직도 항목 수정 오류", e);
-			return ApiResponse.error("조직도 항목 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "조직도 항목 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -70,7 +70,7 @@ public class EgovHomepageOrgChartManageApiController {
 			return ApiResponse.success("조직도 항목이 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("조직도 항목 삭제 오류", e);
-			return ApiResponse.error("조직도 항목 삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "조직도 항목 삭제 중 오류가 발생했습니다."));
 		}
 	}
 }

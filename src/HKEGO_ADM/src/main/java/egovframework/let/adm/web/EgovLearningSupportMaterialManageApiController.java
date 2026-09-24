@@ -27,6 +27,7 @@ public class EgovLearningSupportMaterialManageApiController {
 	@GetMapping
 	public ApiResponse<Map<String, Object>> getLearningSupportMaterials(
 		@RequestParam(required = false) String lrnTypeCd,
+		@RequestParam(required = false) String zoneCd,
 		@RequestParam(required = false) String dataTypeCd,
 		@RequestParam(required = false) String startRegYmd,
 		@RequestParam(required = false) String endRegYmd,
@@ -38,7 +39,7 @@ public class EgovLearningSupportMaterialManageApiController {
 		return ApiResponse.success(
 			"학습지원 자료실 목록 조회 성공",
 			learningSupportMaterialService.getLearningSupportMaterialListPage(
-				lrnTypeCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword, page, size
+				lrnTypeCd, zoneCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword, page, size
 			)
 		);
 	}

@@ -1,9 +1,10 @@
+import { pubUrl } from '../../../config'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchTabletSession, submitTabletMissionFinal, TabletQuestionnaireAnswer, TabletQuestionnaireQuestion } from '../../../api/tabletApi'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
-import { saveTabletStudentFlowSession, studentFlowDisplayName, studentFlowRouteItems } from '../../../state/tabletStudentFlowSession'
+import { finishTabletStudentFlow, saveTabletStudentFlowSession, studentFlowDisplayName, studentFlowRouteItems } from '../../../state/tabletStudentFlowSession'
 import { MissionTitle } from './missionShared'
 
 type MissionPopup = 'evaluation' | 'questionnaire' | 'completed' | null
@@ -74,7 +75,7 @@ const QuestionnairePopup = ({ id, title, questions, values, onChange, open, onCl
 									</ul>}
 								</li>
 							})}
-						</ul> : <div className="wbox"><h3 className="tit">관리자에 연결된 문항이 없습니다.</h3></div>}
+						</ul> : <div className="wbox"><h3 className="tit">풀어볼 문항이 없습니다.</h3></div>}
 						<div className="btns_btm"><button type="button" className="btn btn_kwg btn_clo" onClick={onClose}>이전</button><button type="button" className="btn btn_wbb btn_end" onClick={onSave}>저장</button></div>
 					</div>
 				</div>
@@ -197,7 +198,7 @@ export const MissionEndPage = () => {
 				<MissionTitle step="STEP 4 실천력 부여" subtitle="울산 SDGs 히어로즈 완성·평가/설문" location="별관 (러닝도서관) 1~2층" />
 				<div className="page_quest page_mission_end">
 					<div className="hero_name">
-						<img src="/pub/images/img_mission_end.webp" alt="" aria-hidden="true" />
+						<img src={pubUrl("/pub/images/img_mission_end.webp")} alt="" aria-hidden="true" />
 						<div className="txt"><strong>미션을 모두 완수한 여러분은 일상 속 위기를 이겨내고, <br />미래를 위한 실천까지 완성한 진정한 SDGs 영웅입니다.</strong><div className="inputs"><input type="text" className="text" placeholder="SDGs 히어로즈의 이름을 지어주세요." value={heroName} onChange={(event) => setHeroName(event.target.value)} /><button type="button" className="btn" onClick={saveHeroName}>저장</button></div></div>
 					</div>
 					<div className="script_tabs_wrap"><div className="cont_area wbox"><div className="star_box"><h2 className="titbox">오늘 활동 돌아보기</h2><ul className="conbox flex_center end_area"><li><button type="button" className="btn btn01 btn_open" data-target="pop_evaluation" onClick={() => setPopup('evaluation')}>평가지 작성하기<span className="state">{evaluationSaved || evaluationComplete ? '완료' : evaluationQuestions.length > 0 ? '미완료' : '데이터 없음'}</span></button></li><li><button type="button" className="btn btn02 btn_open" data-target="pop_questionnaire" onClick={() => setPopup('questionnaire')}>설문지 작성하기<span className="state">{surveySaved || surveyComplete ? '완료' : surveyQuestions.length > 0 ? '미완료' : '데이터 없음'}</span></button></li></ul></div></div></div>
@@ -237,7 +238,7 @@ export const MissionEndPage = () => {
 				<div className="inbox">
 					<button type="button" className="btn_close" onClick={() => setPopup(null)}>닫기</button>
 					<div className="tit">미션 수행 완료!</div>
-					<div className="con scroll_wrap"><div className="scroll"><div className="flex_center"><div className="imgbox"><img src="/pub/images/img_hero_completed.webp" alt="" /><p>{completedHeroName}</p></div></div><div className="txt"><div className="tt">{displayName}님은 이제 <strong>'울산 SDGs 히어로즈'</strong>입니다!</div><p>{missionAreaText}을 모두 돌며 지속가능한 소비의 의미를 탐구했어요.<br />세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate('/select-user')}>미션 완료 하기</button></div><p className="tac p_end">세션 종료 시, 키오스크 화면으로 이동합니다.</p></div></div>
+					<div className="con scroll_wrap"><div className="scroll"><div className="flex_center"><div className="imgbox"><img src={pubUrl("/pub/images/img_hero_completed.webp")} alt="" /><p>{completedHeroName}</p></div></div><div className="txt"><div className="tt">{displayName}님은 이제 <strong>'울산 SDGs 히어로즈'</strong>입니다!</div><p>{missionAreaText}을 모두 돌며 지속가능한 소비의 의미를 탐구했어요.<br />세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => finishTabletStudentFlow(navigate)}>미션 완료 하기</button></div><p className="tac p_end">세션 종료 시, 키오스크 화면으로 이동합니다.</p></div></div>
 				</div>
 			</div>
 		</main>

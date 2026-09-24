@@ -1,9 +1,31 @@
 'use client'
 
 import { useEffect } from 'react'
+import { withBasePath } from '@/lib/basePath'
+import { getPublicSiteSetting } from '@/lib/publicApi'
 import type { PageBehaviorName } from '@/content/pageRegistry'
 
 type PageBehaviorProps = { behavior?: PageBehaviorName }
+
+/**
+ * Swiper 스크립트와 대상 요소가 모두 준비되면 run을 실행한다.
+ * 페이지 본문은 Suspense 스트리밍으로 늦게 도착할 수 있어, Swiper만 기다리면 요소가 없는 채로 초기화를 건너뛴다.
+ * 요소가 끝내 나타나지 않으면(목록이 0건이라 슬라이더 자체가 없는 경우) 약 3초 뒤 조용히 포기한다.
+ */
+function whenSlidersReady(selectors: string[], run: () => void) {
+	let attempts = 0
+	let timer: ReturnType<typeof setTimeout> | undefined
+	const tick = () => {
+		const ready = window.Swiper && selectors.some((selector) => document.querySelector(selector))
+		if (!ready && attempts++ < 60) {
+			timer = setTimeout(tick, 50)
+			return
+		}
+		if (window.Swiper) run()
+	}
+	tick()
+	return () => { if (timer) clearTimeout(timer) }
+}
 
 function matchHeightByRow(selector: string) {
 	const items = Array.from(document.querySelectorAll<HTMLElement>(selector))
@@ -43,24 +65,43 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 
 		if (behavior === 'location-map') {
 			type Coordinate = object
-			type KakaoMap = { setCenter: (coordinate: Coordinate) => void }
+			type Bounds = { extend: (coordinate: Coordinate) => void }
+			type Marker = { setMap: (map: KakaoMap | null) => void }
+			type KakaoMap = { setCenter: (coordinate: Coordinate) => void; setLevel: (level: number) => void; setBounds: (bounds: Bounds, top?: number, right?: number, bottom?: number, left?: number) => void }
 			type KakaoMaps = {
 				load: (callback: () => void) => void
 				LatLng: new (latitude: number, longitude: number) => Coordinate
+				LatLngBounds: new () => Bounds
 				Map: new (container: HTMLElement, options: { center: Coordinate; level: number }) => KakaoMap
 				Size: new (width: number, height: number) => object
 				Point: new (x: number, y: number) => object
 				MarkerImage: new (source: string, size: object, options: { offset: object }) => object
-				Marker: new (options: { map: KakaoMap; position: Coordinate; image: object }) => object
+				Marker: new (options: { map?: KakaoMap; position: Coordinate; image?: object; title?: string }) => Marker
 				services: {
 					Status: { OK: string }
 					Geocoder: new () => {
 						addressSearch: (address: string, callback: (result: Array<{ x: string; y: string }>, status: string) => void) => void
 					}
+					Places: new () => {
+						keywordSearch: (keyword: string, callback: (result: Array<{ x: string; y: string; place_name: string }>, status: string) => void) => void
+					}
 				}
 			}
 			type KakaoWindow = typeof window & { kakao?: { maps: KakaoMaps } }
 			const kakaoWindow = window as KakaoWindow
+			const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.tabs_location button'))
+			let activeTabIndex = Math.max(tabs.findIndex((tab) => tab.parentElement?.classList.contains('on')), 0)
+			const setActiveTab = (index: number) => {
+				activeTabIndex = index
+				tabs.forEach((tab, tabIndex) => {
+					tab.parentElement?.classList.toggle('on', tabIndex === index)
+					tab.setAttribute('aria-selected', String(tabIndex === index))
+				})
+			}
+			let showTab = setActiveTab
+			const handlers = tabs.map((_tab, index) => () => showTab(index))
+			tabs.forEach((tab, index) => tab.addEventListener('click', handlers[index]))
+			const destinationAddress = '울산광역시 북구 무룡로 1119-6'
 			let disposed = false
 
 			const initializeMap = () => {
@@ -74,38 +115,88 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 						level: 3
 					})
 					const geocoder = new kakao.maps.services.Geocoder()
-					geocoder.addressSearch('울산광역시 북구 무룡로 1119-6', (result, status) => {
+					const places = new kakao.maps.services.Places()
+					let destination: Coordinate | null = null
+					let originMarker: Marker | null = null
+
+					// 출발지가 없는 첫 탭은 기관 위치만, 나머지 탭은 출발지와 기관이 모두 보이도록 지도 범위를 맞춘다.
+					showTab = (index: number) => {
+						setActiveTab(index)
+						originMarker?.setMap(null)
+						originMarker = null
+						const origin = tabs[index]?.dataset.origin
+						if (!destination) return
+						if (!origin) {
+							map.setLevel(3)
+							map.setCenter(destination)
+							return
+						}
+						places.keywordSearch(origin, (result, status) => {
+							if (disposed || status !== kakao.maps.services.Status.OK || !result[0] || !destination) return
+							const place = result[0]
+							const coordinate = new kakao.maps.LatLng(Number(place.y), Number(place.x))
+							originMarker = new kakao.maps.Marker({ map, position: coordinate, title: place.place_name })
+							const bounds = new kakao.maps.LatLngBounds()
+							bounds.extend(coordinate)
+							bounds.extend(destination)
+							map.setBounds(bounds, 100, 40, 40, 40)
+						})
+					}
+
+					geocoder.addressSearch(destinationAddress, (result, status) => {
 						if (disposed || status !== kakao.maps.services.Status.OK || !result[0]) return
-						const coordinate = new kakao.maps.LatLng(Number(result[0].y), Number(result[0].x))
-						map.setCenter(coordinate)
+						destination = new kakao.maps.LatLng(Number(result[0].y), Number(result[0].x))
 						const markerImage = new kakao.maps.MarkerImage(
-							'/pub/images/img_marker.svg',
+							withBasePath('/pub/images/img_marker.svg'),
 							new kakao.maps.Size(197, 84),
 							{ offset: new kakao.maps.Point(98, 84) }
 						)
-						new kakao.maps.Marker({ map, position: coordinate, image: markerImage })
+						new kakao.maps.Marker({ map, position: destination, image: markerImage })
+						showTab(activeTabIndex)
 					})
 				})
 			}
 
-			if (kakaoWindow.kakao) {
-				initializeMap()
-			} else {
+			const loadKakaoMap = (appKey: string) => {
+				if (kakaoWindow.kakao) {
+					initializeMap()
+					return
+				}
 				const existingScript = document.querySelector<HTMLScriptElement>('script[data-kakao-map]')
 				if (existingScript) {
 					existingScript.addEventListener('load', initializeMap, { once: true })
-				} else {
-					const script = document.createElement('script')
-					script.dataset.kakaoMap = 'true'
-					script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=fb0bc87a6e3abc550a07197cacf991f0&libraries=services&autoload=false'
-					script.addEventListener('load', initializeMap, { once: true })
-					document.head.appendChild(script)
+					return
 				}
+				const script = document.createElement('script')
+				script.dataset.kakaoMap = 'true'
+				script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&libraries=services&autoload=false`
+				script.addEventListener('load', initializeMap, { once: true })
+				document.head.appendChild(script)
 			}
+
+			void (async () => {
+				// 정적 WAR 는 application.yml 값을 /api/user/site-setting 으로 받는다. 로컬 next 는 NEXT_PUBLIC 도 허용.
+				let appKey = ''
+				try {
+					const setting = await getPublicSiteSetting()
+					appKey = setting?.kakaoMapAppKey?.trim() || ''
+				} catch {
+					appKey = ''
+				}
+				if (!appKey) {
+					appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY?.trim() || ''
+				}
+				if (disposed) return
+				if (!appKey) {
+					console.error('카카오맵 앱 키가 설정되지 않아 카카오맵을 불러올 수 없습니다.')
+					return
+				}
+				loadKakaoMap(appKey)
+			})()
 
 			return () => {
 				disposed = true
-				document.querySelector<HTMLScriptElement>('script[data-kakao-map]')?.removeEventListener('load', initializeMap)
+				tabs.forEach((tab, index) => tab.removeEventListener('click', handlers[index]))
 			}
 		}
 
@@ -120,14 +211,10 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 			type SliderConstructor = new (element: Element, options: Record<string, unknown>) => Slider
 			let sliders: Slider[] = []
 			let galleryCleanups: Array<() => void> = []
-			let retryTimer: ReturnType<typeof setTimeout> | undefined
+			let stopWaiting: (() => void) | undefined
 			let lastFocused: HTMLElement | null = null
 			const initializeSliders = () => {
-				const Swiper = window.Swiper as unknown as SliderConstructor | undefined
-				if (!Swiper) {
-					retryTimer = setTimeout(initializeSliders, 50)
-					return
-				}
+				const Swiper = window.Swiper as unknown as SliderConstructor
 				sliders = Array.from(document.querySelectorAll('.popup .imgfit')).map((element) => new Swiper(element, {
 					loop: true,
 					pagination: { el: element.querySelector('.pagination'), clickable: true }
@@ -229,11 +316,11 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 				popup?.removeAttribute('style')
 				lastFocused?.focus()
 			}
-			initializeSliders()
+			stopWaiting = whenSlidersReady(['.popup .imgfit', '.pop_gallery .gallery_for'], initializeSliders)
 			document.addEventListener('click', onClick)
 			window.addEventListener('keydown', onKeyDown)
 			return () => {
-				if (retryTimer) clearTimeout(retryTimer)
+				stopWaiting?.()
 				document.removeEventListener('click', onClick)
 				window.removeEventListener('keydown', onKeyDown)
 				galleryCleanups.forEach((cleanup) => cleanup())
@@ -245,21 +332,16 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 			type Slider = { destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void }
 			type SliderConstructor = new (element: string, options: Record<string, unknown>) => Slider
 			let slider: Slider | null = null
-			let retryTimer: ReturnType<typeof setTimeout> | undefined
-			const sourceSlideCount = document.querySelectorAll('.program_slide .swiper-slide').length
 			const updatePaging = () => {
 				const paging = document.querySelector<HTMLElement>('.program_btm')
 				if (!paging) return
+				// 슬라이드 수는 초기화 시점에 세야 한다. 본문이 늦게 도착하면 모듈 진입 시점에는 0이다.
+				const sourceSlideCount = document.querySelectorAll('.program_slide .swiper-slide').length
 				const slidesPerView = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 768 ? 3 : 1
 				paging.style.display = sourceSlideCount <= slidesPerView ? 'none' : ''
 			}
 			const initialize = () => {
-				const Swiper = (window as typeof window & { Swiper?: SliderConstructor }).Swiper
-				if (!Swiper) {
-					retryTimer = setTimeout(initialize, 50)
-					return
-				}
-				if (!document.querySelector('.program_slide')) return
+				const Swiper = (window as typeof window & { Swiper?: SliderConstructor }).Swiper as SliderConstructor
 				slider = new Swiper('.program_slide', {
 					slidesPerView: 1,
 					spaceBetween: 10,
@@ -279,10 +361,10 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 				})
 				updatePaging()
 			}
-			initialize()
+			const stopWaiting = whenSlidersReady(['.program_slide'], initialize)
 			window.addEventListener('resize', updatePaging)
 			return () => {
-				if (retryTimer) clearTimeout(retryTimer)
+				stopWaiting()
 				window.removeEventListener('resize', updatePaging)
 				slider?.destroy(true, true)
 			}
@@ -292,14 +374,9 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 			type Slider = { destroy: (deleteInstance?: boolean, cleanStyles?: boolean) => void }
 			type SliderConstructor = new (element: string, options: Record<string, unknown>) => Slider
 			let sliders: Slider[] = []
-			let retryTimer: ReturnType<typeof setTimeout> | undefined
 			const renderPaging = (_slider: Slider, current: number, total: number) => `<strong>${String(current).padStart(2, '0')}</strong>/<span>${String(total).padStart(2, '0')}</span>`
 			const initialize = () => {
-				const Swiper = (window as typeof window & { Swiper?: SliderConstructor }).Swiper
-				if (!Swiper) {
-					retryTimer = setTimeout(initialize, 50)
-					return
-				}
+				const Swiper = (window as typeof window & { Swiper?: SliderConstructor }).Swiper as SliderConstructor
 				if (document.querySelector('.book_slide')) sliders.push(new Swiper('.book_slide', {
 					slidesPerView: 2, spaceBetween: 10,
 					navigation: { nextEl: '.book_slide .arrow.next', prevEl: '.book_slide .arrow.prev' },
@@ -313,9 +390,9 @@ export default function PageBehavior({ behavior }: PageBehaviorProps) {
 					breakpoints: { 768: { slidesPerView: 4, spaceBetween: 20 }, 1024: { slidesPerView: 4, spaceBetween: 30 }, 1280: { slidesPerView: 4, spaceBetween: 40 } }
 				}))
 			}
-			initialize()
+			const stopWaiting = whenSlidersReady(['.book_slide', '.new_book_slide'], initialize)
 			return () => {
-				if (retryTimer) clearTimeout(retryTimer)
+				stopWaiting()
 				sliders.forEach((slider) => slider.destroy(true, true))
 			}
 		}

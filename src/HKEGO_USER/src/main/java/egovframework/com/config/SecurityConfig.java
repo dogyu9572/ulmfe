@@ -43,6 +43,7 @@ public class SecurityConfig {
 				.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
 				.contentTypeOptions(withDefaults -> {}))
 			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/livez.do").permitAll()
 				.requestMatchers("/api/user/main", "/api/user/auth/**").permitAll()
 				.requestMatchers("/api/user/qna", "/api/user/qna/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/user/**").permitAll()

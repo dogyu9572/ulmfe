@@ -42,10 +42,12 @@ export const EducationProgramStatsPage: React.FC = () => {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	const buildSearchParams = () => {
+	const buildSearchParams = (override?: { start?: string; end?: string }) => {
 		const params = new URLSearchParams()
-		if (startDate) params.set('startDate', startDate)
-		if (endDate) params.set('endDate', endDate)
+		const from = override?.start ?? startDate
+		const to = override?.end ?? endDate
+		if (from) params.set('startDate', from)
+		if (to) params.set('endDate', to)
 		return params
 	}
 
@@ -57,12 +59,12 @@ export const EducationProgramStatsPage: React.FC = () => {
 		return true
 	}
 
-	const fetchStats = async () => {
+	const fetchStats = async (override?: { start?: string; end?: string }) => {
 		setError(null)
-		if (!validateDates()) return
+		if (!override && !validateDates()) return
 		try {
 			setLoading(true)
-			const response = await fetch(`${API_BASE_URL}/api/admin/education-program-stats?${buildSearchParams().toString()}`, { credentials: 'include' })
+			const response = await fetch(`${API_BASE_URL}/api/admin/education-program-stats?${buildSearchParams(override).toString()}`, { credentials: 'include' })
 			const result: ApiResponse<ProgramStats[]> = await response.json()
 			if (!response.ok || !result.success) {
 				setError(result.message || '교육프로그램 통계 조회에 실패했습니다.')
@@ -100,8 +102,12 @@ export const EducationProgramStatsPage: React.FC = () => {
 	}
 
 	const reset = () => {
-		setStartDate(firstDayOfMonthIso())
-		setEndDate(lastDayOfMonthIso())
+		// state 만 되돌리면 화면 조건과 표가 어긋난다. 기본 기간으로 즉시 다시 조회한다.
+		const start = firstDayOfMonthIso()
+		const end = lastDayOfMonthIso()
+		setStartDate(start)
+		setEndDate(end)
+		void fetchStats({ start, end })
 	}
 
 	useEffect(() => {

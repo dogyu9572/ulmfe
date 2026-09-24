@@ -99,14 +99,14 @@ export const Quest05Page = () => {
 						<li className="c1"><div className="tit">안전수칙! 꼭 읽어요!</div>
 							<div className="con">
 								<ul className="list">
-									{safetyRules.length > 0 ? safetyRules.map((rule) => <li key={rule}>{rule}</li>) : <li>관리자에 등록된 안전수칙이 없습니다.</li>}
+									{safetyRules.length > 0 ? safetyRules.map((rule) => <li key={rule}>{rule}</li>) : <li>등록된 안전수칙이 없습니다.</li>}
 								</ul>
 							</div>
 						</li>
 						<li className="c2"><div className="tit">제작 체크리스트</div>
 							<div className="con">
 								<ul className="list">
-									{checklists.length > 0 ? checklists.map((item) => <li key={item}>{item}</li>) : <li>관리자에 등록된 제작 체크리스트가 없습니다.</li>}
+									{checklists.length > 0 ? checklists.map((item) => <li key={item}>{item}</li>) : <li>등록된 제작 체크리스트가 없습니다.</li>}
 								</ul>
 							</div>
 						</li>

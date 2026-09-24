@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicMenuDAO">
+	<select id="selectVisibleMenus" resultType="egovframework.let.usr.service.vo.PublicMenuVO">
+		SELECT
+			M.MENU_CD,
+			M.PARENT_MENU_CD,
+			M.MENU_DEPTH,
+			M.MENU_NM,
+			M.SORT_SEQ
+		FROM HMPG_MENU M
+		WHERE M.DEL_YN = 'N'
+			AND M.USE_YN = 'Y'
+		ORDER BY M.MENU_DEPTH ASC, M.SORT_SEQ ASC, M.MENU_CD ASC
+	</select>
+</mapper>

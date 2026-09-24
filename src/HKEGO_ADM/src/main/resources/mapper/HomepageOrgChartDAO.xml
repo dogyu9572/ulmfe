@@ -10,6 +10,7 @@
 		<result column="FRST_CLSF_NM" property="frstClsfNm"/>
 		<result column="SCND_CLSF_CD" property="scndClsfCd"/>
 		<result column="SCND_CLSF_NM" property="scndClsfNm"/>
+		<result column="PSTN_NM" property="pstnNm"/>
 		<result column="TASK_CN" property="taskCn"/>
 		<result column="TELNO" property="telno"/>
 		<result column="SORT_SEQ" property="sortSeq"/>
@@ -25,7 +26,7 @@
 
 	<select id="selectMemberList" resultMap="HomepageOrgChartMap">
 		SELECT ORG_MBR_SN, FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
-			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
+			PSTN_NM, TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_ORG_MEMBER
 		WHERE DEL_YN = 'N'
 			AND FRST_CLSF_CD = #{frstClsfCd}
@@ -35,7 +36,7 @@
 
 	<select id="selectMember" parameterType="int" resultMap="HomepageOrgChartMap">
 		SELECT ORG_MBR_SN, FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
-			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
+			PSTN_NM, TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM, DEL_DT, DLTR_NM
 		FROM HMPG_ORG_MEMBER
 		WHERE ORG_MBR_SN = #{value}
 			AND DEL_YN = 'N'
@@ -45,10 +46,10 @@
 		useGeneratedKeys="true" keyProperty="orgMbrSn">
 		INSERT INTO HMPG_ORG_MEMBER (
 			FRST_CLSF_CD, FRST_CLSF_NM, SCND_CLSF_CD, SCND_CLSF_NM,
-			TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
+			PSTN_NM, TASK_CN, TELNO, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
 		) VALUES (
 			#{frstClsfCd}, #{frstClsfNm}, #{scndClsfCd}, #{scndClsfNm},
-			#{taskCn}, #{telno}, #{sortSeq}, #{useYn}, 'N', NOW(), #{rgtr}, NOW(), #{mdtr}
+			#{pstnNm}, #{taskCn}, #{telno}, #{sortSeq}, #{useYn}, 'N', NOW(), #{rgtr}, NOW(), #{mdtr}
 		)
 	</insert>
 
@@ -59,6 +60,7 @@
 			FRST_CLSF_NM = #{frstClsfNm},
 			SCND_CLSF_CD = #{scndClsfCd},
 			SCND_CLSF_NM = #{scndClsfNm},
+			PSTN_NM = #{pstnNm},
 			TASK_CN = #{taskCn},
 			TELNO = #{telno},
 			SORT_SEQ = #{sortSeq},

@@ -60,6 +60,9 @@
 				<when test="searchType == 'title'">
 					AND B.BOOK_NM LIKE CONCAT('%', #{keyword}, '%')
 				</when>
+				<when test="searchType == 'author'">
+					AND B.AUT_NM LIKE CONCAT('%', #{keyword}, '%')
+				</when>
 				<when test="searchType == 'content'">
 					AND B.BOOK_CN LIKE CONCAT('%', #{keyword}, '%')
 				</when>

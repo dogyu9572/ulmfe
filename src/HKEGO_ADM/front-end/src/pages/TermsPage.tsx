@@ -6,6 +6,7 @@ import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL } from '../config'
 
 type ApiResponse<T> = {
@@ -132,10 +133,20 @@ export const TermsPage: React.FC = () => {
 		return qs.toString()
 	}, [pageSize, termsTypeFilter, currentYnFilter, startRegDate, endRegDate, searchType, searchKeyword])
 
-	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
+	// 초기화 직후에는 setState 가 아직 반영되지 않아 buildSearchParams 가 옛 필터를 읽는다.
+	// 그 경우 ignoreFilters 로 조건 없는 쿼리를 직접 만들어 조회한다.
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, ignoreFilters = false) => {
 		setError(null)
+		// 초기화 조회는 조건을 비우고 보내므로, 화면에 남아 있는 잘못된 날짜로 막으면 안 된다.
+		const startRegDateWarning = ignoreFilters ? null : checkDateRange(startRegDate, endRegDate, '등록일')
+		if (startRegDateWarning) {
+			setError(startRegDateWarning)
+			return
+		}
 		try {
-			const qs = buildSearchParams(targetPage, targetSize)
+			const qs = ignoreFilters
+				? new URLSearchParams({ page: String(targetPage), size: String(targetSize) }).toString()
+				: buildSearchParams(targetPage, targetSize)
 			const res = await fetch(`${BACKEND}/api/admin/terms?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<Terms>> = await res.json()
 			if (!result.success || !result.data) {
@@ -307,7 +318,7 @@ export const TermsPage: React.FC = () => {
 		setEndRegDate('')
 		setSearchType('title')
 		setSearchKeyword('')
-		window.setTimeout(() => void fetchList(1, pageSize), 0)
+		void fetchList(1, pageSize, true)
 	}
 
 	const toggleSelected = (id: number) => {
@@ -551,7 +562,7 @@ export const TermsPage: React.FC = () => {
 							</td>
 						</tr>
 						<tr>
-							<th>제목</th>
+							<th>제목 <span className="required">*</span></th>
 							<td colSpan={3}>
 								<input
 									type="text"
@@ -570,7 +581,7 @@ export const TermsPage: React.FC = () => {
 							</tr>
 						)}
 						<tr>
-							<th>내용</th>
+							<th>내용 <span className="required">*</span></th>
 							<td colSpan={3}>
 								<textarea
 									className="terms-content-textarea"

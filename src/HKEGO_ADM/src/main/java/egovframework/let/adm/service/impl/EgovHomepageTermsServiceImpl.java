@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import egovframework.let.adm.service.EgovHomepageTermsService;
+import egovframework.com.cmm.util.HtmlSanitizer;
 import egovframework.let.adm.service.vo.HomepageTermsVO;
 import egovframework.let.adm.service.vo.PageListResult;
 import jakarta.annotation.Resource;
@@ -46,13 +47,17 @@ public class EgovHomepageTermsServiceImpl extends EgovAbstractServiceImpl implem
 		terms.setTrmsTypeCd(terms.getTrmsTypeCd().trim());
 		terms.setTrmsTypeNm(resolveTypeName(terms.getTrmsTypeCd()));
 		terms.setTrmsTtl(terms.getTrmsTtl().trim());
-		terms.setTrmsCn(terms.getTrmsCn().trim());
+		terms.setTrmsCn(HtmlSanitizer.clean(terms.getTrmsCn().trim()));
 		terms.setCurrentYn("Y".equalsIgnoreCase(terms.getCurrentYn()) ? "Y" : "N");
 		if (isBlank(terms.getRgtr())) {
 			terms.setRgtr("admin");
 		}
 		if (isBlank(terms.getMdtr())) {
 			terms.setMdtr(terms.getRgtr());
+		}
+		// 다른 운영자가 먼저 지운 약관이면 수정할 대상이 없다. 현재약관 지정을 건드리기 전에 막는다.
+		if (terms.getTrmsSn() != null && homepageTermsDAO.selectTerms(terms.getTrmsSn()) == null) {
+			throw new IllegalArgumentException("약관을 찾을 수 없습니다.");
 		}
 		if ("Y".equals(terms.getCurrentYn())) {
 			homepageTermsDAO.clearCurrentTerms(terms.getTrmsTypeCd(), terms.getTrmsSn());

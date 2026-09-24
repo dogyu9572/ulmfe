@@ -17,6 +17,8 @@ public class LearningSupportMaterialVO {
 	private String pstCn;
 	private String lrnTypeCd;
 	private String lrnTypeNm;
+	private String zoneCd;
+	private String zoneNm;
 	private String dataTypeCd;
 	private String dataTypeNm;
 	private String prgrmTypeCd;

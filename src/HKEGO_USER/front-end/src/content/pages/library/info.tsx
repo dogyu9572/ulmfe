@@ -1,3 +1,4 @@
+import { withBasePath } from '@/lib/basePath'
 export default function LibraryInfoContent() {
 	return (
 		<>
@@ -17,7 +18,8 @@ export default function LibraryInfoContent() {
 				<div className="gbox library_info_area">
 					<div className="inner">
 						<div className="lrbox_area">
-							<div className="lrbox">
+							{/* 이용안내 및 이용절차는 개관 전까지 비노출 */}
+							{/* <div className="lrbox">
 								<h2 className="tit">
 									{"이용안내"}
 								</h2>
@@ -49,8 +51,8 @@ export default function LibraryInfoContent() {
 										</li>
 									</ul>
 								</div>
-							</div>
-							<div className="lrbox">
+							</div> */}
+							{/* <div className="lrbox">
 								<h2 className="tit">
 									{"이용절차"}
 								</h2>
@@ -66,7 +68,7 @@ export default function LibraryInfoContent() {
 									<ol className="info_step type1">
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_a01.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_a01.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 01"}
@@ -80,7 +82,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_a02.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_a02.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 02"}
@@ -94,7 +96,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_a03.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_a03.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 03"}
@@ -108,7 +110,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_a04.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_a04.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 04"}
@@ -122,7 +124,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_a05.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_a05.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 05"}
@@ -146,7 +148,7 @@ export default function LibraryInfoContent() {
 									<ol className="info_step type2">
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_b01.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_b01.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 01"}
@@ -160,7 +162,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_b02.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_b02.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 02"}
@@ -174,7 +176,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_b03.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_b03.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 03"}
@@ -188,7 +190,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_b04.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_b04.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 04"}
@@ -202,7 +204,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_b05.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_b05.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 05"}
@@ -226,7 +228,7 @@ export default function LibraryInfoContent() {
 									<ol className="info_step type3">
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_c01.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_c01.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 01"}
@@ -242,7 +244,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_c02.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_c02.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 02"}
@@ -258,7 +260,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_c03.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_c03.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 03"}
@@ -274,7 +276,7 @@ export default function LibraryInfoContent() {
 										</li>
 										<li>
 											<i aria-hidden="true">
-												<img src="/pub/images/icon_info_step_c01.svg" alt="" />
+												<img src={withBasePath('/pub/images/icon_info_step_c01.svg')} alt="" />
 											</i>
 											<span>
 												{"STEP 04"}
@@ -290,14 +292,14 @@ export default function LibraryInfoContent() {
 										</li>
 									</ol>
 								</div>
-							</div>
+							</div> */}
 							<div className="lrbox">
 								<h2 className="tit">
 									{"시설현황"}
 								</h2>
 								<div className="con facility_status_area">
 									<div className="imgbox flex_center">
-										<img src="/pub/images/img_facility_status.webp" alt="" />
+										<img src={withBasePath('/pub/images/img_facility_status.webp')} alt="" />
 									</div>
 									<div className="tbl">
 										<table>
@@ -306,156 +308,286 @@ export default function LibraryInfoContent() {
 											</caption>
 											<thead>
 												<tr>
-													<th>
-														{"시설"}
-													</th>
-													<th>
-														{"위치"}
-													</th>
-													<th>
-														{"내용"}
-													</th>
+													<th scope="col">{"위치"}</th>
+													<th scope="col">{"시설"}</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr>
-													<th>
-														{"안내데스크"}
-													</th>
-													<td>
-														{"1층 로비"}
-													</td>
-													<td className="tal">
-														{"대출 · 반납 안내, 운영자 PC"}
-													</td>
+													<th scope="row">{"1층"}</th>
+													<td className="tal">{"안내데스크, 물품 보관소, 무대"}</td>
 												</tr>
 												<tr>
-													<th>
-														{"무인대출반납기"}
-													</th>
-													<td>
-														{"1층 로비 1층 · 2층 각 1대"}
-													</td>
-													<td className="tal">
-														{"셀프 대출 · 반납 가능"}
-													</td>
+													<th scope="row">{"1층 ~ 2층"}</th>
+													<td className="tal">{"개방형 서가"}</td>
 												</tr>
 												<tr>
-													<th>
-														{"정보검색대"}
-													</th>
-													<td>
-														{"1층 로비"}
-													</td>
-													<td className="tal">
-														{"소장 자료 검색 및 위치 출력"}
-													</td>
-												</tr>
-												<tr>
-													<th>
-														{"물품보관소"}
-													</th>
-													<td>
-														{"1층 로비"}
-													</td>
-													<td className="tal">
-														{"전자개폐식 락커 120개"}
-													</td>
-												</tr>
-												<tr>
-													<th>
-														{"개방형 서가 · 열람실"}
-													</th>
-													<td>
-														{"1층 (30명) / 2층 (60명)"}
-													</td>
-													<td className="tal">
-														{"자유 열람 공간"}
-													</td>
-												</tr>
-												<tr>
-													<th>
-														{"무대"}
-													</th>
-													<td>
-														{"1층"}
-													</td>
-													<td className="tal">
-														{"소규모 공연 · 강연 · OT"}
-													</td>
-												</tr>
-												<tr>
-													<th>
-														{"강동초 기록실"}
-													</th>
-													<td>
-														{"2층"}
-													</td>
-													<td className="tal">
-														{"강동초 역사 · 기록사진 전시"}
-													</td>
-												</tr>
-												<tr>
-													<th>
-														{"회의실 1 · 2"}
-													</th>
-													<td>
-														{"2층"}
-													</td>
-													<td className="tal">
-														{"각 10명, 65인치 모니터"}
-													</td>
-												</tr>
-												<tr>
-													<th>
-														{"도서분실방지 게이트"}
-													</th>
-													<td>
-														{"1층 · 2층 출입구"}
-													</td>
-													<td className="tal">
-														{"자료 분실 방지 · 이용자 카운팅"}
-													</td>
+													<th scope="row">{"2층"}</th>
+													<td className="tal">{"강동초 기억실, 회의실 1·2"}</td>
 												</tr>
 											</tbody>
-										</table>
-									</div>
+									</table>
 								</div>
 							</div>
-							<div className="lrbox">
-								<h2 className="tit">
-									{"이용 시 주의사항"}
-								</h2>
-								<div className="con library_info_excl">
-									<ul className="list">
-										<li className="i1">
-											{"도서 대출 · 반납은 안내데스크 또는 무인대출반납기를 이용해 주세요."}
-										</li>
-										<li className="i2">
-											{"소지품은 1층 물품보관소 락커에 "}
-											<br className="pc_vw" />
-											{"보관하실 수 있습니다."}
-										</li>
-										<li className="i3">
-											{"음식물 반입은 삼가 주시기 바랍니다."}
-										</li>
-										<li className="i4">
-											{"도서 분실 방지를 위해 출입 시 "}
-											<br className="pc_vw" />
-											{"게이트를 통과해 주세요."}
-										</li>
-										<li className="i5">
-											{"회의실 이용은 사전 예약 후 "}
-											<br className="pc_vw" />
-											{"이용 가능합니다. (개관 후 별도 안내)"}
-										</li>
-									</ul>
+						</div>
+						<div className="lrbox">
+							<h2 className="tit">
+								{"이용안내"}
+							</h2>
+							<div className="con library_info_excl">
+								<ul className="list">
+									<li className="i1">
+										{"미래도서관 도서는 열람만 가능합니다."}
+									</li>
+									<li className="i3">
+										{"음식물 반입은 삼가 주시기 바랍니다."}
+									</li>
+									<li className="i5">
+										{"회의실 이용은 사전 예약 후 이용 가능합니다."}
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div className="lrbox">
+							<h2 className="tit">
+								{"도서현황"}
+							</h2>
+							<div className="con library_data_status">
+								<div className="stit">
+									<h3>
+										{"도서현황"}
+									</h3>
+									<span>
+										{"(단위 : 권)"}
+									</span>
 								</div>
+								<div className="tbl wide">
+									<table>
+										<caption>
+											{"도서현황 목록"}
+										</caption>
+										<thead>
+											<tr>
+												<th>
+													{"총류"}
+												</th>
+												<th>
+													{"철학"}
+												</th>
+												<th>
+													{"종교"}
+												</th>
+												<th>
+													{"사회과학"}
+												</th>
+												<th>
+													{"자연과학"}
+												</th>
+												<th>
+													{"기술과학"}
+												</th>
+												<th>
+													{"예술"}
+												</th>
+												<th>
+													{"언어"}
+												</th>
+												<th>
+													{"문학"}
+												</th>
+												<th>
+													{"역사"}
+												</th>
+												<th>
+													{"계"}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													{"8,300"}
+												</td>
+												<td>
+													{"15,414"}
+												</td>
+												<td>
+													{"8,688"}
+												</td>
+												<td>
+													{"43,201"}
+												</td>
+												<td>
+													{"18,000"}
+												</td>
+												<td>
+													{"17,307"}
+												</td>
+												<td>
+													{"12,327"}
+												</td>
+												<td>
+													{"9,160"}
+												</td>
+												<td>
+													{"110,308"}
+												</td>
+												<td>
+													{"22,903"}
+												</td>
+												<td>
+													{"265,608"}
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								
+								{/* 비도서현황 및 연속간행물현황은 도서현황 단일 메뉴로 통합되어 노출하지 않습니다.
+								<div className="tbl">
+									<table>
+										<caption>
+											{"비도서현황 목록"}
+										</caption>
+										<thead>
+											<tr>
+												<th>
+													{"DVD"}
+												</th>
+												<th>
+													{"CD"}
+												</th>
+												<th>
+													{"CD-ROM"}
+												</th>
+												<th>
+													{"녹음도서"}
+												</th>
+												<th>
+													{"수화도서"}
+												</th>
+												<th>
+													{"계"}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													{"12,926"}
+												</td>
+												<td>
+													{"7"}
+												</td>
+												<td>
+													{"100"}
+												</td>
+												<td>
+													{"2,115"}
+												</td>
+												<td>
+													{"72"}
+												</td>
+												<td>
+													{"15,220"}
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div className="stit">
+									<h3>
+										{"연속간행물현황"}
+									</h3>
+									<span>
+										{"(단위 : 종)"}
+									</span>
+								</div>
+								<div className="tbl">
+									<table>
+										<caption>
+											{"연속간행물현황 목록"}
+										</caption>
+										<thead>
+											<tr>
+												<th>
+													{"구분"}
+												</th>
+												<th>
+													{"신문"}
+												</th>
+												<th>
+													{"잡지"}
+												</th>
+												<th>
+													{"기타(사보, 학회지 등)"}
+												</th>
+												<th>
+													{"계"}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<th>
+													{"구입"}
+												</th>
+												<td>
+													{"32"}
+												</td>
+												<td>
+													{"100"}
+												</td>
+												<td>
+													{"-"}
+												</td>
+												<td>
+													{"132"}
+												</td>
+											</tr>
+											<tr>
+												<th>
+													{"기증"}
+												</th>
+												<td>
+													{"15"}
+												</td>
+												<td>
+													{"114"}
+												</td>
+												<td>
+													{"-"}
+												</td>
+												<td>
+													{"129"}
+												</td>
+											</tr>
+											<tr>
+												<th>
+													{"소계"}
+												</th>
+												<td>
+													{"47"}
+												</td>
+												<td>
+													{"214"}
+												</td>
+												<td>
+													{"-"}
+												</td>
+												<td>
+													{"261"}
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div> */}
 							</div>
 						</div>
 					</div>
 				</div>
-			</section>
+			</div>
+		</section >
 		</>
 	)
 }

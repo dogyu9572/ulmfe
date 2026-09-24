@@ -41,17 +41,14 @@ const BACKEND = API_BASE_URL
 const DEFAULT_PAGE_SIZE = 20
 const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
-const defaultForm = (): HomepageHistory => {
-	const now = new Date()
-	return {
-		hstrySn: null,
-		hstryYr: String(now.getFullYear()),
-		hstryMm: String(now.getMonth() + 1).padStart(2, '0'),
-		hstryCn: '',
-		imgFileId: '',
-		useYn: 'Y'
-	}
-}
+const defaultForm = (): HomepageHistory => ({
+	hstrySn: null,
+	hstryYr: String(new Date().getFullYear()),
+	hstryMm: '',
+	hstryCn: '',
+	imgFileId: '',
+	useYn: 'Y'
+})
 
 function useYnBadge(useYn: string) {
 	const isOn = useYn === 'Y'
@@ -163,10 +160,14 @@ export const HomepageHistoryPage: React.FC = () => {
 		return qs.toString()
 	}, [pageSize, searchKeyword, useYnFilter])
 
-	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
+	// 초기화 직후에는 setState 가 아직 반영되지 않아 buildSearchParams 가 옛 필터를 읽는다.
+	// 그 경우 ignoreFilters 로 조건 없는 쿼리를 직접 만들어 조회한다.
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, ignoreFilters = false) => {
 		setError(null)
 		try {
-			const qs = buildSearchParams(targetPage, targetSize)
+			const qs = ignoreFilters
+				? new URLSearchParams({ page: String(targetPage), size: String(targetSize) }).toString()
+				: buildSearchParams(targetPage, targetSize)
 			const res = await fetch(`${BACKEND}/api/admin/history?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<HomepageHistory>> = await res.json()
 			if (!result.success || !result.data) {
@@ -249,7 +250,7 @@ export const HomepageHistoryPage: React.FC = () => {
 
 	const saveHistory = async () => {
 		if (!form.hstryYr.trim() || !form.hstryMm.trim() || !form.hstryCn.trim()) {
-			setError('연, 월, 내용을 입력해주세요.')
+			setError('연, 시점, 내용을 입력해주세요.')
 			return
 		}
 		setLoading(true)
@@ -259,7 +260,7 @@ export const HomepageHistoryPage: React.FC = () => {
 			const body: HomepageHistory = {
 				...form,
 				hstryYr: form.hstryYr.trim(),
-				hstryMm: form.hstryMm.trim().padStart(2, '0'),
+				hstryMm: form.hstryMm.trim(),
 				hstryCn: form.hstryCn.trim(),
 				imgFileId,
 				rgtr: currentAdmin.adminId,
@@ -422,7 +423,7 @@ export const HomepageHistoryPage: React.FC = () => {
 	const clearSearch = () => {
 		setSearchKeyword('')
 		setUseYnFilter('')
-		window.setTimeout(() => void fetchList(1, pageSize), 0)
+		void fetchList(1, pageSize, true)
 	}
 
 	return (
@@ -506,7 +507,7 @@ export const HomepageHistoryPage: React.FC = () => {
 							</th>
 							<th style={{ width: '80px' }}>번호</th>
 							<th style={{ width: '100px' }}>연</th>
-							<th style={{ width: '80px' }}>월</th>
+							<th style={{ width: '120px' }}>시점</th>
 							<th>내용</th>
 							<th style={{ width: '110px' }}>이미지</th>
 							<th style={{ width: '110px' }}>노출여부</th>
@@ -527,7 +528,7 @@ export const HomepageHistoryPage: React.FC = () => {
 										/>
 									)}
 								</td>
-								<td>{totalCount - ((page - 1) * pageSize + idx)}</td>
+								<td>{(page - 1) * pageSize + idx + 1}</td>
 								<td>{row.hstryYr}</td>
 								<td>{row.hstryMm}</td>
 								<td className="history-list-content">{row.hstryCn}</td>
@@ -603,7 +604,7 @@ export const HomepageHistoryPage: React.FC = () => {
 							</tr>
 						)}
 						<tr>
-							<th>연</th>
+							<th>연 <span className="required">*</span></th>
 							<td>
 								<input
 									type="number"
@@ -611,17 +612,19 @@ export const HomepageHistoryPage: React.FC = () => {
 									onChange={(e) => setForm({ ...form, hstryYr: e.target.value })}
 								/>
 							</td>
-							<th>월</th>
+							<th>시점 <span className="required">*</span></th>
 							<td>
-								<select value={form.hstryMm} onChange={(e) => setForm({ ...form, hstryMm: e.target.value })}>
-									{Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((month) => (
-										<option key={month} value={month}>{month}</option>
-									))}
-								</select>
+								<input
+									type="text"
+									value={form.hstryMm}
+									maxLength={40}
+									placeholder="예: 3. 16. / 11월 / 2022. 10. ~ 2023. 9."
+									onChange={(e) => setForm({ ...form, hstryMm: e.target.value })}
+								/>
 							</td>
 						</tr>
 						<tr>
-							<th>내용</th>
+							<th>내용 <span className="required">*</span></th>
 							<td colSpan={3}>
 								<textarea
 									className="history-content-textarea"

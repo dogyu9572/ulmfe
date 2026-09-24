@@ -73,20 +73,28 @@ export const JamoCodePuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: JamoCo
 
 	return (
 		<>
+			{puzzle.passage && (
+				<div className="mproto_passage">
+					<p>{puzzle.passage}</p>
+					{puzzle.passageCaption && <div className="cap">{puzzle.passageCaption}</div>}
+				</div>
+			)}
 			<div className="mproto_slots" style={{ gap: '6px' }}>
 				{Array.from({ length: answerLen }, (_, index) => (
 					<div className={`mproto_slot${index === text.length - 1 && cursor.cho != null ? ' lit' : ''}`} key={index}>{text[index] || ''}</div>
 				))}
 			</div>
 			{puzzle.colorClues && puzzle.colorClues.length > 0 && (
-				<div className="mproto_clues" style={{ textAlign: 'center' }}>
-					<strong>색상 자모 단서</strong>{' '}
-					{puzzle.colorClues.map((clue, index) => (
-						<span style={{ display: 'inline-block', margin: '0 10px', color: clue.color, fontWeight: 700 }} key={index}>
-							{clue.pos}번째 {clue.jamo}
-						</span>
-					))}
-					<div style={{ marginTop: '6px' }}>※ 전시물에서 같은 색으로 표시된 자모를 찾아 순서대로 대입</div>
+				<div className="mproto_clues jamo_area" style={{ textAlign: 'center' }}>
+					<div className="flex">
+						<strong>색상 자모 단서</strong>{' '}
+						{puzzle.colorClues.map((clue, index) => (
+							<span style={{ display: 'inline-block', margin: '0 10px', color: clue.color, fontWeight: 700 }} key={index}>
+								{clue.pos}번째 {clue.jamo}
+							</span>
+						))}
+					</div>
+					<div className="fz">※ 전시물에서 같은 색으로 표시된 자모를 찾아 순서대로 대입</div>
 				</div>
 			)}
 			<div className="mproto_pad jamo">

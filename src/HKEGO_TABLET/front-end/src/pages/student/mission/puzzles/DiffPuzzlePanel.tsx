@@ -7,6 +7,8 @@ export const DiffPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: DiffPuzzle
 	const [found, setFound] = useState<number[]>([])
 	const [ghostShown, setGhostShown] = useState(false)
 	const total = puzzle.spots.length
+	/** 기준 그림은 전시장 설명패널에 있다 — 태블릿에는 프로토타입 화면에서만 띄운다 (0728 확정본 표 4행) */
+	const showReference = Boolean(demo?.proto && puzzle.referenceImageUrl)
 
 	const handleClick = (event: MouseEvent<HTMLDivElement>) => {
 		const rect = event.currentTarget.getBoundingClientRect()
@@ -22,11 +24,16 @@ export const DiffPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: DiffPuzzle
 
 	return (
 		<>
-			<div className="mproto_pics">
-				<div className="mproto_pic">
-					<img src={puzzle.imageAUrl} alt={puzzle.imageALabel || '원본 그림'} />
-					{puzzle.imageALabel && <div className="cap">{puzzle.imageALabel}</div>}
-				</div>
+			{puzzle.referenceLabel && (
+				<p className="mproto_reference">전시장의 <strong>{puzzle.referenceLabel}</strong>을 보면서 아래 그림과 비교하세요.</p>
+			)}
+			<div className={`mproto_pics${showReference ? '' : ' single'}`}>
+				{showReference && (
+					<div className="mproto_pic">
+						<img src={puzzle.referenceImageUrl} alt="시연용 기준 그림" />
+						<div className="cap">시연 전용 기준 그림 — 실제 화면에는 나오지 않습니다</div>
+					</div>
+				)}
 				<div className="mproto_pic">
 					<div style={{ position: 'relative', cursor: 'pointer' }} onClick={handleClick}>
 						<img src={puzzle.imageBUrl} alt={puzzle.imageBLabel || '비교 그림'} draggable={false} />
@@ -40,7 +47,7 @@ export const DiffPuzzlePanel = ({ puzzle, demo, onSubmit }: { puzzle: DiffPuzzle
 					{puzzle.imageBLabel && <div className="cap">{puzzle.imageBLabel}</div>}
 				</div>
 			</div>
-			<div className="mproto_center">찾은 개수 <strong>{found.length}</strong> / {total}</div>
+			<div className="mproto_center" aria-live="polite">찾은 개수 <strong>{found.length}</strong> / {total}</div>
 			<AnswerBox demo={demo}>
 				오른쪽 그림에서 다른 곳 {total}군데 — {puzzle.spots.map((spot, index) => (
 					<code key={index}>{spot.x}% , {spot.y}%</code>

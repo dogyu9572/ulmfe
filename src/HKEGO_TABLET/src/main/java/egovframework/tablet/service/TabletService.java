@@ -8,6 +8,7 @@ import egovframework.tablet.service.vo.TabletEsdQuestionVO;
 import egovframework.tablet.service.vo.TabletMakerAnswerRequest;
 import egovframework.tablet.service.vo.TabletMissionFinalSubmitRequest;
 import egovframework.tablet.service.vo.TabletMissionSubmitRequest;
+import egovframework.tablet.service.vo.TabletQuestionnaireAnswerVO;
 import egovframework.tablet.service.vo.TabletQuestionnaireVO;
 import egovframework.tablet.service.vo.TabletSessionResponse;
 import egovframework.tablet.service.vo.TabletTeacherCallRequest;
@@ -30,6 +31,9 @@ public interface TabletService {
 
 	TabletQuestionnaireVO getQuestionnaireByLink(String linkCd);
 
+	/** 링크·QR로 접속한 익명 응답을 저장한다. 예약·학생에 귀속하지 않는다. */
+	int submitPublicQuestionnaire(String linkCd, List<TabletQuestionnaireAnswerVO> answers);
+
 	List<TabletLearningResourceVO> getLearningResources(String prgrmTypeCd, Integer prgrmSn);
 
 	TabletEsdQuestionVO getRandomEsdQuestion(Integer excludeQuestionId);
@@ -43,6 +47,8 @@ public interface TabletService {
 	List<TabletTeacherMessageVO> getTeacherMessages(Integer rsvtSn);
 
 	List<TabletTeacherMessageVO> getUnreadTeacherMessages(Integer rsvtSn, List<Integer> studentSns);
+
+	boolean isBonusStageOpened(Integer rsvtSn, List<Integer> studentSns);
 
 	void markAttendance(Integer rsvtSn, List<Integer> studentSns);
 

@@ -31,8 +31,8 @@
 	.btns_writer {display:flex; justify-content:flex-end; gap:8px; padding-bottom:48px; border-bottom:#E5E8EB 1px solid;}
 	.btns_writer .btn {gap:8px; width:auto; height:50px; padding:0 32px; border:#E5E8EB 1px solid; border-radius:25px;}
 	.btns_writer .btn:after {content:""; display:block; width:16px; height:16px; background:no-repeat 50% 50% / contain;}
-	.btns_writer .btn_modify:after {background-image:url('/pub/images/icon_writer.svg');}
-	.btns_writer .btn_del:after {background-image:url('/pub/images/icon_del.svg');}
+	.btns_writer .btn_modify:after {background-image:url('../images/icon_writer.svg');}
+	.btns_writer .btn_del:after {background-image:url('../images/icon_del.svg');}
 	
 	.reply_area {margin-top:64px; border-radius:16px; padding:40px; border:#00A6D9 2px solid; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04);}
 	.reply_area .top {display:flex; align-items:center; gap:24px; padding-bottom:24px; margin-bottom:24px; border-bottom:#E5E8EB 1px solid;}

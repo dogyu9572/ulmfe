@@ -1,3 +1,4 @@
+import { withBasePath } from '@/lib/basePath'
 export default function AboutGreetingContent() {
 	return (
 		<>
@@ -7,25 +8,23 @@ export default function AboutGreetingContent() {
 				</h1>
 				<div className="page_top_box about_top mb0">
 					<div className="dda">
-						{"묻는 미래! 탐구하는 미래! 만드는 미래!"}
+						{"지속가능한 미래, 학생들이 직접 만들어갑니다"}
 					</div>
 					<p>
-						{"울산광역시미래교육관 홈페이지를 방문해 주신 여러분께 진심으로 감사드립니다."}
+						{"울산광역시미래교육관 누리집을 찾아주신 여러분을 환영합니다."}
 					</p>
 				</div>
 				<div className="about_area">
 					<div className="tit">
-						<strong>
-							{"울산광역시미래교육관은 미래형 공간 위에 융합 · 첨단 콘텐츠를 활용해 다양한 인류의 문제를 "}
-							<br className="pc_vw" />
-							{"학교 수업과 연계한 프로젝트 학습 방법으로 체험하고 교육하는 공간입니다."}
-						</strong>
 						<p>
-							{"학생들이 기후위기 · 불평등 · 지역의 지속가능한 발전 등 우리 삶과 가장 가까운 문제들을 직접 탐구하고 실천할 수 있도록, "}
+							{"울산광역시미래교육관은 UN 지속가능발전목표(SDGs)를 기반으로,"}
 							<br className="pc_vw" />
-							{"다양한 체험과 프로젝트 학습 프로그램을 울산광역시미래교육관에 담았습니다."}
+							{"학생들이 사회·환경·경제 문제를 스스로 탐구하고 해결책을 찾아가는 지속가능발전교육(ESD) 학생 체험 기관입니다."}
+							<br className="pc_vw" />
+							{"프로젝트 중심 체험활동, 도서관, 메이커실 등 다양한 교육 공간을 통해 학생들은 미래 사회를 이끌어 갈 역량을 기르고,"}
+							<br className="pc_vw" />
+							{"지구와 이웃을 함께 생각하는 세계시민으로 성장해 나갑니다."}
 							<br />
-							{"이곳에서 탐구가 주는 즐거움과 도전, 그리고 직접 변화를 만드는 성취감을 함께 나눌 수 있을 것입니다."}
 						</p>
 					</div>
 					<ul className="ibox">
@@ -47,11 +46,13 @@ export default function AboutGreetingContent() {
 					</ul>
 					<div className="btm">
 						<p>
-							{"울산광역시미래교육관에 오신 것을 다시 한번 진심으로 환영하며, 여러분의 미래를 향한 여정이 유익하고 설레는 시간이 되시기를 바랍니다."}
+							{"울산광역시미래교육관은 학생 한 명 한 명이 지속가능한 미래를 설계하는 주인공이 될 수 있도록 앞으로도 최선을 다하겠습니다."}
+							<br />
+							{"감사합니다."}
 						</p>
 						<div className="sign">
-							{"울산광역시미래교육관 관장 "}
-							<img src="/pub/images/img_sign.webp" alt="홍길동" title="홍길동" />
+							{"울산광역시미래교육관 직원 일동"}
+							{/* <img src={withBasePath('/pub/images/img_sign.webp')} alt="홍길동" title="홍길동" /> */}
 						</div>
 					</div>
 				</div>

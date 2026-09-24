@@ -1,3 +1,4 @@
+import { pubUrl } from '../../config'
 import { Link, useLocation } from 'react-router-dom'
 import { StudentPopups } from './TabletPopup'
 import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
@@ -27,7 +28,7 @@ const fixedEndStep: MissionSideStep = {
 	title: '실천력 부여',
 	description: 'SDGs 히어로 완성·평가/설문',
 	time: '10분',
-	icon: '/pub/images/icon_activity_mission_end.webp'
+	icon: pubUrl('/pub/images/icon_activity_mission_end.webp')
 }
 
 const fixedStartStepCount = 2
@@ -85,9 +86,9 @@ export const StudentMissionHeader = () => {
 			title: introStep?.stepName || '스토리 제시',
 			description: introStep?.title || '',
 			time: introStep?.limitMin ? `${introStep.limitMin}분` : '',
-			icon: '/pub/images/icon_activity_order01.webp'
+			icon: pubUrl('/pub/images/icon_activity_order01.webp')
 		},
-		{ title: '미션 탐색', description: '미션 열어보기, 동선안내', time: '20분', icon: '/pub/images/icon_activity_mission02.webp' }
+		{ title: '미션 탐색', description: '미션 열어보기, 동선안내', time: '20분', icon: pubUrl('/pub/images/icon_activity_mission02.webp') }
 	]
 	const dynamicSteps = routeItems.map((routeName, index) => {
 		const quest = studentFlowMissionQuestByRouteIndex(flowSession, index)

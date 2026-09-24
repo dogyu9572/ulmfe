@@ -2,25 +2,73 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="egovframework.let.usr.service.impl.PublicSearchDAO">
+	<!--
+		통합검색은 두 갈래를 함께 본다.
+		  1) 통합검색 관리에 담당자가 등록한 안내 페이지(HMPG_SEARCH_PAGE)
+		  2) 공개 게시판에 올라온 게시글(BBS_ARTICLE)
+		화면은 결과의 PAGE_URL 첫 구간으로 섹션(대메뉴)을 정하므로,
+		게시글도 실제 상세 주소를 그대로 내려주면 알맞은 섹션에 들어간다.
+		안내 페이지를 먼저 두어 기존 노출 순서를 유지하고, 게시글을 뒤에 붙인다.
+	-->
 	<select id="searchPages" parameterType="string" resultType="egovframework.let.usr.service.vo.PublicSearchPageVO">
-		SELECT
-			S.SRCH_PAGE_SN AS SEARCH_PAGE_ID,
-			S.MENU_1DEPTH_NM AS MENU1_DEPTH_NAME,
-			S.MENU_2DEPTH_NM AS MENU2_DEPTH_NAME,
-			S.MENU_3DEPTH_NM AS MENU3_DEPTH_NAME,
-			S.PAGE_TTL AS TITLE,
-			S.PAGE_CN AS CONTENT,
-			S.PAGE_URL AS PAGE_URL
-		FROM HMPG_SEARCH_PAGE S
-		WHERE S.DEL_YN = 'N'
-			AND (
-				S.PAGE_TTL LIKE CONCAT('%', #{value}, '%')
-				OR S.PAGE_CN LIKE CONCAT('%', #{value}, '%')
-				OR S.MENU_1DEPTH_NM LIKE CONCAT('%', #{value}, '%')
-				OR S.MENU_2DEPTH_NM LIKE CONCAT('%', #{value}, '%')
-				OR S.MENU_3DEPTH_NM LIKE CONCAT('%', #{value}, '%')
-			)
-		ORDER BY S.MENU_1DEPTH_NM, S.MENU_2DEPTH_NM, S.MENU_3DEPTH_NM, S.REG_DT DESC, S.SRCH_PAGE_SN DESC
+		SELECT SEARCH_PAGE_ID, MENU1_DEPTH_NAME, MENU2_DEPTH_NAME, MENU3_DEPTH_NAME, TITLE, CONTENT, PAGE_URL
+		FROM (
+			SELECT
+				0 AS SRC_ORDER,
+				S.SRCH_PAGE_SN AS SEARCH_PAGE_ID,
+				S.MENU_1DEPTH_NM AS MENU1_DEPTH_NAME,
+				S.MENU_2DEPTH_NM AS MENU2_DEPTH_NAME,
+				S.MENU_3DEPTH_NM AS MENU3_DEPTH_NAME,
+				S.PAGE_TTL AS TITLE,
+				S.PAGE_CN AS CONTENT,
+				S.PAGE_URL AS PAGE_URL,
+				S.REG_DT AS SORT_DT
+			FROM HMPG_SEARCH_PAGE S
+			WHERE S.DEL_YN = 'N'
+				AND (
+					S.PAGE_TTL LIKE CONCAT('%', #{value}, '%')
+					OR S.PAGE_CN LIKE CONCAT('%', #{value}, '%')
+					OR S.MENU_1DEPTH_NM LIKE CONCAT('%', #{value}, '%')
+					OR S.MENU_2DEPTH_NM LIKE CONCAT('%', #{value}, '%')
+					OR S.MENU_3DEPTH_NM LIKE CONCAT('%', #{value}, '%')
+				)
+
+			UNION ALL
+
+			SELECT
+				1 AS SRC_ORDER,
+				-ROW_NUMBER() OVER (ORDER BY A.REG_DT DESC, A.PST_SN) AS SEARCH_PAGE_ID,
+				CASE A.BBS_ID WHEN 'LBARC' THEN '도서관' ELSE '소식' END AS MENU1_DEPTH_NAME,
+				M.BBS_NM AS MENU2_DEPTH_NAME,
+				NULL AS MENU3_DEPTH_NAME,
+				A.PST_TTL AS TITLE,
+				LEFT(A.PST_CN, 500) AS CONTENT,
+				CASE A.BBS_ID
+					WHEN 'ZEHSB' THEN CONCAT('/news/notice_view?id=', A.PST_SN)
+					WHEN 'EXHBT' THEN CONCAT('/news/exhibit_view?id=', A.PST_SN)
+					WHEN 'EVENT' THEN CONCAT('/news/event_view?id=', A.PST_SN)
+					<!-- 갤러리 목록은 post_id 로 팝업을 연다. id 로 주면 목록만 열리고 글이 선택되지 않는다. -->
+					WHEN 'GALRY' THEN CONCAT('/news/gallery?post_id=', A.PST_SN)
+					WHEN 'FAQ01' THEN '/news/faq'
+					WHEN 'LBARC' THEN CONCAT('/library/archive_view?id=', A.PST_SN)
+					ELSE NULL
+				END AS PAGE_URL,
+				A.REG_DT AS SORT_DT
+			FROM BBS_ARTICLE A
+			JOIN BBS_MST M ON M.BBS_ID = A.BBS_ID AND M.USE_YN = 'Y'
+			WHERE A.USE_YN = 'Y'
+				AND A.LCK_YN &lt;&gt; 'Y'
+				<!-- 발행일이 오지 않은 예약 글은 게시판 목록·상세에서 감춰지므로 통합검색에서도 뺀다.
+				     PublicBoardDAO 의 publicPostWhere 와 같은 조건을 쓴다. -->
+				AND (A.PSTG_YMD IS NULL OR A.PSTG_YMD = '' OR A.PSTG_YMD &lt;= DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d'))
+				AND A.BBS_ID IN ('ZEHSB', 'EXHBT', 'EVENT', 'GALRY', 'FAQ01', 'LBARC')
+				AND (
+					A.PST_TTL LIKE CONCAT('%', #{value}, '%')
+					OR A.PST_CN LIKE CONCAT('%', #{value}, '%')
+				)
+		) R
+		WHERE R.PAGE_URL IS NOT NULL
+		ORDER BY R.SRC_ORDER, R.MENU1_DEPTH_NAME, R.MENU2_DEPTH_NAME, R.MENU3_DEPTH_NAME, R.SORT_DT DESC, R.SEARCH_PAGE_ID DESC
 		LIMIT 500
 	</select>
 </mapper>

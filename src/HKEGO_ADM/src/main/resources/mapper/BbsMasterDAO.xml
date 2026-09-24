@@ -71,18 +71,23 @@
 
 	<sql id="bbsMasterListWhere">
 		FROM BBS_MST
+		<where>
+			<if test="useYn != null and useYn != ''">
+				USE_YN = #{useYn}
+			</if>
+		</where>
 	</sql>
 
-	<select id="countBbsMasterList" resultType="int">
+	<select id="countBbsMasterList" parameterType="map" resultType="int">
 		SELECT COUNT(*)
 		<include refid="bbsMasterListWhere"/>
 	</select>
 
-	<select id="selectBbsMasterList" resultMap="BbsMasterResult">
+	<select id="selectBbsMasterList" parameterType="map" resultMap="BbsMasterResult">
 		SELECT
 		<include refid="bbsMasterSelectColumns"/>
 		<include refid="bbsMasterListWhere"/>
-		ORDER BY REG_DT DESC
+		ORDER BY REG_DT DESC, BBS_ID DESC
 		LIMIT #{offset}, #{limit}
 	</select>
 

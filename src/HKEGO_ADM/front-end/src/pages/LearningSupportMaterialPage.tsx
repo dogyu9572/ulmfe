@@ -4,9 +4,10 @@ import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL, adminFileDownloadUrl } from '../config'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 import { summernoteOnEnterKeydown } from '../utils/summernoteCallbacks'
 
 const SUMMERNOTE_ID = 'learning-support-material-content'
@@ -38,6 +39,8 @@ type LearningSupportMaterial = {
 	pstCn?: string
 	lrnTypeCd: string
 	lrnTypeNm?: string
+	zoneCd?: string
+	zoneNm?: string
 	dataTypeCd: string
 	dataTypeNm?: string
 	prgrmTypeCd?: string
@@ -68,6 +71,15 @@ const LEARNING_TYPE_OPTIONS = [
 
 const FORM_LEARNING_TYPE_OPTIONS = LEARNING_TYPE_OPTIONS.filter((option) => option.value)
 
+const ZONE_OPTIONS = [
+	{ value: '', label: '전체' },
+	{ value: 'FUTURE', label: '미래존' },
+	{ value: 'EARTH', label: '지구존' },
+	{ value: 'SOCIETY', label: '사회존' }
+]
+
+const FORM_ZONE_OPTIONS = ZONE_OPTIONS.filter((option) => option.value)
+
 const DATA_TYPE_OPTIONS = [
 	{ value: '', label: '전체' },
 	{ value: 'LINK', label: '링크' },
@@ -81,6 +93,7 @@ const defaultForm = (): LearningSupportMaterial => ({
 	pstTtl: '',
 	pstCn: '',
 	lrnTypeCd: 'PRE',
+	zoneCd: '',
 	dataTypeCd: 'DOC',
 	prgrmTypeCd: '',
 	prgrmSn: null,
@@ -121,35 +134,57 @@ export const LearningSupportMaterialPage: React.FC = () => {
 	const [message, setMessage] = useState<string | null>(null)
 
 	const [lrnTypeCd, setLrnTypeCd] = useState('')
+	const [zoneCd, setZoneCd] = useState('')
 	const [dataTypeCd, setDataTypeCd] = useState('')
 	const [startRegYmd, setStartRegYmd] = useState('')
 	const [endRegYmd, setEndRegYmd] = useState('')
 	const [searchType, setSearchType] = useState('all')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	// select 옵션이 20 부터라 기본값을 10 으로 두면 표시(20)와 실제 조회(10)가 어긋난다.
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [totalCount, setTotalCount] = useState(0)
 
 	const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [pageSize, totalCount])
 	const selectedProgram = programOptions.find((program) => program.prgrmTypeCd === form.prgrmTypeCd && program.prgrmSn === form.prgrmSn)
 
-	const buildSearchParams = useCallback((targetPage: number, targetSize = pageSize) => {
+	const buildSearchParams = useCallback((targetPage: number, targetSize = pageSize, filters?: Partial<{
+		lrnTypeCd: string
+		zoneCd: string
+		dataTypeCd: string
+		startRegYmd: string
+		endRegYmd: string
+		searchType: string
+		searchKeyword: string
+	}>) => {
 		const qs = new URLSearchParams()
 		qs.set('page', String(targetPage))
 		qs.set('size', String(targetSize))
-		if (lrnTypeCd) qs.set('lrnTypeCd', lrnTypeCd)
-		if (dataTypeCd) qs.set('dataTypeCd', dataTypeCd)
-		if (startRegYmd) qs.set('startRegYmd', startRegYmd)
-		if (endRegYmd) qs.set('endRegYmd', endRegYmd)
-		if (searchType) qs.set('searchType', searchType)
-		if (searchKeyword.trim()) qs.set('searchKeyword', searchKeyword.trim())
+		const next = { lrnTypeCd, zoneCd, dataTypeCd, startRegYmd, endRegYmd, searchType, searchKeyword, ...filters }
+		if (next.lrnTypeCd) qs.set('lrnTypeCd', next.lrnTypeCd)
+		if (next.zoneCd) qs.set('zoneCd', next.zoneCd)
+		if (next.dataTypeCd) qs.set('dataTypeCd', next.dataTypeCd)
+		if (next.startRegYmd) qs.set('startRegYmd', next.startRegYmd)
+		if (next.endRegYmd) qs.set('endRegYmd', next.endRegYmd)
+		if (next.searchType) qs.set('searchType', next.searchType)
+		if (next.searchKeyword.trim()) qs.set('searchKeyword', next.searchKeyword.trim())
 		return qs.toString()
-	}, [dataTypeCd, endRegYmd, lrnTypeCd, pageSize, searchKeyword, searchType, startRegYmd])
+	}, [dataTypeCd, endRegYmd, lrnTypeCd, pageSize, searchKeyword, searchType, startRegYmd, zoneCd])
 
-	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize) => {
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, filters?: Parameters<typeof buildSearchParams>[2]) => {
 		setError(null)
+		// 초기화는 filters 로 빈 조건을 넘긴다. 화면에 남은 옛 날짜가 아니라 실제로 보낼 값을 검증한다.
+		const rangeWarning = checkDateRange(
+			filters ? (filters.startRegYmd ?? '') : startRegYmd,
+			filters ? (filters.endRegYmd ?? '') : endRegYmd,
+			'등록일'
+		)
+		if (rangeWarning) {
+			setError(rangeWarning)
+			return
+		}
 		try {
-			const res = await fetch(`${BACKEND}/api/admin/learning-support-materials?${buildSearchParams(targetPage, targetSize)}`, { credentials: 'include' })
+			const res = await fetch(`${BACKEND}/api/admin/learning-support-materials?${buildSearchParams(targetPage, targetSize, filters)}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<LearningSupportMaterial>> = await res.json()
 			if (!result.success || !result.data) {
 				setError(result.message || '학습지원 자료실 목록 조회에 실패했습니다.')
@@ -178,8 +213,11 @@ export const LearningSupportMaterialPage: React.FC = () => {
 	}, [])
 
 	useEffect(() => {
+		// 필터 변경까지 여기서 재조회하면 검색 클릭과 겹쳐 같은 API 가 두 번 나간다.
+		// 필터 반영은 검색 버튼이 담당하고, 여기서는 페이지·페이지크기 변경만 다룬다.
 		void fetchList(page, pageSize)
-	}, [fetchList, page, pageSize])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [page, pageSize])
 
 	useEffect(() => {
 		void fetchProgramOptions()
@@ -454,12 +492,16 @@ export const LearningSupportMaterialPage: React.FC = () => {
 
 	const resetFilters = () => {
 		setLrnTypeCd('')
+		setZoneCd('')
 		setDataTypeCd('')
 		setStartRegYmd('')
 		setEndRegYmd('')
 		setSearchType('all')
 		setSearchKeyword('')
 		setPage(1)
+		// 조회 effect 는 page·pageSize 만 본다. 이미 1페이지면 effect 가 돌지 않으므로
+		// 지워진 조건을 직접 넘겨 조회한다. 그러지 않으면 직전 검색 결과가 그대로 남는다.
+		void fetchList(1, pageSize, { lrnTypeCd: '', zoneCd: '', dataTypeCd: '', startRegYmd: '', endRegYmd: '', searchType: 'all', searchKeyword: '' })
 	}
 
 	const toggleSelected = (pstSn?: string) => {
@@ -518,6 +560,12 @@ export const LearningSupportMaterialPage: React.FC = () => {
 								<option key={option.value} value={option.value}>{option.label}</option>
 							))}
 						</select>
+						<label className="bbs-post-filter-label">ESD 체험터</label>
+						<select className="bbs-post-filter-select" value={zoneCd} onChange={(e) => setZoneCd(e.target.value)}>
+							{ZONE_OPTIONS.map((option) => (
+								<option key={option.value} value={option.value}>{option.label}</option>
+							))}
+						</select>
 						<label className="bbs-post-filter-label">자료구분</label>
 						<select className="bbs-post-filter-select" value={dataTypeCd} onChange={(e) => setDataTypeCd(e.target.value)}>
 							{DATA_TYPE_OPTIONS.map((option) => (
@@ -561,6 +609,7 @@ export const LearningSupportMaterialPage: React.FC = () => {
 							</th>
 							<th style={{ width: 70 }}>번호</th>
 							<th style={{ width: 100 }}>학습유형</th>
+							<th style={{ width: 100 }}>ESD 체험터</th>
 							<th style={{ width: 90 }}>자료구분</th>
 							<th style={{ width: 110 }}>프로그램 구분</th>
 							<th style={{ width: 180 }}>프로그램명</th>
@@ -578,6 +627,7 @@ export const LearningSupportMaterialPage: React.FC = () => {
 								<td><input type="checkbox" checked={!!row.pstSn && selectedIds.has(row.pstSn)} onChange={() => toggleSelected(row.pstSn)} /></td>
 								<td>{totalCount - ((page - 1) * pageSize + index)}</td>
 								<td>{row.lrnTypeNm || '-'}</td>
+								<td>{row.zoneNm || '-'}</td>
 								<td>{row.dataTypeNm || '-'}</td>
 								<td>{row.prgrmTypeNm || '-'}</td>
 								<td>{row.prgrmNm || '-'}</td>
@@ -593,7 +643,7 @@ export const LearningSupportMaterialPage: React.FC = () => {
 						))}
 						{list.length === 0 && (
 							<tr>
-								<td colSpan={12} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
+								<td colSpan={13} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
 							</tr>
 						)}
 					</tbody>
@@ -638,8 +688,19 @@ export const LearningSupportMaterialPage: React.FC = () => {
 									))}
 								</select>
 							</td>
-							<th>자료구분</th>
+							<th>ESD 체험터</th>
 							<td>
+								<select className="bbs-post-category-input" value={form.zoneCd ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, zoneCd: e.target.value }))}>
+									<option value="">해당 없음</option>
+									{FORM_ZONE_OPTIONS.map((option) => (
+										<option key={option.value} value={option.value}>{option.label}</option>
+									))}
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>자료구분</th>
+							<td colSpan={3}>
 								<select className="bbs-post-category-input" value={form.dataTypeCd} onChange={(e) => setForm((prev) => ({ ...prev, dataTypeCd: e.target.value }))}>
 									{FORM_DATA_TYPE_OPTIONS.map((option) => (
 										<option key={option.value} value={option.value}>{option.label}</option>

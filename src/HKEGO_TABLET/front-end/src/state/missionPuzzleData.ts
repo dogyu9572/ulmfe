@@ -1,5 +1,7 @@
+import { pubUrl } from '../config'
 // 미션 퍼즐 하드코딩 데이터 — 관리자에 등록하지 않고 여기서 관리한다. 실화면(MissionStepQuestPage)과 프로토타입이 함께 읽는다
 import type { MissionPuzzle, QuizQuestion } from './missionPuzzleTypes'
+import { stripEmphasisMarkers } from '../utils/emphasisText'
 
 export type MissionZonePuzzles = {
 	/** 존 이름 — 학생 명단의 동선(routeCn) 또는 미션 프로그램 stepJson STEP3의 존 이름과 일치해야 한다 */
@@ -13,6 +15,8 @@ export type MissionProgramPuzzles = {
 	name: string
 	/** 프로그램명이 관리자에서 다르게 등록된 경우를 위한 대체 이름 */
 	aliases?: string[]
+	/** 프로그램명 아래 한 줄 소개 — 관리자 간단설명(simpleExpln)이 비어 있을 때 쓴다 */
+	summary?: string
 	/** 아래 tabLabel·sourceNote·caution·story·done·stickerCount는 프로토타입 화면 전용이다 */
 	tabLabel: string
 	sourceNote: string
@@ -36,37 +40,44 @@ export type MissionProgramPuzzles = {
 	quizBank: QuizQuestion[]
 }
 
-const CAUTION_UNCONFIRMED = '근거 미확보 — 0718 합본 미수령 상태의 가설 사양입니다. 화면 구조와 퍼즐 엔진 매핑은 유효하나, 확정본 회신 후 정답값·전시물 코드 재검증이 필요합니다.'
-const CAUTION_IMG_SUFFIX = ' · 가설 사양 — 확정본 회신 후 교체 필요'
+const CAUTION_UNCONFIRMED = '자산 미도착 — 0728 확정본의 사양은 반영했으나, 전시 콘텐츠 이미지와 진열대 배치가 아직 오지 않아 일부를 더미로 채웠습니다. 실물 자산 도착 후 교체가 필요합니다 (docs/06_MISSION_SPEC_GAP_0728.md 참고).'
+const CAUTION_IMG_SUFFIX = ' · 더미 이미지 — 실물 자산 도착 후 교체 필요'
+const COMMON_MISSION_DONE = {
+	stepLabel: '미션 완료',
+	emoji: '🎉',
+	text: '스티커 5개를 모두 모았습니다. 태블릿을 선생님께 반납해 주세요.'
+}
 
 /** SDGs 17개 목표 — E3 선택·E5 기억력 공용 */
 export const SDGS: { label: string; color: string }[] = [
-	{ label: '빈곤 퇴치', color: '#E5243B' },
-	{ label: '기아 종식', color: '#DDA63A' },
-	{ label: '건강과 웰빙', color: '#4C9F38' },
-	{ label: '양질의 교육', color: '#C5192D' },
-	{ label: '성평등', color: '#FF3A21' },
-	{ label: '깨끗한 물과 위생', color: '#26BDE2' },
-	{ label: '깨끗한 에너지', color: '#FCC30B' },
-	{ label: '일자리와 경제성장', color: '#A21942' },
-	{ label: '산업·혁신·기반시설', color: '#FD6925' },
-	{ label: '불평등 감소', color: '#DD1367' },
-	{ label: '도시와 공동체', color: '#FD9D24' },
-	{ label: '생산과 소비', color: '#BF8B2E' },
-	{ label: '기후변화 대응', color: '#3F7E44' },
-	{ label: '해양생태계', color: '#0A97D9' },
-	{ label: '육상생태계', color: '#56C02B' },
-	{ label: '정의·평화·제도', color: '#00689D' },
-	{ label: '지구촌 협력', color: '#19486A' }
+	{ label: '빈곤층 감소와 사회안전망 강화', color: '#E5243B' },
+	{ label: '식량 안보 및 지속 가능한 농업 강화', color: '#DDA63A' },
+	{ label: '건강하고 행복한 삶 보장', color: '#4C9F38' },
+	{ label: '모두를 위한 양질의 교육', color: '#C5192D' },
+	{ label: '성평등 보장', color: '#FF3A21' },
+	{ label: '건강하고 안전한 물관리', color: '#26BDE2' },
+	{ label: '에너지 친환경적 생산과 소비', color: '#FCC30B' },
+	{ label: '좋은 일자리 확대와 경제 성장', color: '#A21942' },
+	{ label: '산업의 성장과 혁신 활성화 및 사회 기반 시설 구축', color: '#FD6925' },
+	{ label: '모든 종류의 불평등 해소', color: '#DD1367' },
+	{ label: '지속가능한 도시와 주거지 조성', color: '#FD9D24' },
+	{ label: '지속가능한 생산과 소비', color: '#BF8B2E' },
+	{ label: '기후변화와 대응', color: '#3F7E44' },
+	{ label: '해양생태계 보전', color: '#0A97D9' },
+	{ label: '육상생태계 보전', color: '#56C02B' },
+	{ label: '평화 ˙ 정의 ˙ 포용', color: '#00689D' },
+	{ label: '지구촌 협력 강화', color: '#19486A' },
+	{ label: 'K-SDGs', color: '#fff' }
 ]
 
-const MAP_HINT_IMG = '/pub/images/mission/hint_map_library.svg'
-const NEXT_ZONE_MAP = '/pub/images/mission/map_next_zone.svg'
+const MAP_HINT_IMG = pubUrl('/pub/images/mission/hint_map_library.svg')
+export const NEXT_ZONE_MAP = pubUrl('/pub/images/mission/map_next_zone.svg')
 
 const libraryCode: MissionPuzzle = {
 	type: 'E1_CODE',
 	id: 'm1-library-code',
-	stepLabel: 'STEP3. 미션수행 — 러닝도서관 · 시작 미션',
+	stepLabel: 'STEP1. 미션수행 — 러닝도서관 · 시작 미션',
+	cardTitle: '지속가능발전교육의 흔적을 찾아라',
 	quest: '괴물을 잠재우려면 러닝 도서관을 탈출해야 한다.\n울산광역시미래교육관의 기록과 지속가능발전교육의 흔적을 찾아 *4자리 비밀번호*를 입력하라.',
 	keypad: 'NUMERIC',
 	answer: '1317',
@@ -85,10 +96,24 @@ const libraryCode: MissionPuzzle = {
 	nextZone: { name: '지구존', mapImageUrl: NEXT_ZONE_MAP, pingX: 21, pingY: 34 }
 }
 
+/** 문제 보기 버튼으로 콘텐츠를 찾아가게 하는 안내 화면 — 이미지는 콘텐츠 일부만 비춘다 */
+const earthFind: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm1-earth-find',
+	stepLabel: 'STEP2. 미션수행 — 지구존 · 콘텐츠 찾기',
+	cardTitle: '지구를 생각하는 생산과 소비',
+	quest: '괴물을 잠재우기 위해 쓰레기가 더 버려지지 않도록 해야 해요. 문제 보기 버튼을 눌러 그림에 해당하는 콘텐츠를 찾으세요. 콘텐츠 속에서 단서를 찾아 비밀번호를 입력해서 쓰레기가 버려지는 것을 막으세요!',
+	imagePlaceholder: 'E-15 콘텐츠 일부 이미지 — 어떤 콘텐츠인지 추측할 수 있도록 일부만 비춘다' + CAUTION_IMG_SUFFIX,
+	notice: '콘텐츠 속에서 단서를 찾아 비밀번호를 입력해서 쓰레기가 버려지는 것을 막으세요!',
+	buttonLabel: '문제 보기',
+	hints: []
+}
+
 const earthBoard: MissionPuzzle = {
 	type: 'E2_BOARD',
 	id: 'm1-earth-board',
-	stepLabel: 'STEP3. 미션수행 — 지구존 · E-15 지구를 생각하는 생산과 소비',
+	stepLabel: 'STEP2. 미션수행 — 지구존 · E-15',
+	cardTitle: '지구를 생각하는 생산과 소비',
 	quest: '괴물을 잠재우기 위해 쓰레기가 더 버려지지 않도록 해야 해요.\n콘텐츠 내용 중에서 다음에 해당하는 문구를 찾으세요.',
 	blanksLabel: '○○ ○○○ ○○',
 	front: [
@@ -112,15 +137,41 @@ const earthBoard: MissionPuzzle = {
 	nextZone: { name: '미래존', mapImageUrl: NEXT_ZONE_MAP, pingX: 51, pingY: 34 }
 }
 
-const futureDiff: MissionPuzzle = {
+const futureDiffIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm1-future-diff-intro',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · 서로 다른 한 끼',
+	cardTitle: '서로 다른 한 끼',
+	quest: '서로괴물을 잠재우기 위해 과소비와 낭비를 막아야 해요. 어서 미래존으로 가서  단서를 찾아보세요.',
+	imagePlaceholder: '이미지',
+	buttonLabel: '다음',
+	showBackButton: true,
+	hints: []
+}
+
+/** 서로 다른 한 끼 안내 2쪽 — futureDiffIntro에서 「다음」으로 바로 이어지는 두 번째 이미지 화면 */
+const futureDiffIntro2: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm1-future-diff-intro2',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · 서로 다른 한 끼',
+	cardTitle: '서로 다른 한 끼',
+	quest: '서로괴물을 잠재우기 위해 과소비와 낭비를 막아야 해요. 어서 미래존으로 가서  단서를 찾아보세요.',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
+const futureDiff1: MissionPuzzle = {
 	type: 'E4_DIFF',
 	id: 'm1-future-diff',
-	stepLabel: 'STEP3. 미션수행 — 미래존 · F-03 서로 다른 한 끼',
-	quest: '두 그림에서 *다른 곳 5군데*를 찾아 오른쪽 그림을 터치하세요.',
-	imageAUrl: '/pub/images/mission/diff_tray_a.svg',
-	imageBUrl: '/pub/images/mission/diff_tray_b.svg',
-	imageALabel: 'A — 급식이 담긴 식판',
-	imageBLabel: 'B — 음식이 남은 식판',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · F-03 다른 그림 찾기 (1)',
+	cardTitle: '서로 다른 한 끼 1',
+	quest: '설명 패널의 그림과 태블릿에서 제시된 그림을 비교하여 다른 곳 5군데를 찾아보세요.',
+	imageBUrl: pubUrl('/pub/images/mission/diff_tray_b.svg'),
+	imageBLabel: '태블릿 그림 — 다른 곳 5군데' + CAUTION_IMG_SUFFIX,
+	referenceLabel: '「서로 다른 한 끼」 설명패널 (1번 그림)',
+	referenceImageUrl: pubUrl('/pub/images/mission/diff_tray_a.svg'),
 	spots: [
 		{ x: 22, y: 30, radius: 11 },
 		{ x: 52, y: 22, radius: 11 },
@@ -131,11 +182,25 @@ const futureDiff: MissionPuzzle = {
 	hints: [{ at: 180, text: '식판 위 반찬의 색과 개수를 비교해 보세요.' }]
 }
 
+/** 다른그림찾기와 SDGs 선택 사이의 도착 확인 화면 — 활동시작을 눌러야 문제가 제시된다 (0728 메모4) */
+const futureStart: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm1-future-start',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · F-03 활동 시작',
+	cardTitle: '지속가능발전목표',
+	quest: '‘서로 다른 한 끼로 왔나요?’ 왔다면 활동시작을 눌러주세요.',
+	buttonLabel: '활동 시작',
+	contentBox: true,
+	showBackButton: true,
+	hints: []
+}
+
 const futureSdgsSelect: MissionPuzzle = {
 	type: 'E3_SELECT',
 	id: 'm1-future-sdgs',
 	stepLabel: 'STEP3. 미션수행 — 미래존 · SDGs 목표 선택',
-	quest: '다음 화면은 지속가능발전에 관련된 17개의 목표입니다. *서로 다른 한 끼*와 관련 있는 지속가능발전목표를 클릭하여 정답을 찾아보세요. *정답의 개수는 비밀입니다.*',
+	cardTitle: '17가지 목표',
+	quest: '다음 화면은 지속가능발전에 관련된 17개의 목표입니다. 서로 다른 한 끼와 관련 있는 지속가능발전목표를 클릭하여 정답을 찾아보세요. 정답의 개수는 비밀입니다.(몇 개를 고르든, 고르고 나서 정답 확인 버튼을 누른다.)',
 	items: SDGS,
 	answerIndexes: [0, 1],
 	labelRevealAfterSec: 180,
@@ -144,20 +209,33 @@ const futureSdgsSelect: MissionPuzzle = {
 	nextZone: { name: '사회존', mapImageUrl: NEXT_ZONE_MAP, pingX: 80, pingY: 34 }
 }
 
+const socialMatchIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm1-social-match-intro',
+	stepLabel: 'STEP3. 미션수행 — 사회존 · 일하는 어린이',
+	cardTitle: '일하는 어린이',
+	quest: '일하는 어린이 콘텐츠 이미지를 확인한 후 다음을 눌러 문제를 시작하세요.',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
 const socialMatch: MissionPuzzle = {
-	type: 'E3_MATCH',
+	type: 'E3_CHOICE_SET',
 	id: 'm1-social-match',
 	stepLabel: 'STEP3. 미션수행 — 사회존 · S-14 일하는 어린이',
-	quest: '여기 4명의 친구가 지속가능한 지구를 위해 각자 의미 있는 물건을 딱 하나씩만 가지고 있습니다. 아래 단서를 읽고 물건을 연결해 주세요.',
+	cardTitle: '일하는 어린이',
+	quest: '잘 살펴봤나요?\n여기 4명의 친구(1번, 2번, 3번, 4번)가 지속가능한 지구를 위해 각자 의미 있는 물건을 딱 하나씩만 가지고 있습니다. 물건은 초콜릿, 축구공, 옷, 핸드폰입니다.\n아래의 단서를 읽고, 질문의 답을 찾아 자물쇠의 비밀번호를 풀어주세요!',
 	clues: [
-		"단서 1  1번 친구와 3번 친구 중 한 명은 버려진 페트병을 새활용한 '친환경 옷'을 입고 있습니다.",
-		'단서 2  2번 친구가 가진 물건은 전기가 필요하거나 달콤하게 먹을 수 있는 것이 아닙니다.',
-		"단서 3  3번 친구는 버려진 전자폐기물에서 금속을 추출해 다시 만든 '핸드폰'을 가지고 있습니다.",
-		'단서 4  4번 친구는 아동 노동 없이 만든 둥근 물건을 가지고 있지 않습니다.'
+		"*단서 1*  1번 친구와 3번 친구 중 한 명은 버려진 페트병을 새활용(업사이클)한 '친환경 옷'을 입고 있습니다.",
+		'*단서 2*  2번 친구가 가진 물건은 전기가 필요하거나(핸드폰), 달콤하게 먹을 수 있는 것(초콜릿)이 아닙니다.',
+		"*단서 3*  3번 친구는 버려진 전자폐기물에서 금속을 추출해 다시 만든 '핸드폰'을 가지고 있습니다.",
+		'*단서 4*  4번 친구는 아동 노동 없이 만든 둥근 물건(축구공)을 가지고 있지 않습니다.'
 	],
-	left: ['1번 친구', '2번 친구', '3번 친구', '4번 친구'],
-	right: ['옷', '축구공', '핸드폰', '초콜릿'],
-	answerMap: [0, 1, 2, 3],
+	items: ['1번 친구', '2번 친구', '3번 친구', '4번 친구'],
+	options: ['초콜릿', '축구공', '옷', '핸드폰'],
+	answerIndexes: [2, 1, 3, 0],
 	hints: [{ at: 180, text: '단서 3부터 확정한 뒤 단서 1을 적용해 보세요.' }]
 }
 
@@ -165,7 +243,8 @@ const socialLock: MissionPuzzle = {
 	type: 'E1_CODE',
 	id: 'm1-social-lock',
 	stepLabel: 'STEP3. 미션수행 — 사회존 · 자물쇠 코드',
-	quest: '정답을 맞추면 *Sustainable Development Goals* 라는 영어가 나타납니다. 아래 자물쇠의 비밀번호를 완성하세요.\n※ 마지막 s는 소문자로 고정 제시됩니다.',
+	cardTitle: 'Sustainable Development Goals!',
+	quest: '아래 자물쇠의 비밀번호를 완성하세요.',
 	keypad: 'ALPHA',
 	answer: 'SDG',
 	alphaKeys: 'SDGABCEIOU',
@@ -175,14 +254,41 @@ const socialLock: MissionPuzzle = {
 	nextZone: { name: '러닝도서관', mapImageUrl: NEXT_ZONE_MAP, pingX: 36, pingY: 70 }
 }
 
+/**
+ * 최종 미션에 난이도를 올리려고 덧붙인 로고 6쌍 (0728 확정본).
+ * 카드 세트는 고정이고 위치만 매번 섞인다 (0728 메모8 — 셔플은 MemoryPuzzlePanel이 담당).
+ * imageUrl은 실물 로고 자산이 오면 채운다.
+ */
+const FINAL_LOGOS: { label: string; color: string }[] = [
+	{ label: '울산광역시', color: '#ffffff' },
+	{ label: '고래', color: '#ffffff' },
+	{ label: '울산광역시교육청', color: '#ffffff' },
+	{ label: '태극기', color: '#ffffff' },
+	{ label: '풀', color: '#ffffff' },
+	{ label: 'UN', color: '#ffffff' }
+]
+
 /** 최종 미션은 전 미션 공용 (LSS-3.4.14) */
+
+const finalMemoryIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'shared-final-memory-intro',
+	stepLabel: 'STEP3. 미션수행 — 러닝도서관 · 최종 미션 안내',
+	cardTitle: '최종 미션! 기억력 게임',
+	quest: '이제 마지막입니다. 국가지속가능발전목표가 다 헝클어졌습니다. \n같은 목표끼리 배치해서 지속가능한 미래를 만들어주세요!\n두 개를 골라 같은 쌍이면 뒤집혀 있고, 아니면 다시 뒤집힙니다! \n틀릴 때마다 지속가능발전교육 1문제 팝업되어 문제 풀고 나서 다시 기억력 게임을 진행해 주세요.',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
 const finalMemory: MissionPuzzle = {
 	type: 'E5_MEMORY',
 	id: 'shared-final-memory',
 	stepLabel: 'STEP3. 미션수행 — 러닝도서관 · 최종 미션',
-	quest: '이제 마지막입니다. 괴물이 국가지속가능발전목표를 다 뒤집어 놓았습니다. *같은 목표끼리* 배치해서 지속가능한 미래를 만들어주세요!\n※ 색상 카드 ↔ 목표 문구 카드를 짝짓는 이형 쌍입니다. 원문 17쌍, 시연은 8쌍으로 축약.',
-	pairs: SDGS,
-	pairCount: 8,
+	cardTitle: 'Sustainable Development Goals!',
+	quest: '아래 자물쇠의 비밀번호를 완성하세요.',
+	pairs: [...SDGS, ...FINAL_LOGOS],
 	columns: 8,
 	wrongTriggersQuiz: true,
 	hints: []
@@ -202,31 +308,31 @@ const quizBank: QuizQuestion[] = [
 
 export const mission1Program: MissionProgramPuzzles = {
 	key: 'm1',
-	tabLabel: '미션1 · 소비습관구출작전',
+	tabLabel: '미션1 · *소비습관*구출작전',
 	name: '미션1 소비습관구출작전',
-	sourceNote: '근거 문서 (개발자용 버전) 미션 프로그램 1번(0703).hwpx · 관리자 등록값이 화면에 어떻게 렌더되는지 확인용',
+	summary: '괴물의 탄생을 막아라!',
+	sourceNote: '근거 문서 미션 프로그램 최종합본_검토-답변 완료(0728) · 관리자 등록값이 화면에 어떻게 렌더되는지 확인용',
+	caution: CAUTION_UNCONFIRMED,
 	story: {
 		name: '스토리 제시',
 		stepLabel: 'STEP1. 미션 제시 — 스토리',
 		paragraphs: [
-			'무심코 사고, 버린 물건들이 모여 *괴물*이 되었어요. 과소비와 낭비, 한 번 쓰고 버리는 습관이 이 괴물을 키우고 있습니다. 괴물을 잠재우려면, 러닝도서관에서 시작해서 미래교육관 곳곳에 있는 미션들을 완료해야 합니다.',
+			'무심코 사고, 버린 물건들이 모여 괴물이 되었어요. 과소비와 낭비, 한 번 쓰고 버리는 습관이 이 괴물을 키우고 있습니다. 괴물을 잠재우려면, 러닝도서관에서 시작해서 미래교육관 곳곳에 있는 미션들을 완료해야 합니다.',
 			'이 미션을 완료하는 방법은 간단합니다. 미션의 답을 숨겨놓은 곳을 찾아가 즐겁게 참가하면 됩니다.'
 		],
 		team: { label: 'A동선', size: 5, routeOrder: '지구존 → 미래존 → 사회존 → 러닝도서관' }
 	},
 	stickerCount: 5,
 	done: {
-		stepLabel: '미션 완료',
-		emoji: '🎉',
-		title: '축하합니다. 괴물을 잠재웠습니다. 미션 완료!',
-		text: '스티커 5개를 모두 모았습니다. 태블릿을 선생님께 반납해 주세요.'
+		...COMMON_MISSION_DONE,
+		title: '축하합니다.\n괴물을 잠재웠습니다. 미션 완료!',
 	},
 	zones: [
 		{ name: '러닝도서관', puzzles: [libraryCode] },
-		{ name: '지구존', puzzles: [earthBoard] },
-		{ name: '미래존', puzzles: [futureDiff, futureSdgsSelect] },
-		{ name: '사회존', puzzles: [socialMatch, socialLock] },
-		{ name: '최종 미션', puzzles: [finalMemory] }
+		{ name: '지구존', puzzles: [earthFind, earthBoard] },
+		{ name: '미래존', puzzles: [futureDiffIntro, futureDiffIntro2, futureDiff1, futureStart, futureSdgsSelect] },
+		{ name: '사회존', puzzles: [socialMatchIntro, socialMatch, socialLock] },
+		{ name: '최종 미션', puzzles: [finalMemoryIntro, finalMemory] }
 	],
 	quizBank
 }
@@ -239,17 +345,20 @@ const m2LibraryCode: MissionPuzzle = {
 	type: 'E1_CODE',
 	id: 'm2-library-code',
 	stepLabel: 'STEP3. 미션수행 — 러닝도서관 · 시작 미션',
-	quest: '이상한 날씨의 기록이 잠긴 서고를 열어야 합니다.\n기후 기록에서 단서를 찾아 *4자리 비밀번호*를 입력하라.',
+	cardTitle: '지속가능발전교육의 흔적을 찾아라',
+	quest: '흰뺨검둥오리를 위해 미션을 완료하기 위해서는 러닝 도서관을 탈출해야 한다. \n울산광역시미래교육관의 기록과 지속가능발전교육의 흔적을 찾아 4자리 비밀 번호를 입력하라.',
 	keypad: 'NUMERIC',
 	answer: '1727',
 	hints: [
 		{
 			at: 120,
-			text: '서가에 꽂힌 기후 연표의 첫 해와 마지막 해를 찾아보세요.',
+			text: '러닝도서관 1층과 2층 맵이 뜨고, 힌트가 되는 부분이 표시된다. — 17개 목표가 있는 곳(1층 서가), 계단 전체',
 			imageUrl: MAP_HINT_IMG,
-			imageCaption: 'map_1f.png · 붉은 점선 = 힌트가 되는 부분'
+			imageCaption: 'map_1f.png · 붉은 점선 = 힌트가 되는 부분 (17개 목표가 있는 곳 · 계단 전체)'
 		},
-		{ at: 240, text: '두 숫자를 이어 붙이면 네 자리가 됩니다.' }
+		{ at: 240, text: '울산광역시미래교육관에서 배우고자 하는 것이 무엇일까? 그 목표는 몇 개일까요?' },
+		{ at: 360, text: '지금 러닝도서관에서 에너지 절약을 위해 실천할 수 있는 방법은 무엇이 있을까요? 2층에는 어떻게 갈 수 있나요? 계단 1개를 오를 때 소모되는 칼로리는 0.15kcal입니다.' },
+		{ at: 480, text: '두 숫자를 조합하세요.' }
 	],
 	correctMessage: '정답입니다. 다음 미션을 위해 *지구존*으로 이동하세요.',
 	nextZone: { name: '지구존', mapImageUrl: NEXT_ZONE_MAP, pingX: 21, pingY: 34 }
@@ -259,8 +368,11 @@ const m2EarthJamo: MissionPuzzle = {
 	type: 'E1_JAMO',
 	id: 'm2-earth-jamo',
 	stepLabel: 'STEP3. 미션수행 — 지구존 · E-09 지구의 온도변화',
+	cardTitle: '지구의 온도 변화',
 	quest: '지구가 뜨거워지는 것을 막아야 이상한 날씨가 멈춥니다.\n콘텐츠 속 색깔 단서를 찾아 *여덟 글자*를 완성하세요.',
 	answer: '지구온도상승막자',
+	// 메모9는 "다음쪽의 참고 사진처럼" 만들라고 회신했는데 그 콘텐츠 이미지가 아직 오지 않았다.
+	// 지문을 우리가 지어내면 색상 자모가 실제로 칠해지지 않아 화면이 스스로 모순되므로, 원문이 올 때까지 passage를 비워 둔다.
 	colorClues: [
 		{ pos: 2, jamo: 'ㄱ', color: '#e11d48' },
 		{ pos: 4, jamo: 'ㄷ', color: '#1d4ed8' },
@@ -271,7 +383,7 @@ const m2EarthJamo: MissionPuzzle = {
 		{
 			at: 180,
 			text: '전시물 패널에서 같은 색으로 표시된 자모를 찾아보세요.',
-			imageUrl: '/pub/images/mission/clue_e09.svg',
+			imageUrl: pubUrl('/pub/images/mission/clue_e09.svg'),
 			imageCaption: 'clue_e09.png · 패널 오른쪽에 색깔 자모가 순번과 함께 붙어 있다' + CAUTION_IMG_SUFFIX
 		},
 		{ at: 300, text: '지구의 온도가 오르는 것을 막자는 뜻의 여덟 글자입니다. 지 · 구 · 온 · 도 로 시작합니다.' }
@@ -280,48 +392,85 @@ const m2EarthJamo: MissionPuzzle = {
 	nextZone: { name: '미래존', mapImageUrl: NEXT_ZONE_MAP, pingX: 51, pingY: 34 }
 }
 
+/** 팬데믹의 역사 앞 안내 화면 — 콘텐츠 이미지를 확인하고 「문제보기」로 넘어간다 (m1-social-match-intro와 동일 구성) */
+const m2FutureSortIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm2-future-sort-intro',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · 팬데믹의 역사',
+	cardTitle: '팬데믹의 역사',
+	quest: '지구에 닥친 위기를 이겨내고 환경을 지켜야 해요. \n어서 미래존으로 가서 단서를 찾아보세요.',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
+/** 팬데믹의 역사 도착 확인 화면 — 글자판이 3분·5분에 걸쳐 맞춰지고, 다 열려야 활동시작을 누를 수 있다 (m1-future-start와 같은 구조) */
+const m2FutureStart: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm2-future-start',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · F-06 활동 시작',
+	cardTitle: '팬데믹의 역사',
+	quest: '‘팬데믹의 역사’로 왔나요? 왔다면 활동시작을 눌러주세요.',
+	buttonLabel: '활동 시작',
+	contentBox: true,
+	showBackButton: true,
+	hints: []
+}
+
 const m2FutureSort: MissionPuzzle = {
 	type: 'E3_SORT',
 	id: 'm2-future-sort',
-	stepLabel: 'STEP3. 미션수행 — 미래존 · F-06 사건의 순서',
-	quest: '기후와 감염병 사건을 *일어난 순서대로* 정렬하세요. 제자리를 찾으면 글자가 이어져 문장이 됩니다.\n※ 연도는 정답을 맞힌 뒤에 공개됩니다.',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · F-06 팬데믹의 역사',
+	cardTitle: '팬데믹의 역사가 전하는 것',
+	quest: '팬데믹의 역사가 하고 싶은 말은 무엇일까요?\n팬데믹의 역사를 보고 순서를 파악합니다. 그림을 보고 팬데믹의 역사에서 어디에 해당하는 그림인지 파악합니다. ',
 	items: [
-		{ label: '흑사병 대유행', sortKey: 1347, letter: '함' },
-		{ label: '콜레라 1차 대유행', sortKey: 1817, letter: '께' },
+		{ label: '흑사병', sortKey: 1347, letter: '함' },
+		{ label: '콜레라', sortKey: 1817, letter: '께' },
 		{ label: '스페인 독감', sortKey: 1918, letter: '협' },
-		{ label: '런던 스모그 사건', sortKey: 1952, letter: '력' },
-		{ label: '몬트리올 의정서 채택', sortKey: 1987, letter: '준' },
-		{ label: '사스(SARS)', sortKey: 2003, letter: '비' },
-		{ label: '신종플루', sortKey: 2009, letter: '하' },
-		{ label: '메르스(MERS)', sortKey: 2015, letter: '는' },
-		{ label: '파리협정 발효', sortKey: 2016, letter: '사' },
-		{ label: '코로나19 대유행', sortKey: 2020, letter: '회' }
+		{ label: '아시아 독감', sortKey: 1957, letter: '력' },
+		{ label: '홍콩 독감', sortKey: 1968, letter: '준' },
+		{ label: '천연두 근절 선언', sortKey: 1980, letter: '비' },
+		{ label: '사스(SARS)', sortKey: 2003, letter: '하' },
+		{ label: '신종플루', sortKey: 2009, letter: '는' },
+		{ label: '메르스(MERS)', sortKey: 2015, letter: '사' },
+		{ label: '코로나19', sortKey: 2020, letter: '회' }
 	],
 	answerWord: '함께협력준비하는사회',
 	hints: [
-		{ at: 180, text: '가장 오래된 사건은 중세에 일어났습니다.' },
+		{ at: 180, text: '가장 오래된 감염병은 중세에 퍼졌습니다.' },
 		{ at: 300, text: '첫 글자는 「함」으로 시작합니다.' }
 	],
 	correctMessage: '정답입니다. 다음 미션을 위해 *사회존*으로 이동하세요.',
 	nextZone: { name: '사회존', mapImageUrl: NEXT_ZONE_MAP, pingX: 80, pingY: 34 }
 }
 
+/** 우리 마을은 변신 중 앞 안내 화면 — 콘텐츠 이미지를 확인하고 「문제보기」로 넘어간다 */
+const m2SocialGridIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm2-social-grid-intro',
+	stepLabel: 'STEP3. 미션수행 — 사회존 · 우리 마을은 변신 중',
+	cardTitle: '우리 마을은 변신 중',
+	quest: '흰뺨검둥오리의 먹이가 안정적이고 건강한 생태계가 유지되려면 울산을 생태도시로 만들어야 해요.\n어서 이동하세요 고고!',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
 const m2SocialGrid: MissionPuzzle = {
-	type: 'E2_GRID',
+	type: 'E2_CIPHER',
 	id: 'm2-social-grid',
 	stepLabel: 'STEP3. 미션수행 — 사회존 · S-07 우리 마을은 변신 중',
-	quest: '암호표를 *제시된 순서대로* 터치하세요. 순서가 틀리면 처음부터 다시 시작합니다.',
-	cellCount: 18,
-	columns: 6,
-	sequence: [7, 3, 5, 11, 18],
-	word: '울산태화강',
+	cardTitle: '생태도시 암호 해독',
+	quest: '우리 마을 변신 중 콘텐츠를 잘 살펴보았나요?\n다음 암호표를 해독하여 울산을 생태도시로 만들 열쇠를 찾아주세요.',
+	cipher: '73511312248914137',
+	segments: ['735', '11312', '24', '89', '14137'],
+	numbers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '11', '12', '13', '14', '15'],
+	jamo: ['ㅅ', 'ㅌ', 'ㅜ', 'ㅐ', 'ㄹ', 'ㅣ', 'ㅇ', 'ㅎ', 'ㅘ', 'ㅡ', 'ㅗ', 'ㄴ', 'ㅏ', 'ㄱ', 'ㄷ'],
+	answer: '울산태화강',
 	hints: [
-		{
-			at: 180,
-			text: '우리 지역을 가로지르는 강의 이름입니다.',
-			imageUrl: '/pub/images/mission/clue_s07.svg',
-			imageCaption: 'clue_s07.png · 지도를 가로지르는 물줄기의 이름을 찾으세요' + CAUTION_IMG_SUFFIX
-		}
+		{ at: 180, text: '환경 오염으로 힘들었던 마을이 사람들의 노력으로 깨끗한 생태도시로 회복된 우리나라 대표 도시와 강' }
 	],
 	correctMessage: '정답을 맞췄다면 *러닝도서관*으로 가서 최종 미션을 풀어 주세요!',
 	nextZone: { name: '러닝도서관', mapImageUrl: NEXT_ZONE_MAP, pingX: 36, pingY: 70 }
@@ -329,7 +478,8 @@ const m2SocialGrid: MissionPuzzle = {
 
 export const mission2Program: MissionProgramPuzzles = {
 	key: 'm2',
-	tabLabel: '미션2 · 이상한 날씨 해결 작전',
+	tabLabel: '미션2 · 이상한 날씨 *해결 작전*',
+	summary: '이상한 날씨를 해결하라',
 	name: '미션2 이상한 날씨 해결 작전',
 	sourceNote: '관리자 등록값이 화면에 어떻게 렌더되는지 확인용',
 	caution: CAUTION_UNCONFIRMED,
@@ -337,22 +487,20 @@ export const mission2Program: MissionProgramPuzzles = {
 		name: '스토리 제시',
 		stepLabel: 'STEP1. 미션 제시 — 스토리',
 		paragraphs: [
-			'겨울에 꽃이 피고, 여름에는 비가 그치지 않습니다. 우리가 내뿜은 온실가스가 쌓여 *이상한 날씨*를 만들어 냈어요. 날씨를 되돌리려면 러닝도서관에서 시작해 미래교육관 곳곳의 미션을 완료해야 합니다.'
+			'태화강의 흰뺨검둥오리는 매년 울산을 찾아오는 철새였지만 살기 좋아 텃새가 되었습니다. 그러나 이제는 계절이 뒤섞이고, 먹이도 사라져 살기 어려워졌다고 합니다. 흰뺨검둥오리가 떠나지 않으려면, 러닝도서관에서 시작해서 미래교육관 곳곳에 있는 미션들을 완료해야 합니다.\n**이 미션을 완료하는 방법은 간단합니다.\n미션의 답을 숨겨놓은 곳을 찾아가 즐겁게 참가하면 됩니다.**'
 		],
 		team: { label: 'B동선', size: 5, routeOrder: '지구존 → 미래존 → 사회존 → 러닝도서관' }
 	},
 	stickerCount: 5,
 	done: {
-		stepLabel: '미션 완료',
-		emoji: '🎉',
-		title: '축하합니다. 이상한 날씨를 되돌렸습니다. 미션 완료!',
-		text: '스티커 5개를 모두 모았습니다. 태블릿을 선생님께 반납해 주세요.'
+		...COMMON_MISSION_DONE,
+		title: '축하합니다.\n흰뺨검둥오리를 지켰습니다. 미션 완료!',
 	},
 	zones: [
 		{ name: '러닝도서관', puzzles: [m2LibraryCode] },
 		{ name: '지구존', puzzles: [m2EarthJamo] },
-		{ name: '미래존', puzzles: [m2FutureSort] },
-		{ name: '사회존', puzzles: [m2SocialGrid] },
+		{ name: '미래존', puzzles: [m2FutureSortIntro, m2FutureStart, m2FutureSort] },
+		{ name: '사회존', puzzles: [m2SocialGridIntro, m2SocialGrid] },
 		{ name: '최종 미션', puzzles: [finalMemory] }
 	],
 	quizBank
@@ -366,35 +514,63 @@ const m3LibraryCode: MissionPuzzle = {
 	type: 'E1_CODE',
 	id: 'm3-library-code',
 	stepLabel: 'STEP3. 미션수행 — 러닝도서관 · 시작 미션',
-	quest: '미래에서 온 편지가 잠긴 상자 안에 있습니다.\n러닝도서관을 둘러보고 *4자리 비밀번호*를 입력하라.',
+	cardTitle: '-',
+	quest: '2050년의 미래를 위해 미션을 완료하기 위해서는 러닝 도서관을 탈출해야 한다.\n울산광역시미래교육관의 기록과 지속가능발전교육의 흔적을 찾아 *4자리 비밀번호*를 입력하라.',
 	keypad: 'NUMERIC',
 	answer: '1745',
 	hints: [
 		{
 			at: 120,
-			text: '서가 번호와 층수를 이어 보세요.',
+			text: '러닝도서관 1층과 2층 맵이 뜨고, 힌트가 되는 부분이 표시된다. — 17개 목표가 있는 곳(1층 서가), 무대 전체',
 			imageUrl: MAP_HINT_IMG,
-			imageCaption: 'map_1f.png · 붉은 점선 = 힌트가 되는 부분'
+			imageCaption: 'map_1f.png · 붉은 점선 = 힌트가 되는 부분 (17개 목표가 있는 곳 · 무대 전체)'
 		},
-		{ at: 240, text: '앞의 두 자리는 17입니다.' }
+		{ at: 240, text: '울산광역시미래교육관에서 배우고자 하는 것이 무엇일까? 그 목표는 몇 개일까요?' },
+		{ at: 360, text: "러닝도서관은 지속가능발전교육에 대해 강연을 할 수 있는 무대가 마련되어 있습니다. 강연을 '앉아서' 볼 수 있는 사람은 몇 명인가요? (한 의자에는 3사람이 앉을 수 있습니다.)" },
+		{ at: 480, text: '두 숫자를 조합하세요.' }
 	],
 	correctMessage: '정답입니다. 다음 미션을 위해 *지구존*으로 이동하세요.',
 	nextZone: { name: '지구존', mapImageUrl: NEXT_ZONE_MAP, pingX: 21, pingY: 34 }
 }
 
+/**
+ * 진열대를 따라가는 상품 순서 — 0728 확정본이 제시한 7종.
+ * 방향키 정답은 상품 7개에 대응하는 7방향으로 확정했다.
+ * 진열대 실물 배치가 바뀌면 ARROW_SEQ만 고치면 문제·입력 화면이 함께 따라온다.
+ */
+const M3_SHELF_ORDER = ['소고기', '게(자연산)', '식물성 우유', '포도(노지)', '바디워시', '라면', '닭고기']
 const ARROW_SEQ = '↑→→↓←↓→'
 
-/** 지구존 E-16은 문제(암기) 화면과 입력 화면이 분리된다 — 존 안에서 INFO → 입력 순으로 이어진다 */
+/** 착한 소비 앞 안내 화면 — 콘텐츠 이미지를 확인하고 「문제보기」로 넘어간다 */
+const m3EarthIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm3-earth-intro',
+	stepLabel: 'STEP3. 미션수행 — 지구존 · 착한 소비',
+	cardTitle: '착한 소비',
+	quest: '미래의 지구를 지키려면, 자원 낭비를 막고 자연 훼손을 막아야 해요.\n문제보기 버튼을 눌러 콘텐츠를 시작해 주세요.\n\n콘텐츠 속에서 단서를 찾아 비밀번호를 입력해서 자연이 훼손되는 것을 막으세요!',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
+/**
+ * 지구존 E-16은 문제(암기) 화면과 입력 화면이 분리된다 — 존 안에서 INFO → 입력 순으로 이어진다.
+ * 돌아가기는 불가하고 틀리면 재시도한다 (0728 메모13).
+ */
 const m3EarthMemorize: MissionPuzzle = {
 	type: 'INFO',
 	id: 'm3-earth-memorize',
 	stepLabel: 'STEP3. 미션수행 — 지구존 · E-16 착한 소비 (문제)',
-	quest: '진열대를 따라 이동한 *순서를 기억하세요.*\n※ 다음 화면에서는 문제가 보이지 않습니다.',
-	imagePlaceholder: '진열대 배치 이미지 (전시 콘텐츠 확정 후 교체)',
-	displayText: ARROW_SEQ,
-	notice: '다음 화면에서는 문제가 보이지 않습니다. 순서를 기억하세요.',
-	buttonLabel: '입력하러 가기',
-	answerNote: `외워야 할 순서는 ${Array.from(ARROW_SEQ).join(' ')} 입니다. 다음 화면에서는 이 문제가 감춰집니다.`,
+	cardTitle: '착한 소비',
+	quest: '생활용품 판매 진역대를 파악해서 2050년의 미래를 지키기 위한 방향을 알려주세요.',
+	imagePlaceholder: '진열대 배치 이미지' + CAUTION_IMG_SUFFIX,
+	displayText: M3_SHELF_ORDER.join(' → '),
+	notice: '다음 화면에서는 문제가 보이지 않고, 이전 화면으로 돌아갈 수 없습니다. 순서를 기억하세요.',
+	buttonLabel: '정답 입력',
+	// 「정답 입력」 왼쪽에 이전 버튼 — 안내 화면(m3-earth-intro)으로 돌아간다
+	showBackButton: true,
+	answerNote: `외워야 할 방향은 ${Array.from(ARROW_SEQ).join(' ')} 입니다. 다음 화면에서는 이 문제가 감춰집니다.`,
 	hints: []
 }
 
@@ -402,53 +578,99 @@ const m3EarthArrow: MissionPuzzle = {
 	type: 'E1_CODE',
 	id: 'm3-earth-arrow',
 	stepLabel: 'STEP3. 미션수행 — 지구존 · E-16 착한 소비 (입력)',
+	cardTitle: '',
 	quest: '기억한 순서대로 *방향키*를 눌러 주세요.',
 	keypad: 'ARROW',
 	answer: ARROW_SEQ,
-	hints: [
-		{
-			at: 180,
-			text: '진열대 배치를 다시 보여드립니다. 처음 두 방향만 공개됩니다.',
-			imageUrl: '/pub/images/mission/clue_e16.svg',
-			imageCaption: 'clue_e16.png · 처음 두 방향만 다시 보여준다' + CAUTION_IMG_SUFFIX
-		},
-		{ at: 300, text: '오른쪽이 세 번 나옵니다.' }
-	],
+	// 암기한 방향을 바로 입력하는 화면이라 힌트를 두지 않는다 (힌트가 비면 힌트바도 나오지 않는다)
+	hints: [],
 	correctMessage: '정답입니다. 다음 미션을 위해 *미래존*으로 이동하세요.',
 	nextZone: { name: '미래존', mapImageUrl: NEXT_ZONE_MAP, pingX: 51, pingY: 34 }
+}
+
+/**
+ * F-08 미래 직업으로 가는 과정 12단계 — 출발과 최종 목적지를 뺀 가운데 칸이다 (0728 메모17).
+ * 칸마다 같은 12개 목록이 순환하므로, 뒤엉킨 과정을 제자리에 돌려놓는 문제가 된다.
+ * **전시 콘텐츠 수정본이 오지 않아 항목은 더미다** (0728 메모23).
+ * 순서 정답도 함께 지어낸 값이므로 퍼즐에 `dummy: true`를 달아 답안을 학습 결과로 저장하지 않는다.
+ */
+const M3_CAREER_STEPS = [
+	'수학과 통계 배우기',
+	'컴퓨터 언어 익히기',
+	'데이터 모으기',
+	'자료 정리하기',
+	'AI 원리 이해하기',
+	'작은 프로젝트 만들기',
+	'대회에 참가하기',
+	'전공 정하기',
+	'현장에서 실습하기',
+	'자격증 따기',
+	'결과물 정리하기',
+	'일자리 찾기'
+]
+
+/** 나의 미래 직업과 AI 앞 안내 화면 */
+const m3FutureIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm3-future-intro',
+	stepLabel: 'STEP3. 미션수행 — 미래존 · 나의 미래직업과 AI',
+	cardTitle: '나의 미래직업과 AI',
+	quest: '2050년의 미래에는 어떤 직업이 생겨나는지 알아야 해요.\n문제 보기 버튼을 눌러 그림에 해당하는 콘텐츠를 찾으세요.',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
 }
 
 const m3FutureSlot: MissionPuzzle = {
 	type: 'E1_SLOT',
 	id: 'm3-future-slot',
 	stepLabel: 'STEP3. 미션수행 — 미래존 · F-08 나의 미래 직업과 AI',
-	quest: '슬롯을 돌려 *미래 직업으로 가는 길*을 완성하세요.\n※ 슬롯마다 글자판 12종이 순환합니다.',
-	reels: [
-		['가', '나', '데', '로', '미', '바', '사', '아', '자', '차', '카', '타'],
-		['이', '오', '우', '아', '어', '여', '요', '유', '으', '의', '에', '애'],
-		['터', '타', '토', '투', '트', '티', '태', '테', '튀', '텨', '툰', '툴'],
-		['분', '불', '반', '본', '빈', '붐', '북', '밥', '발', '별', '병', '부'],
-		['석', '삭', '속', '숙', '신', '산', '선', '솔', '술', '성', '승', '시']
-	],
-	answer: '데이터분석',
+	cardTitle: '나의 미래직업과 AI',
+	quest: '미래에는 어떤 직업이 생겨날까요? AI 수도 울산의 특화 직업은 어떤 것이 있으며, \n어떤 가치를 가지고 있을 때 잘 어울릴까요?',
+	// 12단계 항목이 전부 더미라 순서 정답도 지어낸 값이다. 콘텐츠 수정본(메모23)이 오면 해제한다
+	dummy: true,
+	fixedHead: '지금의 나',
+	fixedTail: 'AI 데이터 분석가',
+	reels: M3_CAREER_STEPS.map(() => M3_CAREER_STEPS),
+	answers: M3_CAREER_STEPS,
 	hints: [
-		{ at: 180, text: '자료를 모아 뜻을 읽어내는 일을 부르는 말입니다.' },
-		{ at: 300, text: '「데」로 시작하는 다섯 글자입니다.' }
+		{ at: 180, text: '먼저 배워야 할 것이 무엇인지부터 생각해 보세요.' },
+		{ at: 300, text: '전시 패널의 과정 순서와 같습니다.' }
 	],
 	correctMessage: '정답입니다. 다음 미션을 위해 *사회존*으로 이동하세요.',
 	nextZone: { name: '사회존', mapImageUrl: NEXT_ZONE_MAP, pingX: 80, pingY: 34 }
 }
 
+/** 평화로운 사회와 나 앞 안내 화면 */
+const m3SocialIntro: MissionPuzzle = {
+	type: 'INFO',
+	id: 'm3-social-intro',
+	stepLabel: 'STEP3. 미션수행 — 사회존 · 평화로운 사회와 나',
+	cardTitle: '평화로운 사회와 나',
+	quest: '현재도 미래도 우리 모두의 행복한 삶을 원한다면 평화로운 사회와 그 속의 내가 되어야 해요. \n어서 이동하세요. 고고!!',
+	imagePlaceholder: '이미지',
+	buttonLabel: '문제보기',
+	showBackButton: true,
+	hints: []
+}
+
 const m3SocialCode: MissionPuzzle = {
 	type: 'E1_CODE',
 	id: 'm3-social-code',
-	stepLabel: 'STEP3. 미션수행 — 사회존 · S-01 오늘의 실천',
-	quest: '오늘 실천할 수 있는 일들이 번호로 붙어 있습니다.\n안내판을 읽고 *7자리 숫자*를 입력하라.',
+	stepLabel: 'STEP3. 미션수행 — 사회존 · S-01 평화로운 사회와 나',
+	cardTitle: '평화로운 사회와 나',
+	quest: '당신은 2050년의 미래에서 온 낡은 태블릿을 하나 발견했습니다. 태블릿을 열어보려 하지만, 암호가 걸려있습니다. 화면에는 하나의 일기만이 띄워져 있을 뿐이었다.',
 	keypad: 'NUMERIC',
 	answer: '1091011',
 	hints: [
-		{ at: 180, text: '지속가능발전목표 번호를 이어 붙인 숫자입니다.' },
-		{ at: 300, text: '10 · 9 · 10 · 11 순서로 이어집니다.' }
+		{
+			at: 180,
+			text: '오늘의 연결이 모여 암호가 됩니다. 일기 속에서 [누구를] → [어떻게] → [어디에서] → [무엇을] 만났는지 순서대로 찾아, 지도에서 위에서부터 몇 번째에 있는지 숫자를 차례대로 나열하여 비밀번호를 완성하세요.',
+			imageUrl: pubUrl('/pub/images/mission/clue_s01_map.svg'),
+			imageCaption: 'S-01 지도 — 항목이 위에서부터 몇 번째인지 센다' + CAUTION_IMG_SUFFIX
+		},
+		{ at: 300, text: '버스기사님 · 오토바이 · 온라인 게임 · 예술활동 순서로 찾습니다.' }
 	],
 	correctMessage: '정답을 맞췄다면 *러닝도서관*으로 가서 최종 미션을 풀어 주세요!',
 	nextZone: { name: '러닝도서관', mapImageUrl: NEXT_ZONE_MAP, pingX: 36, pingY: 70 }
@@ -457,6 +679,7 @@ const m3SocialCode: MissionPuzzle = {
 export const mission3Program: MissionProgramPuzzles = {
 	key: 'm3',
 	tabLabel: '미션3 · 미래를 위한 오늘의 실천',
+	summary: '미래를 구하라!',
 	name: '미션3 미래를 위한 오늘의 실천 작전',
 	sourceNote: '관리자 등록값이 화면에 어떻게 렌더되는지 확인용',
 	caution: CAUTION_UNCONFIRMED,
@@ -464,22 +687,22 @@ export const mission3Program: MissionProgramPuzzles = {
 		name: '스토리 제시',
 		stepLabel: 'STEP1. 미션 제시 — 스토리',
 		paragraphs: [
-			'미래에서 온 편지가 도착했습니다. 지금 우리가 무엇을 하느냐에 따라 *미래의 모습*이 달라진다고 해요. 오늘 할 수 있는 실천을 찾아 미래교육관 곳곳의 미션을 완료해 주세요.'
+			'2050년의 나에게 편지가 왔습니다. 지금 이대로의 소비, 자원낭비, 자연훼손이 계속된다면 미래의 나와 우리는 위험하다는 내용이었습니다. 2050년의 미래에도 우리 모두의 행복한 삶을 원한다면 어제와는 다른 오늘을 계획하고 실천해야 합니다.',
+			'2050년의 미래를 지키려면 러닝도서관에서 시작해서 미래교육관 곳곳에 있는 미션들을 완료해야 합니다.',
+			'이 미션을 완료하는 방법은 간단합니다. 미션의 답을 숨겨놓은 곳을 찾아가 즐겁게 참가하면 됩니다.'
 		],
 		team: { label: 'C동선', size: 5, routeOrder: '지구존 → 미래존 → 사회존 → 러닝도서관' }
 	},
 	stickerCount: 5,
 	done: {
-		stepLabel: '미션 완료',
-		emoji: '🎉',
-		title: '축하합니다. 오늘의 실천을 모두 찾았습니다. 미션 완료!',
-		text: '스티커 5개를 모두 모았습니다. 태블릿을 선생님께 반납해 주세요.'
+		...COMMON_MISSION_DONE,
+		title: '축하합니다. \n오늘의 실천을 모두 찾았습니다. 미션 완료!',
 	},
 	zones: [
 		{ name: '러닝도서관', puzzles: [m3LibraryCode] },
-		{ name: '지구존', puzzles: [m3EarthMemorize, m3EarthArrow] },
-		{ name: '미래존', puzzles: [m3FutureSlot] },
-		{ name: '사회존', puzzles: [m3SocialCode] },
+		{ name: '지구존', puzzles: [m3EarthIntro, m3EarthMemorize, m3EarthArrow] },
+		{ name: '미래존', puzzles: [m3FutureIntro, m3FutureSlot] },
+		{ name: '사회존', puzzles: [m3SocialIntro, m3SocialCode] },
 		{ name: '최종 미션', puzzles: [finalMemory] }
 	],
 	quizBank
@@ -487,15 +710,16 @@ export const mission3Program: MissionProgramPuzzles = {
 
 /* ══════════════════════════════════════════════════════════
    추가미션 울산광역시미래교육관을 찾아라! (QR 수집)
-   ※ QR 개수(10)와 그림 분할 수(12)가 맞지 않는다 — 원문 미해결, 발주처 확정 필요
+   ※ 메모18로 QR 12개소 · 화면 12분할 확정. 스티커에 새기는 값은 ULMFE-QR-01 ~ 12
    ══════════════════════════════════════════════════════════ */
 
 const extraQrCollect: MissionPuzzle = {
 	type: 'E6_QR',
 	id: 'mx-qr-collect',
 	stepLabel: '추가미션 — QR 수집',
-	quest: 'QR을 찾아 스캔하세요. 이미 스캔한 QR은 다시 반영되지 않습니다.\n※ 실기기에서는 카메라 권한이 필요합니다. 프로토타입에서는 버튼으로 스캔을 대체합니다.',
-	qrCount: 10,
+	cardTitle: '-',
+	quest: 'QR을 찾아 미션 태블릿으로 촬영하세요. 찍은 사진에서 QR을 읽어 그림 조각이 열립니다.\n※ 이미 찾은 QR은 다시 반영되지 않습니다.',
+	qrCount: 12,
 	fragmentCount: 12,
 	hints: []
 }
@@ -519,7 +743,7 @@ export const missionExtraProgram: MissionProgramPuzzles = {
 		stepLabel: '추가미션 완료',
 		emoji: '🧩',
 		title: 'QR을 모두 찾았습니다!',
-		text: '남은 조각 2개는 QR 개수 확정 후 채워집니다.'
+		text: 'QR 12개소를 모두 찾아 그림을 완성했습니다.'
 	},
 	zones: [{ name: 'QR 수집', puzzles: [extraQrCollect] }],
 	quizBank
@@ -535,6 +759,13 @@ export const normalizeMissionZoneName = (value: string) => {
 		? '러닝도서관'
 		: value.trim()
 }
+
+/**
+ * 화면 상단 큰 제목용 프로그램명 — 「미션1 」·「미션1 · 」 같은 번호 접두를 떼어낸다.
+ * (예: 미션1 소비습관구출작전 → 소비습관구출작전). 강조 마커도 함께 벗긴다.
+ */
+export const missionProgramTitle = (programName: string | undefined) =>
+	stripEmphasisMarkers(programName).replace(/^미션\s*\d+\s*·?\s*/, '').trim()
 
 export const missionProgramForName = (programName: string | undefined): MissionProgramPuzzles | null => {
 	if (!programName) return null
@@ -595,18 +826,18 @@ export const puzzleAnswerValue = (puzzle: MissionPuzzle): string => {
 			return ''
 		case 'E1_CODE':
 			return `${puzzle.answer}${puzzle.fixedSuffix || ''}`
-		case 'E1_JAMO':
 		case 'E1_SLOT':
+			return puzzle.answers.join(' → ')
+		case 'E1_JAMO':
 		case 'E2_BOARD':
+		case 'E2_CIPHER':
 			return puzzle.answer
-		case 'E2_GRID':
-			return puzzle.word
 		case 'E3_SORT':
 			return puzzle.answerWord
 		case 'E3_SELECT':
 			return puzzle.answerIndexes.map((index) => `${index + 1}. ${puzzle.items[index]?.label || ''}`).join(', ')
-		case 'E3_MATCH':
-			return puzzle.answerMap.map((right, left) => `${puzzle.left[left]} → ${puzzle.right[right]}`).join(', ')
+		case 'E3_CHOICE_SET':
+			return puzzle.answerIndexes.map((option, item) => `${puzzle.items[item]} → ${puzzle.options[option]}`).join(', ')
 		case 'E4_DIFF':
 			return `다른 곳 ${puzzle.spots.length}군데`
 		case 'E5_MEMORY':

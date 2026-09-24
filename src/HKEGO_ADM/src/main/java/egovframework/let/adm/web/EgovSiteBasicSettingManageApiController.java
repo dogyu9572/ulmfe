@@ -24,7 +24,7 @@ public class EgovSiteBasicSettingManageApiController {
 			return ApiResponse.success("기본설정을 조회했습니다.", siteBasicSettingService.getSiteBasicSetting());
 		} catch (Exception e) {
 			log.error("기본설정 조회 오류", e);
-			return ApiResponse.error("기본설정 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "기본설정 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -34,7 +34,7 @@ public class EgovSiteBasicSettingManageApiController {
 			return ApiResponse.success("기본설정이 저장되었습니다.", siteBasicSettingService.saveSiteBasicSetting(setting));
 		} catch (Exception e) {
 			log.error("기본설정 저장 오류", e);
-			return ApiResponse.error("기본설정 저장 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "기본설정 저장 중 오류가 발생했습니다."));
 		}
 	}
 }

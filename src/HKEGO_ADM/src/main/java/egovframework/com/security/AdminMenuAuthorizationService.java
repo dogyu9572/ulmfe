@@ -19,7 +19,7 @@ public class AdminMenuAuthorizationService {
 		this.authGroupService = authGroupService;
 	}
 
-	public boolean isAuthorized(String adminRole, String requestUri) {
+	public boolean isAuthorized(String adminRole, String requestUri, String httpMethod) {
 		if (adminRole == null || adminRole.isBlank()) {
 			return false;
 		}
@@ -33,7 +33,7 @@ public class AdminMenuAuthorizationService {
 		if (allowedMenuPaths == null || allowedMenuPaths.isEmpty()) {
 			return false;
 		}
-		return matchesAnyRequiredMenu(allowedMenuPaths, requestUri);
+		return matchesAnyRequiredMenu(allowedMenuPaths, requestUri, httpMethod);
 	}
 
 	private boolean isSharedAuthenticatedApi(String uri) {
@@ -45,9 +45,21 @@ public class AdminMenuAuthorizationService {
 			|| uri.startsWith("/api/admin/codes/detail");
 	}
 
-	private boolean matchesAnyRequiredMenu(List<String> allowedMenuPaths, String uri) {
+	private boolean matchesAnyRequiredMenu(List<String> allowedMenuPaths, String uri, String httpMethod) {
 		if (uri.startsWith("/api/admin/bbs-post")) {
 			return matchesBbsPostMenu(allowedMenuPaths, uri);
+		}
+
+		// 사건탐구·미션 관리 화면과 예약 관리 화면이 같은 API를 함께 쓴다.
+		// 예약 화면은 프로그램을 고르려고 목록만 읽으므로 조회까지만 열어 준다.
+		// 등록·수정·삭제는 프로그램 관리 메뉴를 가진 역할에게만 허용한다.
+		if (uri.startsWith("/api/admin/education-programs")) {
+			if (hasMenuPrefix(allowedMenuPaths, "/admin/exploration-programs")
+				|| hasMenuPrefix(allowedMenuPaths, "/admin/mission-programs")) {
+				return true;
+			}
+			return isReadOnlyMethod(httpMethod)
+				&& hasMenuPrefix(allowedMenuPaths, "/admin/learning-reservations");
 		}
 
 		String requiredMenu = resolveMenuPrefix(uri);
@@ -55,6 +67,11 @@ public class AdminMenuAuthorizationService {
 			return true;
 		}
 		return hasMenuPrefix(allowedMenuPaths, requiredMenu);
+	}
+
+	/** 자원을 바꾸지 않는 메서드. 값을 못 읽었거나 모르는 메서드는 쓰기로 보고 막는다. */
+	private boolean isReadOnlyMethod(String httpMethod) {
+		return "GET".equalsIgnoreCase(httpMethod) || "HEAD".equalsIgnoreCase(httpMethod);
 	}
 
 	private boolean matchesBbsPostMenu(List<String> allowedMenuPaths, String uri) {
@@ -82,6 +99,9 @@ public class AdminMenuAuthorizationService {
 		if (uri.startsWith("/api/admin/access-env")) return "/admin/access-env";
 		if (uri.startsWith("/api/admin/history")) return "/admin/history";
 		if (uri.startsWith("/api/admin/org-chart")) return "/admin/org-chart";
+		if (uri.startsWith("/api/admin/edu-program-intros")) return "/admin/edu-program-intros";
+		if (uri.startsWith("/api/admin/ci")) return "/admin/ci";
+		if (uri.startsWith("/api/admin/closed-day")) return "/admin/closed-days";
 		if (uri.startsWith("/api/admin/terms")) return "/admin/terms";
 		if (uri.startsWith("/api/admin/search-pages")) return "/admin/search-pages";
 		if (uri.startsWith("/api/admin/banner")) return "/admin/banners";

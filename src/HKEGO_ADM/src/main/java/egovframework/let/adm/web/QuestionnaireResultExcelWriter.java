@@ -43,7 +43,6 @@ final class QuestionnaireResultExcelWriter {
 			headers.add("응답번호");
 			headers.add("제출일시");
 			if (survey) {
-				headers.add("참여구분");
 				headers.add("학교급");
 				headers.add("성별");
 				headers.add("거주지");
@@ -76,7 +75,6 @@ final class QuestionnaireResultExcelWriter {
 				row.createCell(columnIndex++).setCellValue(responseNo++);
 				row.createCell(columnIndex++).setCellValue(formatDateTime(response.submittedDt));
 				if (survey) {
-					row.createCell(columnIndex++).setCellValue(value(response.participationType));
 					row.createCell(columnIndex++).setCellValue(value(response.schoolLevel));
 					row.createCell(columnIndex++).setCellValue(value(response.gender));
 					row.createCell(columnIndex++).setCellValue(value(response.residence));
@@ -137,7 +135,6 @@ final class QuestionnaireResultExcelWriter {
 
 	private static final class ResponseRow {
 		private LocalDateTime submittedDt;
-		private String participationType;
 		private String schoolLevel;
 		private String gender;
 		private String residence;
@@ -148,7 +145,6 @@ final class QuestionnaireResultExcelWriter {
 			if (submittedDt == null || source.getSubmittedDt() != null && source.getSubmittedDt().isAfter(submittedDt)) {
 				submittedDt = source.getSubmittedDt();
 			}
-			participationType = firstValue(participationType, source.getParticipationType());
 			schoolLevel = firstValue(schoolLevel, source.getSchoolLevel());
 			gender = firstValue(gender, source.getGender());
 			residence = firstValue(residence, source.getResidence());

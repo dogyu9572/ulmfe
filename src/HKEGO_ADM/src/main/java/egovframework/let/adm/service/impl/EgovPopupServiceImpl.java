@@ -1,7 +1,9 @@
 package egovframework.let.adm.service.impl;
 
+import egovframework.let.adm.service.EgovFileInfoService;
 import jakarta.annotation.Resource;
 import egovframework.let.adm.service.vo.PageListResult;
+import egovframework.com.cmm.util.HtmlSanitizer;
 import egovframework.let.adm.service.vo.PopupDto;
 import egovframework.let.adm.service.vo.PopupVO;
 import egovframework.let.adm.service.impl.PopupDAO;
@@ -20,6 +22,9 @@ import java.util.Map;
 @Slf4j
 @Service("egovPopupService")
 public class EgovPopupServiceImpl extends EgovAbstractServiceImpl implements EgovPopupService {
+
+	@Resource(name = "egovFileInfoService")
+	private EgovFileInfoService fileInfoService;
 
 	@Resource(name = "popupDAO")
 	private PopupDAO popupDAO;
@@ -48,7 +53,7 @@ public class EgovPopupServiceImpl extends EgovAbstractServiceImpl implements Ego
 	public PopupVO createPopup(PopupDto dto) {
 		PopupVO popup = PopupVO.builder()
 				.popupNm(dto.getPopupNm())
-				.popupCn(dto.getPopupCn())
+				.popupCn(HtmlSanitizer.clean(dto.getPopupCn()))
 				.popupPstnX(dto.getPopupPstnX())
 				.popupPstnY(dto.getPopupPstnY())
 				.popupWdth(dto.getPopupWdth())
@@ -76,7 +81,7 @@ public class EgovPopupServiceImpl extends EgovAbstractServiceImpl implements Ego
 		PopupVO popup = PopupVO.builder()
 				.popupSn(popupSn)
 				.popupNm(dto.getPopupNm())
-				.popupCn(dto.getPopupCn())
+				.popupCn(HtmlSanitizer.clean(dto.getPopupCn()))
 				.popupPstnX(dto.getPopupPstnX())
 				.popupPstnY(dto.getPopupPstnY())
 				.popupWdth(dto.getPopupWdth())
@@ -101,6 +106,8 @@ public class EgovPopupServiceImpl extends EgovAbstractServiceImpl implements Ego
 			throw new RuntimeException("팝업을 찾을 수 없습니다.");
 		}
 		popupDAO.deletePopup(popupSn, "admin");
+		// 팝업을 지워도 이미지가 남으면 주소를 아는 사람이 계속 받을 수 있다.
+		fileInfoService.deleteFileGroup(existing.getAtchFileMngNo());
 		log.info("팝업 삭제(논리): popupSn={}", popupSn);
 	}
 }

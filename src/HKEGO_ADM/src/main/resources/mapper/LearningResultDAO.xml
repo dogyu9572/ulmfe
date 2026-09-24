@@ -185,6 +185,7 @@
 				WHEN 'SEARCH' THEN '탐구카드'
 				WHEN 'EXPERIENCE' THEN '체험카드'
 				WHEN 'DESIGN' THEN '설계활동'
+				WHEN 'MAKER' THEN '메이커활동'
 				WHEN 'MEDIA' THEN '메이커활동'
 				ELSE A.CARD_CLSF_CD
 			END AS CARD_CLSF_NM,

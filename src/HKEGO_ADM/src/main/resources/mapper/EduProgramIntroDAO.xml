@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.adm.service.impl.EduProgramIntroDAO">
+	<resultMap id="EduProgramIntroMap" type="egovframework.let.adm.service.vo.EduProgramIntroVO">
+		<id column="PRGRM_INTRD_SN" property="prgrmIntrdSn"/>
+		<result column="PRGRM_CTGRY_CD" property="prgrmCtgryCd"/>
+		<result column="PRGRM_CTGRY_NM" property="prgrmCtgryNm"/>
+		<result column="PRGRM_TTL" property="prgrmTtl"/>
+		<result column="PRGRM_EXPLN" property="prgrmExpln"/>
+		<result column="PLC_CN" property="plcCn"/>
+		<result column="OPRTN_PD_CN" property="oprtnPdCn"/>
+		<result column="NOPE_CN" property="nopeCn"/>
+		<result column="APLY_URL_ADDR" property="aplyUrlAddr"/>
+		<result column="IMG_FILE_ID" property="imgFileId"/>
+		<result column="FILE_URL" property="fileUrl"/>
+		<result column="FILE_NAME" property="fileName"/>
+		<result column="SORT_SEQ" property="sortSeq"/>
+		<result column="USE_YN" property="useYn"/>
+		<result column="DEL_YN" property="delYn"/>
+		<result column="REG_DT" property="regDt"/>
+		<result column="RGTR_NM" property="rgtr"/>
+		<result column="MDFCN_DT" property="mdfcnDt"/>
+		<result column="MDFR_NM" property="mdtr"/>
+		<result column="DEL_DT" property="delDt"/>
+		<result column="DLTR_NM" property="deltr"/>
+	</resultMap>
+
+	<!-- 관리자 화면이 분류명과 썸네일을 따로 조회하지 않도록 함께 내려준다. -->
+	<sql id="introSelectColumns">
+		P.PRGRM_INTRD_SN, P.PRGRM_CTGRY_CD, P.PRGRM_TTL, P.PRGRM_EXPLN,
+		P.PLC_CN, P.OPRTN_PD_CN, P.NOPE_CN, P.APLY_URL_ADDR, P.IMG_FILE_ID,
+		P.SORT_SEQ, P.USE_YN, P.DEL_YN,
+		P.REG_DT, P.RGTR_NM, P.MDFCN_DT, P.MDFR_NM, P.DEL_DT, P.DLTR_NM,
+		(
+			SELECT C.CD_DTL_NM
+			FROM CMMN_CD_DTL C
+			WHERE C.CD_ID = 'COM048'
+				AND C.CD_DTL_ID = P.PRGRM_CTGRY_CD
+		) AS PRGRM_CTGRY_NM,
+		(
+			SELECT F.ATCH_FILE_PATH_NM
+			FROM ATCH_FILE_INFO F
+			WHERE F.ATCH_FILE_MNG_NO = P.IMG_FILE_ID
+			ORDER BY F.FILE_SEQ DESC
+			LIMIT 1
+		) AS FILE_URL,
+		(
+			SELECT F.ORGNL_FILE_NM
+			FROM ATCH_FILE_INFO F
+			WHERE F.ATCH_FILE_MNG_NO = P.IMG_FILE_ID
+			ORDER BY F.FILE_SEQ DESC
+			LIMIT 1
+		) AS FILE_NAME
+	</sql>
+
+	<select id="selectIntroList" parameterType="map" resultMap="EduProgramIntroMap">
+		SELECT <include refid="introSelectColumns"/>
+		FROM EDU_PRGRM_INTRD P
+		WHERE P.DEL_YN = 'N'
+		<if test="prgrmCtgryCd != null and prgrmCtgryCd != ''">
+			AND P.PRGRM_CTGRY_CD = #{prgrmCtgryCd}
+		</if>
+		<if test="useYn != null and useYn != ''">
+			AND P.USE_YN = #{useYn}
+		</if>
+		<if test="keyword != null and keyword != ''">
+			AND P.PRGRM_TTL LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY P.SORT_SEQ ASC, P.PRGRM_INTRD_SN ASC
+	</select>
+
+	<select id="selectIntro" parameterType="int" resultMap="EduProgramIntroMap">
+		SELECT <include refid="introSelectColumns"/>
+		FROM EDU_PRGRM_INTRD P
+		WHERE P.PRGRM_INTRD_SN = #{value}
+			AND P.DEL_YN = 'N'
+	</select>
+
+	<select id="selectNextSortSeq" resultType="int">
+		SELECT COALESCE(MAX(SORT_SEQ), 0) + 10
+		FROM EDU_PRGRM_INTRD
+		WHERE DEL_YN = 'N'
+	</select>
+
+	<select id="selectCategoryCodes" resultType="map">
+		SELECT CD_DTL_ID AS code, CD_DTL_NM AS name
+		FROM CMMN_CD_DTL
+		WHERE CD_ID = 'COM048'
+			AND USE_YN = 'Y'
+		ORDER BY SORT_SEQ ASC
+	</select>
+
+	<insert id="insertIntro" parameterType="egovframework.let.adm.service.vo.EduProgramIntroVO"
+		useGeneratedKeys="true" keyProperty="prgrmIntrdSn">
+		INSERT INTO EDU_PRGRM_INTRD (
+			PRGRM_CTGRY_CD, PRGRM_TTL, PRGRM_EXPLN, PLC_CN, OPRTN_PD_CN, NOPE_CN,
+			APLY_URL_ADDR, IMG_FILE_ID, SORT_SEQ, USE_YN, DEL_YN, REG_DT, RGTR_NM, MDFCN_DT, MDFR_NM
+		) VALUES (
+			#{prgrmCtgryCd}, #{prgrmTtl}, #{prgrmExpln}, #{plcCn}, #{oprtnPdCn}, #{nopeCn},
+			#{aplyUrlAddr}, #{imgFileId}, #{sortSeq}, #{useYn}, 'N', NOW(), #{rgtr}, NOW(), #{mdtr}
+		)
+	</insert>
+
+	<update id="updateIntro" parameterType="egovframework.let.adm.service.vo.EduProgramIntroVO">
+		UPDATE EDU_PRGRM_INTRD
+		SET
+			PRGRM_CTGRY_CD = #{prgrmCtgryCd},
+			PRGRM_TTL = #{prgrmTtl},
+			PRGRM_EXPLN = #{prgrmExpln},
+			PLC_CN = #{plcCn},
+			OPRTN_PD_CN = #{oprtnPdCn},
+			NOPE_CN = #{nopeCn},
+			APLY_URL_ADDR = #{aplyUrlAddr},
+			IMG_FILE_ID = #{imgFileId},
+			USE_YN = #{useYn},
+			MDFCN_DT = NOW(),
+			MDFR_NM = #{mdtr}
+		WHERE PRGRM_INTRD_SN = #{prgrmIntrdSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="updateIntroSeq" parameterType="map">
+		UPDATE EDU_PRGRM_INTRD
+		SET SORT_SEQ = #{sortSeq},
+			MDFCN_DT = NOW(),
+			MDFR_NM = #{mdtr}
+		WHERE PRGRM_INTRD_SN = #{prgrmIntrdSn}
+			AND DEL_YN = 'N'
+	</update>
+
+	<update id="deleteIntro" parameterType="map">
+		UPDATE EDU_PRGRM_INTRD
+		SET DEL_YN = 'Y',
+			DEL_DT = NOW(),
+			DLTR_NM = #{deltr}
+		WHERE PRGRM_INTRD_SN = #{prgrmIntrdSn}
+			AND DEL_YN = 'N'
+	</update>
+</mapper>

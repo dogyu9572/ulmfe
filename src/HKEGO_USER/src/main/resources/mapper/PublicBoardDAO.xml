@@ -8,10 +8,13 @@
 		B.PST_TTL AS TITLE,
 		B.PST_CN AS CONTENT,
 		B.WRTR_NM AS WRITER_NAME,
-		CASE WHEN B.BBS_ID = 'LRNSUP' THEN B.ETC1 ELSE B.CTGR_CD END AS CATEGORY_CODE,
+		CASE WHEN B.BBS_ID = 'LRNSUP' THEN COALESCE(NULLIF(B.CTGR_CD, ''), B.ETC1) ELSE B.CTGR_CD END AS CATEGORY_CODE,
 		CASE
 			WHEN B.BBS_ID = 'LRNSUP' THEN
-				CASE B.ETC1
+				CASE COALESCE(NULLIF(B.CTGR_CD, ''), B.ETC1)
+					WHEN 'FUTURE' THEN '미래존'
+					WHEN 'EARTH' THEN '지구존'
+					WHEN 'SOCIETY' THEN '사회존'
 					WHEN 'PRE' THEN '사전학습'
 					WHEN 'MAIN' THEN '본학습'
 					WHEN 'POST' THEN '사후학습'
@@ -71,6 +74,9 @@
 					AND B.CTGR_CD = #{category}
 				</otherwise>
 			</choose>
+		</if>
+		<if test="zone != null and zone != '' and boardId == 'LRNSUP'">
+			AND B.CTGR_CD = #{zone}
 		</if>
 		<if test="keyword != null and keyword != ''">
 			<choose>

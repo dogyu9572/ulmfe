@@ -39,7 +39,7 @@
 		<if test="endDate != null and endDate != ''">
 			AND DATE(REG_DT) <![CDATA[<=]]> #{endDate}
 		</if>
-		ORDER BY REG_DT DESC
+		ORDER BY REG_DT DESC, CNTN_LOG_SN DESC
 		LIMIT #{offset}, #{size}
 	</select>
 
@@ -78,7 +78,7 @@
 		<if test="endDate != null and endDate != ''">
 			AND DATE(REG_DT) <![CDATA[<=]]> #{endDate}
 		</if>
-		ORDER BY REG_DT DESC
+		ORDER BY REG_DT DESC, CNTN_LOG_SN DESC
 		LIMIT 50000
 	</select>
 

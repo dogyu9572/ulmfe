@@ -1,3 +1,4 @@
+import { withBasePath } from '@/lib/basePath'
 export default function ProgramSpecialContent() {
 	return (
 		<>
@@ -22,7 +23,7 @@ export default function ProgramSpecialContent() {
 							</h2>
 							<div className="con">
 								<div className="imgfit" aria-hidden="true">
-									<img src="/pub/images/img_special01.webp" alt="" />
+									<img src={withBasePath('/pub/images/img_special01.webp')} alt="" />
 								</div>
 								<p>
 									{"방학 및 주말을 활용해 운영하는 체험형 집중 교육 프로그램입니다."}

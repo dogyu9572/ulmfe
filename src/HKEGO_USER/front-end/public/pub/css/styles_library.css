@@ -1,21 +1,21 @@
 /* 도서관 안내 */
-	.library_top {background-image:url('/pub/images/bg_library_top.webp');}
+	.library_top {background-image:url('../images/bg_library_top.webp');}
 
 	.user_infobox {display:flex; gap:20px;}
-	.user_infobox li {position:relative; width:calc((100% - 40px)/3); padding:32px 40px; display:flex; flex-direction:column; align-items:flex-start; gap:24px; background:url('/pub/images/bg_user_infobox.svg') no-repeat 100% 50% / contain; border:#E5E8EB 1px solid; border-radius:16px;}
+	.user_infobox li {position:relative; width:calc((100% - 40px)/3); padding:32px 40px; display:flex; flex-direction:column; align-items:flex-start; gap:24px; background:url('../images/bg_user_infobox.svg') no-repeat 100% 50% / contain; border:#E5E8EB 1px solid; border-radius:16px;}
 	.user_infobox .tt {color:#fff; font-weight:600; line-height:36px; display:flex; align-items:center; gap:8px; padding:0 16px; border-radius:18px; background:#FFFFFF33;}
 	.user_infobox .tt:before {content:""; display:block; width:24px; height:24px; background:#fff; mask:no-repeat 50% 50% / contain; -webkit-mask:no-repeat 50% 50% / contain;}
 	.user_infobox span {font-size:24px; color:#fff; font-weight:600; line-height:1.5;}
 	.user_infobox .c1 {background-color:#00A6D9;}
 	.user_infobox .c2 {background-color:#58B431;}
 	.user_infobox .c3 {background-color:#F5A200;}
-	.user_infobox .c1 .tt:before {mask-image:url('/pub/images/icon_time.svg'); -webki-mask-image:url('/pub/images/icon_time.svg');}
-	.user_infobox .c2 .tt:before {mask-image:url('/pub/images/icon_date.svg'); -webki-mask-image:url('/pub/images/icon_date.svg');}
-	.user_infobox .c3 .tt:before {mask-image:url('/pub/images/icon_contact.svg'); -webki-mask-image:url('/pub/images/icon_contact.svg');}
+	.user_infobox .c1 .tt:before {mask-image:url('../images/icon_time.svg'); -webki-mask-image:url('../images/icon_time.svg');}
+	.user_infobox .c2 .tt:before {mask-image:url('../images/icon_date.svg'); -webki-mask-image:url('../images/icon_date.svg');}
+	.user_infobox .c3 .tt:before {mask-image:url('../images/icon_contact.svg'); -webki-mask-image:url('../images/icon_contact.svg');}
 
 	.info_step {display:flex; gap:36px; background:#fff; border-radius:20px; padding:40px;}
 	.info_step li {position:relative; flex:1 1 calc((100% - 144px)/5); text-align:center; display:flex; flex-direction:column; align-items:center;}
-	.info_step li + li:before {content:""; position:absolute; top:0; left:-36px; width:36px; height:100px; background:#B0B8C1; mask:url('/pub/images/arrow_step2.svg') no-repeat 50% 50%; -webkit-mask:url('/pub/images/arrow_step2.svg') no-repeat 50% 50%;}
+	.info_step li + li:before {content:""; position:absolute; top:0; left:-36px; width:36px; height:100px; background:#B0B8C1; mask:url('../images/arrow_step2.svg') no-repeat 50% 50%; -webkit-mask:url('../images/arrow_step2.svg') no-repeat 50% 50%;}
 	.info_step li span {font-size:14px; color:#fff; font-weight:600; line-height:24px; padding:0 12px; border-radius:12px; margin:16px 0;}
 	.info_step li h4 {font-size:20px; font-weight:600; line-height:1.5; margin-bottom:8px;}
 	.info_step li p {color:#333D4B;}
@@ -29,15 +29,18 @@
 	.library_info_excl .list {display:flex; flex-wrap:wrap; gap:24px 20px;}
 	.library_info_excl li {width:calc((100% - 40px)/3); background:#fff; border-radius:12px; padding:24px 32px; border:#E5E8EB 1px solid;}
 	.library_info_excl li:before {content:""; display:block; width:80px; height:80px; background:#fafafa no-repeat 50% 50%; border-radius:50%; margin-bottom:24px;}
-	.library_info_excl li.i1:before {background-image:url('/pub/images/icon_library_info_excl01.svg');}
-	.library_info_excl li.i2:before {background-image:url('/pub/images/icon_library_info_excl02.svg');}
-	.library_info_excl li.i3:before {background-image:url('/pub/images/icon_library_info_excl03.svg');}
-	.library_info_excl li.i4:before {background-image:url('/pub/images/icon_library_info_excl04.svg');}
-	.library_info_excl li.i5:before {background-image:url('/pub/images/icon_library_info_excl05.svg');}
+	.library_info_excl li.i1:before {background-image:url('../images/icon_library_info_excl01.svg');}
+	.library_info_excl li.i2:before {background-image:url('../images/icon_library_info_excl02.svg');}
+	.library_info_excl li.i3:before {background-image:url('../images/icon_library_info_excl03.svg');}
+	.library_info_excl li.i4:before {background-image:url('../images/icon_library_info_excl04.svg');}
+	.library_info_excl li.i5:before {background-image:url('../images/icon_library_info_excl05.svg');}
+
+	.library_data_status .tbl th,
+	.library_data_status .tbl td {padding:16px 8px;}
 /* 자료검색 */
 	.library_wrap .control {display:flex; gap:16px;}
 	.library_wrap .control .arrow {position:relative; width:34px; height:34px; border:#E5E8EB 1px solid; border-radius:50%; font-size:0;}
-	.library_wrap .control .arrow:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:#6B7684; mask:url('/pub/images/btn_arrow.svg') no-repeat 50% 50%; -webkit-mask:url('/pub/images/btn_arrow.svg') no-repeat 50% 50%;}
+	.library_wrap .control .arrow:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:#6B7684; mask:url('../images/btn_arrow.svg') no-repeat 50% 50%; -webkit-mask:url('../images/btn_arrow.svg') no-repeat 50% 50%;}
 	.library_wrap .control .prev {order:1;}
 	.library_wrap .control .next {order:3;}
 	.library_wrap .control .next:before {transform:scaleX(-1);}
@@ -47,7 +50,7 @@
 	.librarian_books_area {display:flex; gap:80px; margin-bottom:240px;}
 	.librarian_books_area .left {position:relative; width:calc(50% + 80px); padding:80px 80px 80px 0; display:flex; z-index:1;}
 	.librarian_books_area .left:before {content:""; position:absolute; top:0; right:0; width:calc(100% + ((100vw - 1600px)/2)); height:100%; background:#EAF7FF; border-radius:0 330px 330px 0; z-index:-1;}
-	.librarian_books_area .left:after {content:""; position:absolute; bottom:97px; right:0; width:155px; aspect-ratio:155/161; background:url('/pub/images/icon_librarian_books.svg') no-repeat 50% 50% / contain;}
+	.librarian_books_area .left:after {content:""; position:absolute; bottom:97px; right:0; width:155px; aspect-ratio:155/161; background:url('../images/icon_librarian_books.svg') no-repeat 50% 50% / contain;}
 	.librarian_books_area .left .imgfit {width:350px; aspect-ratio:7/10; border-radius:16px; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04);}
 	.librarian_books_area .left .txt {width:calc(100% - 350px); padding:48px 0 48px 64px; display:flex; justify-content:space-between; gap:24px;}
 	.librarian_books_area .left .top {gap:16px;}
@@ -56,9 +59,9 @@
 	.librarian_books_area .left .btm {gap:40px; align-items:flex-start;}
 	.writer_info {gap:4px;}
 	.writer_info li {position:relative; color:#6B7684; padding-left:78px;}
-	.writer_info li strong {position:absolute; top:0; left:0; color:#191F28; font-weight:500; padding-left:24px; background:url('/pub/images/icon_writer_info.svg') no-repeat 0 50%;}
+	.writer_info li strong {position:absolute; top:0; left:0; color:#191F28; font-weight:500; padding-left:24px; background:url('../images/icon_writer_info.svg') no-repeat 0 50%;}
 	.librarian_books_area .left .btm .btn_more {font-size:20px; color:#fff; font-weight:600; line-height:62px; height:62px; gap:44px; width:240px; border-radius:32px;}
-	.librarian_books_area .left .btm .btn_more:after {content:""; display:block; width:16px; height:16px; background:url('/pub/images/arrow_more.svg') no-repeat 50% 50% / contain;}
+	.librarian_books_area .left .btm .btn_more:after {content:""; display:block; width:16px; height:16px; background:url('../images/arrow_more.svg') no-repeat 50% 50% / contain;}
 	.librarian_books_area .right {position:relative; width:calc(50% - 160px);}
 	.librarian_books_area .right .swiper-notification {display:none;}
 	.librarian_books_area .book_slide {position:absolute; bottom:0; left:0; width:calc(100% + ((100vw - 1600px)/2)); padding-right:144px; overflow:hidden; display:flex; flex-direction:column; gap:80px;}
@@ -80,7 +83,7 @@
 	.flex.book_list .writer_info {gap:4px; margin-top:15px;}
 	.flex.book_list .writer_info li {color:#fffc; padding-left:62px; font-size:14px;}
 	.flex.book_list .writer_info li strong {color:inherit; padding-left:18px; background:none;}
-	.flex.book_list .writer_info li strong:before {content:""; position:absolute; top:0; left:0; width:10px; height:100%; background:#FABD00; mask:url('/pub/images/icon_writer_info.svg') no-repeat 50% 50% / contain; -webkit-mask:url('/pub/images/icon_writer_info.svg') no-repeat 50% 50% / contain;}
+	.flex.book_list .writer_info li strong:before {content:""; position:absolute; top:0; left:0; width:10px; height:100%; background:#FABD00; mask:url('../images/icon_writer_info.svg') no-repeat 50% 50% / contain; -webkit-mask:url('../images/icon_writer_info.svg') no-repeat 50% 50% / contain;}
 
 	.library_view_wrap {padding-bottom:80px; margin-bottom:80px; border-bottom:#E5E8EB 1px solid;}
 	.book_view_top {display:flex; gap:40px;}
@@ -96,7 +99,7 @@
 	.library_view_wrap .tt {font-size:24px; font-weight:600; line-height:1.25; margin:80px 0 16px;}
 	.library_view_wrap .book_view_about {color:#333D4B; padding:32px 40px; background:#FAFAFA; border:#E5E8EB 1px solid; border-radius:20px; word-break:break-word;}
 /* 사서 추천도서 */
-	.library_recommend_top {background-image:url('/pub/images/bg_library_recommend_top.webp');}
+	.library_recommend_top {background-image:url('../images/bg_library_recommend_top.webp');}
 	.library_recommend_top p {font-size:20px; color:#fff; font-weight:400; line-height:1.5; margin-top:8px;}
 	.library_recommend_top p strong {font-weight:600;}
 
@@ -112,7 +115,7 @@
 	.month_select {display:flex; justify-content:center; align-items:center; gap:16px; padding:40px; background:#FAFAFA; border-radius:16px; margin-bottom:40px;}
 	.month_select strong {order:2; font-size:32px; font-weight:600; line-height:1.45;}
 	.month_select .arrow {position:relative; width:34px; height:34px; border:#E5E8EB 1px solid; border-radius:50%; font-size:0; background:#fff;}
-	.month_select .arrow:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:#6B7684; mask:url('/pub/images/btn_arrow.svg') no-repeat 50% 50%; -webkit-mask:url('/pub/images/btn_arrow.svg') no-repeat 50% 50%;}
+	.month_select .arrow:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:#6B7684; mask:url('../images/btn_arrow.svg') no-repeat 50% 50%; -webkit-mask:url('../images/btn_arrow.svg') no-repeat 50% 50%;}
 	.month_select .prev {order:1;}
 	.month_select .next {order:3;}
 	.month_select .next:before {transform:scaleX(-1);}
@@ -285,6 +288,9 @@
 	.library_info_excl .list {gap:16px;}
 	.library_info_excl li {position:relative; width:100%; padding:16px 16px 16px 76px; height:84px; display:flex; align-items:center;}
 	.library_info_excl li:before {position:absolute; top:50%; left:16px; width:50px; height:50px; margin-bottom:16px; background-size:50%; transform:translateY(-50%);}
+	.library_data_status .tbl {overflow-x:auto;}
+	.library_data_status .tbl table {min-width:600px;}
+	.library_data_status .tbl.wide table {min-width:900px;}
 /* 자료검색 */
 	.library_wrap .control {gap:10px;}
 	.library_wrap .control .paging {font-size:13px;}

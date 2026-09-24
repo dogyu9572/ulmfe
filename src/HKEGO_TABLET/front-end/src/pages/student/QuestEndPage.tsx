@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { fetchTabletSession, submitTabletMissionFinal, TabletQuestionnaireAnswer, TabletQuestionnaireQuestion } from '../../api/tabletApi'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
-import { saveTabletStudentFlowSession, studentFlowDisplayName, studentFlowExploreStepByCode } from '../../state/tabletStudentFlowSession'
+import { finishTabletStudentFlow, saveTabletStudentFlowSession, studentFlowDisplayName, studentFlowExploreStepByCode } from '../../state/tabletStudentFlowSession'
+import { questionnaireAnswerLabels } from '../../utils/questionnaireLabels'
 
 type PopupName = 'evaluation' | 'questionnaire' | 'completed' | null
 type AnswerMap = Record<string, string>
-
-const agreement = ['매우 그렇다', '그렇다', '보통이다', '아니다', '매우 아니다']
 const questionKey = (question: TabletQuestionnaireQuestion) => String(question.qstnSn)
 const savedQuestionValues = (flowSession: ReturnType<typeof useRequiredTabletStudentFlowSession>, ansTypeCd: string) => {
 	const selectedStudentIds = new Set((flowSession?.selectedStudents ?? []).map((student) => student.stdntSn))
@@ -50,12 +49,12 @@ const QuestionnairePopup = ({ id, title, questions, values, onChange, open, onCl
 								const key = questionKey(question)
 								const currentValue = values[key] || ''
 								const isText = question.ansTypeCd === 'TEXT'
-								return <li key={key}><div className="tt">{question.qstnCn}</div>{isText ? <textarea cols={30} rows={10} className="text w100p" value={currentValue} onChange={(event) => setValue(question, event.target.value)} placeholder="내용을 입력해주세요."></textarea> : <ul className="checkradio_select set5">{agreement.map((label, index) => {
+								return <li key={key}><div className="tt">{question.qstnCn}</div>{isText ? <textarea cols={30} rows={10} className="text w100p" value={currentValue} onChange={(event) => setValue(question, event.target.value)} placeholder="내용을 입력해주세요."></textarea> : <ul className="checkradio_select set5">{questionnaireAnswerLabels(question.ansTypeCd).map((label, index) => {
 									const idForLabel = `${id}_${key}_${index + 1}`
 									return <li className="box" key={idForLabel}><input type="radio" name={`${id}_${key}`} id={idForLabel} checked={currentValue === label} onChange={() => setValue(question, label)} /><label htmlFor={idForLabel}><span><i></i>{label}</span></label></li>
 								})}</ul>}</li>
 							})}
-						</ul> : <div className="wbox">관리자에 등록된 문항이 없습니다.</div>}
+						</ul> : <div className="wbox">풀어볼 문항이 없습니다.</div>}
 						<div className="btns_btm"><button type="button" className="btn btn_kwg btn_clo" onClick={onClose}>이전</button><button type="button" className="btn btn_wbb btn_end" onClick={onSave}>저장</button></div>
 					</div>
 				</div>
@@ -138,7 +137,7 @@ export const QuestEndPage = () => {
 			<QuestionnairePopup id="pop_questionnaire" title="설문지 작성하기" questions={surveyQuestions} values={surveyValues} onChange={(values) => { setSurveyValues(values); setSurveySaved(false) }} open={popup === 'questionnaire'} onClose={() => setPopup(null)} onSave={() => { setSurveySaved(isComplete(surveyQuestions, surveyValues)); setPopup(null) }} />
 			<div className={`popup pop_completed${popup === 'completed' ? ' is-active' : ''}`} id="pop_completed">
 				<div className="dm" onClick={() => setPopup(null)}></div>
-				<div className="inbox"><button type="button" className="btn_close" onClick={() => setPopup(null)}>닫기</button><div className="tit">사건탐구 완료!</div><div className="con scroll_wrap"><div className="scroll"><div className="txt"><div className="tt">{studentFlowDisplayName(flowSession)} 학생, 사건탐구를 완료했습니다!</div><p>세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => navigate('/select-user')}>교육 완료 하기</button></div><p className="tac p_end">세션 종료 시, 학생·선생님 선택 화면으로 이동합니다.</p></div></div></div>
+				<div className="inbox"><button type="button" className="btn_close" onClick={() => setPopup(null)}>닫기</button><div className="tit">사건탐구 완료!</div><div className="con scroll_wrap"><div className="scroll"><div className="txt"><div className="tt">{studentFlowDisplayName(flowSession)} 학생, <strong>{flowSession.prgrmNm?.trim() || '오늘의 활동'}</strong> 활동을 모두 마쳤어요!</div><p>세션을 종료하고 태블릿을 반납해주세요.</p></div><div className="btns_btm"><button type="button" className="btn btn_wbb" onClick={() => finishTabletStudentFlow(navigate)}>교육 완료 하기</button></div><p className="tac p_end">세션 종료 시, 학생·선생님 선택 화면으로 이동합니다.</p></div></div></div>
 			</div>
 		</main>
 	)

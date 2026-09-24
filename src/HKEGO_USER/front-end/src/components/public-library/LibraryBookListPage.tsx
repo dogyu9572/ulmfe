@@ -1,43 +1,42 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import BoardPagination from '@/components/public-board/BoardPagination'
 import LibraryBookCard from '@/components/public-library/LibraryBookCard'
-import type { PageContentProps } from '@/content/pageRegistry'
-import type { LibraryBookListParams } from '@/lib/publicApi'
-import { getPublicLibraryBookCategoriesServer, getPublicLibraryBooksServer } from '@/lib/publicApiServer'
+import { withBasePath } from '@/lib/basePath'
+import { getPublicLibraryBookCategories, getPublicLibraryBooks, type LibraryBookListParams, type PublicBoardCategory, type PublicLibraryBook, type PublicPageResult } from '@/lib/publicApi'
 import Link from 'next/link'
 
-type Props = PageContentProps & {
+type Props = {
 	mode: 'recommend' | 'new'
 }
-
-const singleValue = (value: string | string[] | undefined) => Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
 
 const recommendationIntro = (
 	<div className="page_top_box library_recommend_top">
 		<h2>사서 추천도서란?</h2>
 		<p>
-			<strong>울산광역시미래교육관 도서관 사서추천도서</strong>는, 울산광역시미래교육관 도서관 사서들이 <br className="pc_vw" />
-			지속가능발전(ESD)을 주제로 한 신간 도서 중에서 학생과 시민의 눈높이에 맞는 도서를 엄선하여, <br className="pc_vw" />
-			책 내용과 함께 누리집에 정기적으로 공개합니다.
+			미래도서관 사서가 지속가능발전(ESD)을 주제로 학생과 시민의 눈높이에 맞게 직접 선정한 도서들입니다.
 		</p>
 	</div>
 )
 
-export default async function LibraryBookListPage({ mode, searchParams }: Props) {
-	const params = await searchParams
+export default function LibraryBookListPage({ mode }: Props) {
+	const params = useSearchParams()
 	const route = mode === 'recommend' ? '/library/recommend' : '/library/new'
 	const detailPath = mode === 'recommend' ? '/library/recommend_view' : '/library/new_view'
 	const title = mode === 'recommend' ? '사서 추천도서' : '새로 들어온 도서'
-	const requestedPage = Number(singleValue(params.page))
+	const requestedPage = Number(params.get('page'))
 	const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
-	const requestedSearchType = singleValue(params.search_condition)
+	const requestedSearchType = params.get('search_condition') ?? ''
 	const searchType: LibraryBookListParams['searchType'] = requestedSearchType === 'title' || requestedSearchType === 'content'
 		? requestedSearchType
 		: 'all'
-	const keyword = singleValue(params.search_keyword).trim().slice(0, 100)
-	const category = singleValue(params.category).trim()
+	const keyword = (params.get('search_keyword') ?? '').trim().slice(0, 100)
+	const category = (params.get('category') ?? '').trim()
 	const now = new Date()
-	const requestedYear = Number(singleValue(params.year))
-	const requestedMonth = Number(singleValue(params.month))
+	const requestedYear = Number(params.get('year'))
+	const requestedMonth = Number(params.get('month'))
 	const year = Number.isInteger(requestedYear) && requestedYear >= 1900 && requestedYear <= 2100 ? requestedYear : now.getUTCFullYear()
 	const month = Number.isInteger(requestedMonth) && requestedMonth >= 1 && requestedMonth <= 12 ? requestedMonth : now.getUTCMonth() + 1
 	const listParams: LibraryBookListParams = {
@@ -50,10 +49,24 @@ export default async function LibraryBookListPage({ mode, searchParams }: Props)
 			? { recommendedYn: 'Y' as const }
 			: { newOnly: true, newBookYear: String(year), newBookMonth: String(month).padStart(2, '0') })
 	}
-	const [result, categories] = await Promise.all([
-		getPublicLibraryBooksServer(listParams).catch(() => null),
-		getPublicLibraryBookCategoriesServer().catch(() => [])
-	])
+	const [result, setResult] = useState<PublicPageResult<PublicLibraryBook> | null>(null)
+	const [categories, setCategories] = useState<PublicBoardCategory[]>([])
+
+	useEffect(() => {
+		let cancelled = false
+		void Promise.all([
+			getPublicLibraryBooks(listParams).catch(() => null),
+			getPublicLibraryBookCategories().catch(() => [])
+		]).then(([nextResult, nextCategories]) => {
+			if (cancelled) return
+			setResult(nextResult)
+			setCategories(nextCategories)
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [category, keyword, listParams.newBookMonth, listParams.newBookYear, listParams.recommendedYn, mode, page, searchType])
+
 	const books = result?.list ?? []
 	const totalCount = result?.totalCount ?? 0
 	const totalPages = result?.totalPages ?? 1
@@ -86,7 +99,7 @@ export default async function LibraryBookListPage({ mode, searchParams }: Props)
 	return (
 		<section className="library_wrap inner" aria-labelledby="page-title">
 			<h1 id="page-title" className="subtitle">{title}</h1>
-			{recommendationIntro}
+			{mode === 'recommend' ? recommendationIntro : null}
 			{mode === 'new' ? (
 				<div className="month_select">
 					<strong>{year}. {String(month).padStart(2, '0')}</strong>
@@ -106,7 +119,7 @@ export default async function LibraryBookListPage({ mode, searchParams }: Props)
 			</ul>
 			<div className="board_top">
 				<div className="flex left"><div className="total">총 <strong>{totalCount}</strong>건</div></div>
-				<form action={route} method="get" className="search_wrap">
+				<form action={withBasePath(route)} method="get" className="search_wrap">
 					{mode === 'new' ? <><input type="hidden" name="year" value={year} /><input type="hidden" name="month" value={String(month).padStart(2, '0')} /></> : null}
 					{category ? <input type="hidden" name="category" value={category} /> : null}
 					<fieldset>

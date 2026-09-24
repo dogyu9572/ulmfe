@@ -31,6 +31,7 @@ public class EgovHomepageOrgChartServiceImpl extends EgovAbstractServiceImpl imp
 		member.setFrstClsfNm(trimToEmpty(member.getFrstClsfNm()));
 		member.setScndClsfCd(member.getScndClsfCd().trim());
 		member.setScndClsfNm(trimToEmpty(member.getScndClsfNm()));
+		member.setPstnNm(trimToEmpty(member.getPstnNm()));
 		member.setTaskCn(member.getTaskCn().trim());
 		member.setTelno(trimToEmpty(member.getTelno()));
 		if (member.getSortSeq() == null) {
@@ -46,6 +47,10 @@ public class EgovHomepageOrgChartServiceImpl extends EgovAbstractServiceImpl imp
 		if (member.getOrgMbrSn() == null) {
 			homepageOrgChartDAO.insertMember(member);
 		} else {
+			// 다른 운영자가 먼저 지운 구성원이면 수정할 대상이 없다.
+			if (homepageOrgChartDAO.selectMember(member.getOrgMbrSn()) == null) {
+				throw new IllegalArgumentException("조직도 구성원을 찾을 수 없습니다.");
+			}
 			homepageOrgChartDAO.updateMember(member);
 		}
 		return homepageOrgChartDAO.selectMember(member.getOrgMbrSn());

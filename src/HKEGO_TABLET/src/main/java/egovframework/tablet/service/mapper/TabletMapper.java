@@ -73,11 +73,15 @@ public interface TabletMapper {
 
 	List<TabletTeacherMessageVO> selectUnreadTeacherMessages(@Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
 
+	int countOpenedBonusStage(@Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
+
 	void insertTeacherMessage(TabletTeacherMessageVO teacherMessage);
 
 	void insertTeacherMessageRecipients(@Param("msgSn") Long msgSn, @Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
 
 	int updateTeacherMessageRead(@Param("msgSn") Long msgSn, @Param("studentSns") List<Integer> studentSns);
+
+	void syncReservationStatus(@Param("rsvtSn") Integer rsvtSn);
 
 	void syncAttendance(@Param("rsvtSn") Integer rsvtSn, @Param("studentSns") List<Integer> studentSns);
 
@@ -87,11 +91,11 @@ public interface TabletMapper {
 
 	void deleteTypedAnswers(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("ansTypeCd") String ansTypeCd);
 
-	void insertTypedAnswer(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("ansTypeCd") String ansTypeCd, @Param("stepCd") String stepCd, @Param("answer") TabletQuestionnaireAnswerVO answer);
+	void insertTypedAnswer(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("ansTypeCd") String ansTypeCd, @Param("stepCd") String stepCd, @Param("answer") TabletQuestionnaireAnswerVO answer, @Param("rgtrNm") String rgtrNm);
 
-	int updateProgressLogDone(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("stepCd") String stepCd, @Param("actvtNm") String actvtNm);
+	int updateProgressLogDone(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("stepCd") String stepCd, @Param("actvtNm") String actvtNm, @Param("elapsedSeconds") Integer elapsedSeconds);
 
-	void insertProgressLogDone(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("stepCd") String stepCd, @Param("actvtNm") String actvtNm);
+	void insertProgressLogDone(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("stepCd") String stepCd, @Param("actvtNm") String actvtNm, @Param("elapsedSeconds") Integer elapsedSeconds);
 
 	void updateStudentProgress(@Param("rsvtSn") Integer rsvtSn, @Param("stdntSn") Integer stdntSn, @Param("progressRate") Integer progressRate, @Param("learningStatus") String learningStatus);
 

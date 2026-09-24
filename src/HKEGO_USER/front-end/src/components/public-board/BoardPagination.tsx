@@ -1,3 +1,5 @@
+import { withBasePath } from '@/lib/basePath'
+
 type Props = {
 	page: number
 	totalPages: number
@@ -12,14 +14,17 @@ export default function BoardPagination({ page, totalPages, buildHref }: Props) 
 		{ length: Math.min(5, safeTotalPages - groupStart + 1) },
 		(_, index) => groupStart + index
 	)
+	// buildHref 는 usePathname()/앱 경로 기준( basePath 제외 )일 수 있다.
+	// next/link 가 아닌 일반 <a> 이므로 여기서 /usfec 를 붙인다.
+	const hrefFor = (targetPage: number) => withBasePath(buildHref(targetPage))
 	return (
 		<nav className="paging" aria-label="게시판 페이지 이동">
-			<a href={buildHref(1)} className="arrow two first" aria-label="첫 페이지로 이동">처음</a>
-			<a href={buildHref(Math.max(1, safePage - 5))} className="arrow one prev" aria-label="5페이지 이전으로 이동">이전</a>
+			<a href={hrefFor(1)} className="arrow two first" aria-label="첫 페이지로 이동">처음</a>
+			<a href={hrefFor(Math.max(1, safePage - 5))} className="arrow one prev" aria-label="5페이지 이전으로 이동">이전</a>
 			{pages.map((targetPage) => (
 				<a
 					key={targetPage}
-					href={buildHref(targetPage)}
+					href={hrefFor(targetPage)}
 					className={targetPage === safePage ? 'on' : undefined}
 					aria-current={targetPage === safePage ? 'page' : undefined}
 					aria-label={targetPage === safePage ? `현재 ${targetPage}페이지` : `${targetPage}페이지로 이동`}
@@ -27,8 +32,8 @@ export default function BoardPagination({ page, totalPages, buildHref }: Props) 
 					{targetPage}
 				</a>
 			))}
-			<a href={buildHref(Math.min(safeTotalPages, safePage + 5))} className="arrow one next" aria-label="5페이지 다음으로 이동">다음</a>
-			<a href={buildHref(safeTotalPages)} className="arrow two last" aria-label="마지막 페이지로 이동">맨끝</a>
+			<a href={hrefFor(Math.min(safeTotalPages, safePage + 5))} className="arrow one next" aria-label="5페이지 다음으로 이동">다음</a>
+			<a href={hrefFor(safeTotalPages)} className="arrow two last" aria-label="마지막 페이지로 이동">맨끝</a>
 		</nav>
 	)
 }

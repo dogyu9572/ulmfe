@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!--
+		ULMFE 통합 빌드용 aggregator POM (packaging=pom).
+
+		산출물 (백엔드 WAR 3개, 파일명 = 톰캣 context-path):
+		- src/HKEGO_ADM/target/usfec-adm.war
+		- src/HKEGO_USER/target/usfec.war
+		- src/HKEGO_TABLET/target/usfec-tab.war
+
+		프론트 포함 여부 (-DskipFrontend=false 시):
+		- ADM / TABLET: Vite 빌드 결과를 WAR static 에 포함
+		- USER: Next.js 정적 export(out/) 를 WAR static 에 포함
+		  운영 공개 URL path: /usfec (next.config basePath + Spring context-path)
+		  관리자: /usfec-adm (Spring context-path + Vite base)
+		  태블릿: /usfec-tab (Spring context-path + Vite base)
+
+		파이프라인 (워크스페이스에서 체크아웃 경로가 scm/ 인 경우):
+		  mvn clean package -f scm/pom.xml -Duser.timezone=GMT+09:00 -DskipFrontend=false
+		  mvn clean package -f scm/pom.xml -Pawsdev -DskipFrontend=false
+		  mvn clean package -f scm/pom.xml -Pdev -DskipFrontend=false
+		  mvn clean package -f scm/pom.xml -Pprod -DskipFrontend=false
+
+		로컬 (저장소 루트에서):
+		  mvn clean package -f pom.xml -DskipFrontend=false
+		  mvn clean package -f pom.xml -pl src/HKEGO_ADM -am -DskipFrontend=false
+	-->
+	<groupId>egovframework</groupId>
+	<artifactId>ulmfe</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+	<name>ULMFE</name>
+	<description>울산광역시미래교육관 ADM / USER / TABLET 통합 빌드</description>
+
+	<modules>
+		<module>src/HKEGO_ADM</module>
+		<module>src/HKEGO_USER</module>
+		<module>src/HKEGO_TABLET</module>
+	</modules>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+</project>

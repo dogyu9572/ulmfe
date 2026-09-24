@@ -1,10 +1,11 @@
+import { pubUrl } from '../../../config'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { submitTabletMissionFinal } from '../../../api/tabletApi'
 import { StudentProgramCompletionPopup } from '../../../components/tablet/StudentProgramCompletionPopup'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
-import { studentFlowDisplayName, studentFlowMissionBonusStickerCount, studentFlowMissionQuestByRouteIndex, studentFlowMissionRegularStickerCount, studentFlowRouteItems } from '../../../state/tabletStudentFlowSession'
+import { finishTabletStudentFlow, studentFlowDisplayName, studentFlowMissionBonusStickerCount, studentFlowMissionQuestByRouteIndex, studentFlowMissionRegularStickerCount, studentFlowRouteItems } from '../../../state/tabletStudentFlowSession'
 
 export const Mission06EndPage = () => {
 	const navigate = useNavigate()
@@ -17,7 +18,7 @@ export const Mission06EndPage = () => {
 	const title = `${zoneName} 미션 수행 완료!`
 	const regularStickerCount = studentFlowMissionRegularStickerCount(flowSession)
 	const bonusStickerCount = studentFlowMissionBonusStickerCount(flowSession)
-	const largeStickerImages = Array.from({ length: Math.min(3, regularStickerCount) }, (_, index) => `/pub/images/icon_sticker_a${String(index + 1).padStart(2, '0')}_large.svg`)
+	const largeStickerImages = Array.from({ length: Math.min(3, regularStickerCount) }, (_, index) => pubUrl(`/pub/images/icon_sticker_a${String(index + 1).padStart(2, '0')}_large.svg`))
 
 	const finishMission = async () => {
 		if (saving) return
@@ -69,7 +70,7 @@ export const Mission06EndPage = () => {
 					<div className="next_page_qr"><h3 className="tit">미션 완료</h3><p>오늘의 미션 활동을 마무리하세요.</p><button className="btn_after flex_center" onClick={() => void finishMission()} disabled={saving}>{saving ? '처리 중' : '이동하기'}</button></div>
 				</div>
 			</section>
-			<StudentProgramCompletionPopup open={completedOpen} variant="mission" displayName={studentFlowDisplayName(flowSession)} missionAreaCount={studentFlowRouteItems(flowSession).length} onClose={() => setCompletedOpen(false)} onComplete={() => navigate('/select-user')} />
+			<StudentProgramCompletionPopup open={completedOpen} variant="mission" displayName={studentFlowDisplayName(flowSession)} areaCount={studentFlowRouteItems(flowSession).length} onClose={() => setCompletedOpen(false)} onComplete={() => finishTabletStudentFlow(navigate)} />
 		</main>
 	)
 }

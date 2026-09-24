@@ -30,13 +30,13 @@
 	.board_bottom .paging .next,
 	.board_bottom .paging .last {transform:scaleX(-1);}
 	.board_bottom .btn_abso {position:absolute; bottom:0; right:0; border-radius:4px; font-size:17px; font-weight:600; display:flex; gap:8px; width:160px; height:50px; border-radius:25px;}
-	.board_bottom .btn_writer:after {content:""; display:block; width:16px; height:16px; background:#fff; mask:url('/pub/images/icon_writer.svg') no-repeat 50% 50% / contain; -webkit-mask:url('/pub/images/icon_writer.svg') no-repeat 50% 50% / contain;}
+	.board_bottom .btn_writer:after {content:""; display:block; width:16px; height:16px; background:#fff; mask:url('../images/icon_writer.svg') no-repeat 50% 50% / contain; -webkit-mask:url('../images/icon_writer.svg') no-repeat 50% 50% / contain;}
 	.board_bottom .btns {gap:10px; margin-top:40px;}
 	.board_bottom .btns .btn {width:240px; height:62px; font-size:20px;}
 
 /* 게시물 없음 */
 	.no_content {color:#6B7684; padding:80px 20px; text-align:center; background:#FAFAFA; border-radius:16px; text-align:center;}
-	.no_content:before {content:""; display:block; width:80px; height:80px; background:url('/pub/images/icon_no_content.svg') no-repeat 50% 50% / contain; margin:0 auto 24px;}
+	.no_content:before {content:""; display:block; width:80px; height:80px; background:url('../images/icon_no_content.svg') no-repeat 50% 50% / contain; margin:0 auto 24px;}
 
 /* 반응형 */
 @media screen and (min-width:1024px){

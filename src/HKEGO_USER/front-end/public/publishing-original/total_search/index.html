@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <div id="include-dtd" style="display: none;"></div>
+	<!-- 스타일을 바로 읽지 못해 불러들이기 위한 스크립트. -->
+	<script>
+        function initIncludes() {
+            const dtdContainer = document.getElementById('include-dtd');
+            if (dtdContainer) {
+                fetch('/pub/inc/dtd.html').then(res => res.ok ? res.text() : '').then(data => {
+                    dtdContainer.outerHTML = data;
+                    const cssFiles = ['/pub/css/styles.css', '/pub/css/styles_sub.css', '/pub/css/styles_board_public.css', '/pub/css/styles_total_search.css'];
+                    cssFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(cssRes => {
+                            let ver = cssRes.ok && cssRes.headers.get('Last-Modified') ? new Date(cssRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${ver}`; link.media = 'all'; document.head.appendChild(link);
+                        }).catch(() => {
+                            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${url}?v=${Date.now()}`; link.media = 'all'; document.head.appendChild(link);
+                        });
+                    });
+                    
+                    const jsFiles = ['/pub/js/com.js'];
+                    jsFiles.forEach(url => {
+                        fetch(url, { method: 'HEAD' }).then(jsRes => {
+                            let jsVer = jsRes.ok && jsRes.headers.get('Last-Modified') ? new Date(jsRes.headers.get('Last-Modified')).getTime() : Date.now();
+                            const script = document.createElement('script'); script.src = `${url}?v=${jsVer}`;
+                            document.head.appendChild(script);
+                        }).catch(() => {
+                            const script = document.createElement('script'); script.src = `${url}?v=${Date.now()}`;
+                            document.head.appendChild(script);
+                        });
+                    });
+                }).catch(err => console.error(err));
+            }
+            
+            const elements = document.querySelectorAll('[data-include]');
+            let pCount = 0;
+            if (elements.length === 0) return;
+
+            elements.forEach(el => {
+                const file = el.getAttribute('data-include');
+                if (file) {
+                    fetch(file).then(res => res.ok ? res.text() : '').then(data => {
+                        el.innerHTML = data; 
+                        el.removeAttribute('data-include'); 
+                        pCount++;
+                        
+                        if (pCount === elements.length) {
+                            const checkReady = setInterval(() => {
+                                if (typeof window.initCommonScript === 'function') { 
+                                    clearInterval(checkReady); 
+                                    window.initCommonScript(); 
+                                    window.scrollTo(0, 0);
+                                }
+                            }, 50);
+                        }
+                    }).catch(err => console.error(err));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initIncludes);
+    </script>
+</head>
+<body>
+<div data-include="/pub/inc/header.html"></div>
+<main class="container sub_wrap" id="mainContent">
+<section class="total_search_wrap inner" aria-labelledby="total-search-title">
+	<h1 id="total-search-title" class="subtitle">통합검색</h1>
+	
+	<div class="board_top center_type">
+		<form action="" method="get" class="search_wrap">
+			<fieldset>
+				<legend class="sound_only">게시글 검색</legend>
+				<div class="search_area wlong">
+					<label for="search-keyword" class="sound_only">검색어 입력</label>
+					<input type="text" id="search-keyword" name="search_keyword" placeholder="검색어를 입력해주세요." value="검색어입니다.">
+					<button type="submit" class="btn">검색</button>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+	
+	<ul class="tabs_round tabs_total_search">
+		<li class="on"><button type="button">전체(122)</button></li>
+		<li><button type="button">울산광역시미래교육관 소개(12)</button></li>
+		<li><button type="button">전시소개(0)</button></li>
+		<li><button type="button">교육프로그램 소개(0)</button></li>
+		<li><button type="button">학습지원 자료실(0)</button></li>
+		<li><button type="button">소식(0)</button></li>
+		<li><button type="button">고객지원(3)</button></li>
+		<li><button type="button">갤러리(1)</button></li>
+		<li><button type="button">도서관(1)</button></li>
+	</ul>
+
+	<div class="total_search_contents">
+	
+		<div class="box">
+			<div class="stit large"><h2>울산광역시미래교육관 소개</h2><span class="count"><strong class="c_blue">12</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<ul class="search_list">
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>전시소개</h2><span class="count"><strong class="c_blue">0</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<div class="no_content">검색된 내용이 없습니다.</div>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>교육프로그램 소개</h2><span class="count"><strong class="c_blue">0</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<div class="no_content">검색된 내용이 없습니다.</div>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>학습지원 자료실</h2><span class="count"><strong class="c_blue">0</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<div class="no_content">검색된 내용이 없습니다.</div>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>소식</h2><span class="count"><strong class="c_blue">0</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<div class="no_content">검색된 내용이 없습니다.</div>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>고객지원</h2><span class="count"><strong class="c_blue">3</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<ul class="search_list">
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>갤러리</h2><span class="count"><strong class="c_blue">1</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div>
+			<ul class="search_list">
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="box">
+			<div class="stit large"><h2>도서관</h2><span class="count"><strong class="c_blue">1</strong>건의 검색결과</span><a href="" class="btn_more">더보기</a></div> 
+			<ul class="search_list">
+				<li>
+					<a href="#this">
+						<h3>제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.제목입니다.</h3>
+						<p>내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용입니다.내용...</p>
+						<span class="location"><span>울산광역시미래교육관 소개</span><span>인사말</span></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+	</div>
+	
+</section>
+
+</main>
+<div data-include="/pub/inc/footer.html"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll(".tabs_total_search li");
+    const boxes = document.querySelectorAll(".total_search_contents .box");
+
+    tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+            tabs.forEach(t => t.classList.remove("on"));
+            tab.classList.add("on");
+            if (index === 0) {
+                boxes.forEach(box => box.style.display = "block");
+            } else {
+                boxes.forEach(box => box.style.display = "none");
+                const targetBox = boxes[index - 1];
+                if (targetBox) {
+                    targetBox.style.display = "block";
+                }
+            }
+        });
+    });
+});
+</script>	
+
+</body>
+</html>

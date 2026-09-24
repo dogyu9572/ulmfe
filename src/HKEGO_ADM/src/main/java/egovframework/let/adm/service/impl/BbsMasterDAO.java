@@ -13,15 +13,18 @@ import egovframework.let.adm.service.vo.BbsMasterVO;
 public class BbsMasterDAO extends EgovAbstractMapper {
 	private static final String NS = "egovframework.let.adm.service.impl.BbsMasterDAO.";
 
-	public int countBbsMasterList() {
-		Integer count = selectOne(NS + "countBbsMasterList");
+	public int countBbsMasterList(String useYn) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("useYn", useYn);
+		Integer count = selectOne(NS + "countBbsMasterList", param);
 		return count == null ? 0 : count;
 	}
 
-	public List<BbsMasterVO> selectBbsMasterList(int offset, int limit) {
+	public List<BbsMasterVO> selectBbsMasterList(int offset, int limit, String useYn) {
 		Map<String, Object> param = new HashMap<>();
 		param.put("offset", offset);
 		param.put("limit", limit);
+		param.put("useYn", useYn);
 		return selectList(NS + "selectBbsMasterList", param);
 	}
 

@@ -75,3 +75,11 @@
 src/HKEGO_TABLET/front-end/public/publishing-original
 .android/
 .java/
+# Next.js static export output
+**/out/
+
+# Local database and verification backups
+/*.sql
+/dbbackup/
+/server_hashes.txt
+*.before-*

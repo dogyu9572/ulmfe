@@ -1,0 +1,48 @@
+/* 교육프로그램 소개 목록 (관리자 등록 콘텐츠). 항목 내부 요소는 styles_program.css 의 .program_list 규칙을 그대로 쓴다 */
+	.program_list_top {background-image:url('../images/bg_esd_pbl_top.webp');}
+/* 분류 탭 */
+	.program_tabs {display:flex; flex-wrap:wrap; gap:12px; margin-bottom:40px;}
+	.program_tabs button {font-size:17px; font-weight:600; line-height:50px; height:50px; padding:0 28px; color:#6B7684; background:#fff; border:#E5E8EB 1px solid; border-radius:25px;}
+	.program_tabs button:hover {color:#00A6D9; border-color:#00A6D9;}
+	.program_tabs button.is-active {color:#fff; background:#00A6D9; border-color:#00A6D9;}
+/* 항목 목록 */
+	.program_intro_list {display:flex; flex-direction:column; gap:32px;}
+	.program_intro_list > li {display:flex; align-items:stretch; gap:40px; background:#fff; border-radius:16px; box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.04); overflow:hidden;}
+	.program_intro_list > li .imgfit {width:380px; flex:none;}
+	.program_intro_list > li .txt {flex:1; display:flex; flex-direction:column; align-items:flex-start; padding:32px 40px 32px 0;}
+	.program_intro_list > li .txt h3 {font-size:40px; margin-bottom:16px;}
+	.program_badge {display:inline-block; font-size:15px; font-weight:600; line-height:32px; height:32px; padding:0 16px; color:#00A6D9; background:#E6F6FB; border-radius:16px; margin-bottom:12px;}
+	.program_desc {font-size:17px; line-height:1.6; color:#4E5968; white-space:pre-line; margin-bottom:20px;}
+	.program_meta {display:flex; flex-direction:column; gap:6px; margin-bottom:24px;}
+	.program_meta li {font-size:16px; line-height:26px; color:#333D4B;}
+	.program_meta li strong {display:inline-block; min-width:52px; font-weight:500; color:#191F28;}
+	.program_meta li strong:after {content:":"; padding:0 6px 0 4px;}
+	.program_intro_list > li .txt .btn_link {margin-top:auto;}
+	.program_empty {font-size:18px; line-height:1.6; color:#6B7684; text-align:center; padding:80px 0;}
+
+@media screen and (max-width:1279px){
+	.program_intro_list {gap:24px;}
+	.program_intro_list > li {gap:28px;}
+	.program_intro_list > li .imgfit {width:300px;}
+	.program_intro_list > li .txt {padding:24px 28px 24px 0;}
+}
+
+@media screen and (max-width:1023px){
+	.program_tabs {gap:8px; margin-bottom:28px;}
+	.program_tabs button {font-size:15px; line-height:44px; height:44px; padding:0 20px;}
+	.program_intro_list > li .imgfit {width:240px;}
+	.program_desc {font-size:16px; margin-bottom:16px;}
+	.program_meta li {font-size:15px;}
+}
+
+@media screen and (max-width:767px){
+	.program_tabs button {font-size:14px; line-height:40px; height:40px; padding:0 16px;}
+	.program_intro_list > li {flex-direction:column; gap:0;}
+	.program_intro_list > li .imgfit {width:100%;}
+	.program_intro_list > li .txt {padding:20px 16px;}
+	.program_intro_list > li .txt h3 {font-size:28px;}
+	.program_desc {font-size:15px;}
+	.program_meta li {font-size:14px; line-height:24px;}
+	.program_intro_list > li .txt .btn_link {width:100%; justify-content:center;}
+	.program_empty {font-size:16px; padding:60px 0;}
+}

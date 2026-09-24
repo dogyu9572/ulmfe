@@ -22,8 +22,8 @@
 	.gallery_basic .imgarea .type i {width:20px; height:20px; background:no-repeat 50% 50% / contain;}
 	.gallery_basic .imgarea .type.photo {background:#58B431;}
 	.gallery_basic .imgarea .type.video {background:#E83819;}
-	.gallery_basic .imgarea .type.photo i {background-image:url('/pub/images/icon_photo.svg');}
-	.gallery_basic .imgarea .type.video i {background-image:url('/pub/images/icon_video.svg');}
+	.gallery_basic .imgarea .type.photo i {background-image:url('../images/icon_photo.svg');}
+	.gallery_basic .imgarea .type.video i {background-image:url('../images/icon_video.svg');}
 	.gallery_basic .imgarea .type.photo:after {border-top-color:#00973B; border-left-color:#00973B;}
 	.gallery_basic .imgarea .type.video:after {border-top-color:#E5001E; border-left-color:#E5001E;}
 /* 갤러리 내용 팝업 */

@@ -1,10 +1,13 @@
 package egovframework.let.adm.service.impl;
 
+import egovframework.let.adm.service.EgovFileInfoService;
 import egovframework.let.adm.service.EgovLibraryBookService;
+import egovframework.let.adm.service.vo.FileInfoVO;
 import egovframework.let.adm.service.vo.LibraryBookDto;
 import egovframework.let.adm.service.vo.LibraryBookVO;
 import egovframework.let.adm.service.vo.PageListResult;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +18,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service("egovLibraryBookService")
 public class EgovLibraryBookServiceImpl extends EgovAbstractServiceImpl implements EgovLibraryBookService {
 	private static final int MAX_RELATED_BOOK_COUNT = 4;
+
+	@Resource(name = "egovFileInfoService")
+	private EgovFileInfoService fileInfoService;
 
 	@Resource(name = "libraryBookDAO")
 	private LibraryBookDAO libraryBookDAO;
@@ -93,7 +100,9 @@ public class EgovLibraryBookServiceImpl extends EgovAbstractServiceImpl implemen
 		}
 		libraryBookDAO.deleteRelatedBooks(bookSn);
 		libraryBookDAO.delete(bookSn);
+		fileInfoService.deleteFileGroup(existing.getBookImgAtchFileId());
 	}
+
 
 	public List<LibraryBookVO> getRelatedBookCandidates(
 		Integer excludeBookSn,

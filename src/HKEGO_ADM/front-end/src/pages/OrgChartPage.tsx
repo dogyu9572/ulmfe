@@ -20,6 +20,7 @@ type OrgMember = {
 	frstClsfNm: string
 	scndClsfCd: string
 	scndClsfNm: string
+	pstnNm: string
 	taskCn: string
 	telno: string
 	sortSeq: number
@@ -48,12 +49,19 @@ const ORG_CATEGORIES: OrgFirstCategory[] = [
 		]
 	},
 	{
-		code: 'ORG',
-		name: '관장',
+		code: 'OPER',
+		name: '운영부',
 		children: [
+			{ code: 'OPER', name: '운영부' },
 			{ code: 'PLAN', name: '기획운영팀' },
-			{ code: 'EDU', name: '교육팀' },
-			{ code: 'FACILITY', name: '시설팀' }
+			{ code: 'EXHIBIT', name: '전시체험팀' }
+		]
+	},
+	{
+		code: 'GNRL',
+		name: '총무부',
+		children: [
+			{ code: 'GNRL', name: '총무팀' }
 		]
 	}
 ]
@@ -67,6 +75,7 @@ const defaultMember = (first: OrgFirstCategory, second: OrgSecondCategory): OrgM
 	frstClsfNm: first.name,
 	scndClsfCd: second.code,
 	scndClsfNm: second.name,
+	pstnNm: '',
 	taskCn: '',
 	telno: '',
 	sortSeq: 0,
@@ -74,8 +83,8 @@ const defaultMember = (first: OrgFirstCategory, second: OrgSecondCategory): OrgM
 })
 
 export const OrgChartPage: React.FC = () => {
-	const [firstCd, setFirstCd] = useState('ORG')
-	const [secondCd, setSecondCd] = useState('PLAN')
+	const [firstCd, setFirstCd] = useState('DIRECTOR')
+	const [secondCd, setSecondCd] = useState('DIRECTOR')
 	const [members, setMembers] = useState<OrgMember[]>([])
 	const [currentAdmin, setCurrentAdmin] = useState<SessionInfo>({ adminId: '', adminName: '' })
 	const [loading, setLoading] = useState(false)
@@ -89,7 +98,9 @@ export const OrgChartPage: React.FC = () => {
 		() => firstCategory.children.find((child) => child.code === secondCd) ?? firstCategory.children[0],
 		[firstCategory, secondCd]
 	)
-	const selectedCategoryLabel = secondCategory.name
+	const selectedCategoryLabel = firstCategory.name === secondCategory.name
+		? secondCategory.name
+		: `${firstCategory.name} > ${secondCategory.name}`
 
 	const clearMessageLater = (text: string) => {
 		setMessage(text)
@@ -213,6 +224,7 @@ export const OrgChartPage: React.FC = () => {
 				frstClsfNm: firstCategory.name,
 				scndClsfCd: secondCategory.code,
 				scndClsfNm: secondCategory.name,
+				pstnNm: row.pstnNm.trim(),
 				taskCn: row.taskCn.trim(),
 				telno: row.telno.trim(),
 				sortSeq: members.length - index,
@@ -271,46 +283,26 @@ export const OrgChartPage: React.FC = () => {
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
-									<td>
-										<span className="org-chart-class-cell org-chart-class-cell-static">
-											관장
-										</span>
-									</td>
-									<td>
-										<button
-											type="button"
-											className={`org-chart-class-cell ${firstCd === 'ORG' && secondCd === 'PLAN' ? 'active' : ''}`}
-											onClick={() => selectCategory('ORG', 'PLAN')}
-										>
-											기획운영팀
-										</button>
-									</td>
-								</tr>
-								<tr>
-									<td aria-hidden />
-									<td>
-										<button
-											type="button"
-											className={`org-chart-class-cell ${firstCd === 'ORG' && secondCd === 'EDU' ? 'active' : ''}`}
-											onClick={() => selectCategory('ORG', 'EDU')}
-										>
-											교육팀
-										</button>
-									</td>
-								</tr>
-								<tr>
-									<td aria-hidden />
-									<td>
-										<button
-											type="button"
-											className={`org-chart-class-cell ${firstCd === 'ORG' && secondCd === 'FACILITY' ? 'active' : ''}`}
-											onClick={() => selectCategory('ORG', 'FACILITY')}
-										>
-											시설팀
-										</button>
-									</td>
-								</tr>
+								{ORG_CATEGORIES.map((category) => category.children.map((child, childIndex) => (
+									<tr key={`${category.code}-${child.code}`}>
+										{childIndex === 0 ? (
+											<td rowSpan={category.children.length}>
+												<span className="org-chart-class-cell org-chart-class-cell-static">
+													{category.name}
+												</span>
+											</td>
+										) : null}
+										<td>
+											<button
+												type="button"
+												className={`org-chart-class-cell ${firstCd === category.code && secondCd === child.code ? 'active' : ''}`}
+												onClick={() => selectCategory(category.code, child.code)}
+											>
+												{child.name}
+											</button>
+										</td>
+									</tr>
+								)))}
 							</tbody>
 						</table>
 					</div>
@@ -334,6 +326,7 @@ export const OrgChartPage: React.FC = () => {
 						<table className="table org-chart-member-table">
 							<thead>
 								<tr>
+									<th style={{ width: '160px' }}>직위</th>
 									<th>담당업무</th>
 									<th style={{ width: '220px' }}>전화번호</th>
 									<th style={{ width: '120px' }}>정렬</th>
@@ -375,9 +368,17 @@ export const OrgChartPage: React.FC = () => {
 										<td>
 											<input
 												type="text"
+												value={row.pstnNm}
+												onChange={(e) => updateMember(index, { pstnNm: e.target.value })}
+												className="org-chart-member-input"
+											/>
+										</td>
+										<td>
+											<textarea
 												value={row.taskCn}
 												onChange={(e) => updateMember(index, { taskCn: e.target.value })}
-												className="org-chart-member-input"
+												className="org-chart-member-input org-chart-member-task"
+												rows={4}
 											/>
 										</td>
 										<td>
@@ -408,7 +409,7 @@ export const OrgChartPage: React.FC = () => {
 								))}
 								{members.length === 0 && (
 									<tr>
-										<td colSpan={4} style={{ textAlign: 'center' }}>
+										<td colSpan={5} style={{ textAlign: 'center' }}>
 											등록된 항목이 없습니다. 추가 버튼으로 항목을 등록하세요.
 										</td>
 									</tr>

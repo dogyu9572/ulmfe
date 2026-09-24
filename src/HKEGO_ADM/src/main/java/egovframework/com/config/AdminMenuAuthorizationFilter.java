@@ -47,7 +47,7 @@ public class AdminMenuAuthorizationFilter extends OncePerRequestFilter {
 		String adminRole = (String) session.getAttribute("adminRole");
 		String uri = request.getRequestURI();
 
-		if (!adminMenuAuthorizationService.isAuthorized(adminRole, uri)) {
+		if (!adminMenuAuthorizationService.isAuthorized(adminRole, uri, request.getMethod())) {
 			ApiResponse<Void> body = ApiResponse.error("메뉴 접근 권한이 없습니다.");
 			response.setStatus(HttpStatus.FORBIDDEN.value());
 			response.setContentType(MediaType.APPLICATION_JSON_VALUE);

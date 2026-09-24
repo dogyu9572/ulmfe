@@ -1,5 +1,6 @@
 package egovframework.let.adm.service.impl;
 
+import egovframework.let.adm.service.EgovFileInfoService;
 import jakarta.annotation.Resource;
 import egovframework.let.adm.service.vo.BannerDto;
 import egovframework.let.adm.service.vo.PageListResult;
@@ -20,6 +21,9 @@ import java.util.Map;
 @Slf4j
 @Service("egovBannerService")
 public class EgovBannerServiceImpl extends EgovAbstractServiceImpl implements EgovBannerService {
+
+	@Resource(name = "egovFileInfoService")
+	private EgovFileInfoService fileInfoService;
 
 	@Resource(name = "bannerDAO")
 	private BannerDAO bannerDAO;
@@ -106,6 +110,9 @@ public class EgovBannerServiceImpl extends EgovAbstractServiceImpl implements Eg
 			throw new RuntimeException("배너를 찾을 수 없습니다.");
 		}
 		bannerDAO.delete(bnrSn);
+		// 배너를 지워도 이미지가 남으면 주소를 아는 사람이 계속 받을 수 있다.
+		fileInfoService.deleteFileGroup(existing.getPcAtchFileId());
+		fileInfoService.deleteFileGroup(existing.getMoblAtchFileId());
 		log.info("배너 삭제(논리): bnrSn={}", bnrSn);
 	}
 

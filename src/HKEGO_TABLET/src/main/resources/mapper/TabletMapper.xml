@@ -215,7 +215,9 @@
 			STDNT_SN,
 			STEP_CD,
 			ACTVT_NM,
-			STEP_STTS_CD
+			STEP_STTS_CD,
+			DATE_FORMAT(BGNG_DT, '%Y-%m-%d %H:%i:%s') AS BGNG_DT,
+			DATE_FORMAT(CMPTN_DT, '%Y-%m-%d %H:%i:%s') AS CMPTN_DT
 		FROM EDU_LRN_PRGRS_LOG
 		WHERE RSVT_SN = #{rsvtSn}
 		AND STEP_STTS_CD = 'DONE'
@@ -487,7 +489,20 @@
 		AND R.READ_YN = 'N'
 		AND M.DEL_DT IS NULL
 		AND R.DEL_DT IS NULL
-		ORDER BY M.REG_DT ASC, M.MSG_SN ASC
+		ORDER BY REG_DT ASC, M.MSG_SN ASC
+	</select>
+
+	<!-- 학생이 속한 반이 열려 있으면 1 이상을 돌려준다. 한 태블릿에 여러 반이 섞여 있으면 한 명이라도 열려 있을 때 개방으로 본다 -->
+	<select id="countOpenedBonusStage" resultType="int">
+		SELECT COUNT(*)
+		FROM EDU_BNS_OPN O
+		INNER JOIN EDU_RSVT_STDNT S ON S.RSVT_SN = O.RSVT_SN AND S.CLAS_NM = O.CLAS_NM
+		WHERE O.RSVT_SN = #{rsvtSn}
+		AND S.STDNT_SN IN
+		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+			#{studentSn}
+		</foreach>
+		AND S.DEL_DT IS NULL
 	</select>
 
 	<insert id="insertTeacherMessage" useGeneratedKeys="true" keyProperty="msgSn">
@@ -521,19 +536,22 @@
 		AND DEL_DT IS NULL
 	</update>
 
+	<!--
+		선택한 학생만 출석으로 올린다.
+		예전에는 나머지를 ELSE 'N' 으로 되돌렸는데, 태블릿 한 대를 여러 학생이 차례로 쓰거나
+		팀별로 여러 대를 쓰면 뒤에 출석한 쪽이 앞사람의 출석을 취소해 마지막 한 명만 남았다.
+		교사 출석부에는 출석을 되돌리는 기능이 없으므로 여기서도 해제하지 않는다.
+	-->
 	<update id="syncAttendance">
 		UPDATE EDU_RSVT_STDNT
-		SET ATND_YN = CASE
-				WHEN STDNT_SN IN
-				<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
-					#{studentSn}
-				</foreach>
-				THEN 'Y'
-				ELSE 'N'
-			END,
+		SET ATND_YN = 'Y',
 			MDFCN_DT = NOW(),
 			MDFR_NM = 'tablet'
 		WHERE RSVT_SN = #{rsvtSn}
+		AND STDNT_SN IN
+		<foreach collection="studentSns" item="studentSn" open="(" separator="," close=")">
+			#{studentSn}
+		</foreach>
 		AND DEL_DT IS NULL
 	</update>
 
@@ -596,6 +614,7 @@
 			QSTN_SN,
 			QSTN_CN,
 			ANS_CN,
+			RSPNS_NO,
 			RGTR_NM,
 			REG_DT
 		) VALUES (
@@ -607,15 +626,22 @@
 			COALESCE(#{answer.qstnSn}, 0),
 			COALESCE(#{answer.qstnCn}, ''),
 			#{answer.ansCn},
-			'tablet',
+			#{answer.rspnsNo},
+			COALESCE(#{rgtrNm}, 'tablet'),
 			NOW()
 		)
 	</insert>
 
+	<!--
+		BGNG_DT 에 완료 시각을 그대로 넣으면 소요시간이 늘 0 이 된다.
+		태블릿이 보낸 경과 시간(초)만큼 현재 시각을 거슬러 시작 시각을 남긴다.
+		값이 없는 예전 클라이언트는 종전대로 완료 시각을 쓴다.
+	-->
 	<update id="updateProgressLogDone">
 		UPDATE EDU_LRN_PRGRS_LOG
 		SET ACTVT_NM = #{actvtNm},
 			STEP_STTS_CD = 'DONE',
+			BGNG_DT = <choose><when test="elapsedSeconds != null and elapsedSeconds > 0">DATE_SUB(NOW(), INTERVAL #{elapsedSeconds} SECOND)</when><otherwise>NOW()</otherwise></choose>,
 			CMPTN_DT = NOW(),
 			MDFR_NM = 'tablet',
 			MDFCN_DT = NOW()
@@ -641,12 +667,37 @@
 			#{stepCd},
 			#{actvtNm},
 			'DONE',
-			NOW(),
+			<choose><when test="elapsedSeconds != null and elapsedSeconds > 0">DATE_SUB(NOW(), INTERVAL #{elapsedSeconds} SECOND)</when><otherwise>NOW()</otherwise></choose>,
 			NOW(),
 			'tablet',
 			NOW()
 		)
 	</insert>
+
+	<!--
+		예약 단위 학습상태를 학생들의 상태에 맞춘다.
+		기준은 '출석한 학생' 이다. 결석생까지 세면 한 명만 빠져도 영원히 완료가 되지 않는다.
+		출석자가 아직 없으면 진행 전으로 둔다.
+	-->
+	<update id="syncReservationStatus">
+		UPDATE EDU_RSVT_MST R
+		SET R.LRN_STTS_CD = (
+				SELECT CASE
+						WHEN COUNT(*) = 0 THEN 'READY'
+						WHEN SUM(S.LRN_STTS_CD = 'DONE') = COUNT(*) THEN 'DONE'
+						WHEN SUM(S.LRN_STTS_CD IN ('ING', 'DONE')) &gt; 0 THEN 'ING'
+						ELSE 'READY'
+					END
+				FROM EDU_RSVT_STDNT S
+				WHERE S.RSVT_SN = R.RSVT_SN
+				AND S.DEL_DT IS NULL
+				AND S.ATND_YN = 'Y'
+			),
+			R.MDFR_NM = 'tablet',
+			R.MDFCN_DT = NOW()
+		WHERE R.RSVT_SN = #{rsvtSn}
+		AND R.DEL_DT IS NULL
+	</update>
 
 	<update id="updateStudentProgress">
 		UPDATE EDU_RSVT_STDNT

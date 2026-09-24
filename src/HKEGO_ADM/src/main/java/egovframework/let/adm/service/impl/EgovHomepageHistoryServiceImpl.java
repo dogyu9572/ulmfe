@@ -1,5 +1,6 @@
 package egovframework.let.adm.service.impl;
 
+import egovframework.let.adm.service.EgovFileInfoService;
 import java.time.Year;
 import java.util.Map;
 
@@ -14,6 +15,9 @@ import jakarta.annotation.Resource;
 
 @Service("egovHomepageHistoryService")
 public class EgovHomepageHistoryServiceImpl extends EgovAbstractServiceImpl implements EgovHomepageHistoryService {
+	@Resource(name = "egovFileInfoService")
+	private EgovFileInfoService fileInfoService;
+
 	@Resource(name = "homepageHistoryDAO")
 	private HomepageHistoryDAO homepageHistoryDAO;
 
@@ -41,11 +45,16 @@ public class EgovHomepageHistoryServiceImpl extends EgovAbstractServiceImpl impl
 	public HomepageHistoryVO saveHistory(HomepageHistoryVO history) {
 		validate(history);
 		history.setHstryYr(history.getHstryYr().trim());
-		history.setHstryMm(String.format("%02d", Integer.parseInt(history.getHstryMm().trim())));
+		history.setHstryMm(history.getHstryMm().trim());
 		history.setUseYn("N".equalsIgnoreCase(history.getUseYn()) ? "N" : "Y");
 		if (history.getHstrySn() == null) {
 			homepageHistoryDAO.insertHistory(history);
 		} else {
+			// 다른 운영자가 먼저 지운 연혁이면 수정할 대상이 없다. 조용히 성공으로 처리하면
+			// 화면에는 저장된 것처럼 보이지만 실제로는 아무것도 바뀌지 않는다.
+			if (homepageHistoryDAO.selectHistory(history.getHstrySn()) == null) {
+				throw new IllegalArgumentException("연혁을 찾을 수 없습니다.");
+			}
 			homepageHistoryDAO.updateHistory(history);
 		}
 		return getHistory(history.getHstrySn());
@@ -57,7 +66,12 @@ public class EgovHomepageHistoryServiceImpl extends EgovAbstractServiceImpl impl
 		if (hstrySn == null) {
 			throw new IllegalArgumentException("삭제할 연혁 번호가 없습니다.");
 		}
+		HomepageHistoryVO target = homepageHistoryDAO.selectHistory(hstrySn);
 		homepageHistoryDAO.deleteHistory(hstrySn, deltr);
+		// 연혁을 지워도 이미지가 남으면 주소를 아는 사람이 계속 받을 수 있다.
+		if (target != null) {
+			fileInfoService.deleteFileGroup(target.getImgFileId());
+		}
 	}
 
 	@Override
@@ -66,7 +80,17 @@ public class EgovHomepageHistoryServiceImpl extends EgovAbstractServiceImpl impl
 		if (hstrySns == null || hstrySns.isEmpty()) {
 			throw new IllegalArgumentException("삭제할 연혁을 선택해주세요.");
 		}
+		java.util.List<String> fileIds = new java.util.ArrayList<>();
+		for (Integer sn : hstrySns) {
+			HomepageHistoryVO target = homepageHistoryDAO.selectHistory(sn);
+			if (target != null && target.getImgFileId() != null) {
+				fileIds.add(target.getImgFileId());
+			}
+		}
 		homepageHistoryDAO.deleteHistories(hstrySns, deltr);
+		for (String fileId : fileIds) {
+			fileInfoService.deleteFileGroup(fileId);
+		}
 	}
 
 	private void validate(HomepageHistoryVO history) {
@@ -82,12 +106,11 @@ public class EgovHomepageHistoryServiceImpl extends EgovAbstractServiceImpl impl
 		if (y < 1900 || y > Year.now().getValue() + 10) {
 			throw new IllegalArgumentException("연도 범위가 올바르지 않습니다.");
 		}
-		if (!month.matches("\\d{1,2}")) {
-			throw new IllegalArgumentException("월은 숫자로 입력해주세요.");
+		if (month.isEmpty()) {
+			throw new IllegalArgumentException("시점을 입력해주세요.");
 		}
-		int m = Integer.parseInt(month);
-		if (m < 1 || m > 12) {
-			throw new IllegalArgumentException("월은 1부터 12까지 입력할 수 있습니다.");
+		if (month.length() > 40) {
+			throw new IllegalArgumentException("시점은 40자 이내로 입력해주세요.");
 		}
 		if (history.getHstryCn() == null || history.getHstryCn().trim().isEmpty()) {
 			throw new IllegalArgumentException("내용을 입력해주세요.");

@@ -52,6 +52,10 @@ public class EgovHomepageSearchPageServiceImpl extends EgovAbstractServiceImpl i
 		if (searchPage.getSrchPageSn() == null) {
 			homepageSearchPageDAO.insertSearchPage(searchPage);
 		} else {
+			// 다른 운영자가 먼저 지운 페이지면 수정할 대상이 없다.
+			if (homepageSearchPageDAO.selectSearchPage(searchPage.getSrchPageSn()) == null) {
+				throw new IllegalArgumentException("통합검색 페이지를 찾을 수 없습니다.");
+			}
 			homepageSearchPageDAO.updateSearchPage(searchPage);
 		}
 		return getSearchPage(searchPage.getSrchPageSn());

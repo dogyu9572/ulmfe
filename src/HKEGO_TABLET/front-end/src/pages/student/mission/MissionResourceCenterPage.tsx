@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { StudentMissionHeader } from '../../../components/tablet/StudentMissionHeader'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import { fetchTabletLearningResources, TabletLearningResource } from '../../../api/tabletApi'
+import { withBasePath } from '../../../config'
 
 type ResourceFilter = 'ALL' | 'DOC' | 'VIDEO'
 
@@ -19,7 +20,8 @@ const resourceLabel = (resource: TabletLearningResource) => {
 const resourceHref = (resource: TabletLearningResource) => {
 	if (resource.dataTypeCd === 'VIDEO') return resource.videoEmbedUrl || resource.linkUrl || ''
 	if (resource.dataTypeCd === 'LINK') return resource.linkUrl || ''
-	return resource.fileUrl || resource.linkUrl || ''
+	const raw = resource.fileUrl || resource.linkUrl || ''
+	return raw.startsWith('/') ? withBasePath(raw) : raw
 }
 
 const resourceButton = (resource: TabletLearningResource) => {

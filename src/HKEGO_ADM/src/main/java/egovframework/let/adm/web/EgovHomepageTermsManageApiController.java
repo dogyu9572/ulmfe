@@ -42,7 +42,7 @@ public class EgovHomepageTermsManageApiController {
 					startRegDate, endRegDate, page, size));
 		} catch (Exception e) {
 			log.error("약관 목록 조회 오류", e);
-			return ApiResponse.error("약관 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "약관 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -55,7 +55,7 @@ public class EgovHomepageTermsManageApiController {
 				: ApiResponse.error("약관 정보를 찾을 수 없습니다.");
 		} catch (Exception e) {
 			log.error("약관 상세 조회 오류", e);
-			return ApiResponse.error("약관 상세 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "약관 상세 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -65,7 +65,7 @@ public class EgovHomepageTermsManageApiController {
 			return ApiResponse.success("약관이 등록되었습니다.", homepageTermsService.saveTerms(terms));
 		} catch (Exception e) {
 			log.error("약관 등록 오류", e);
-			return ApiResponse.error("약관 등록 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "약관 등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -76,7 +76,7 @@ public class EgovHomepageTermsManageApiController {
 			return ApiResponse.success("약관이 수정되었습니다.", homepageTermsService.saveTerms(terms));
 		} catch (Exception e) {
 			log.error("약관 수정 오류", e);
-			return ApiResponse.error("약관 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "약관 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -89,7 +89,7 @@ public class EgovHomepageTermsManageApiController {
 			return ApiResponse.success("약관이 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("약관 삭제 오류", e);
-			return ApiResponse.error("약관 삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "약관 삭제 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -108,7 +108,7 @@ public class EgovHomepageTermsManageApiController {
 			return ApiResponse.success("선택한 약관이 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("약관 선택삭제 오류", e);
-			return ApiResponse.error("약관 선택삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "약관 선택삭제 중 오류가 발생했습니다."));
 		}
 	}
 }

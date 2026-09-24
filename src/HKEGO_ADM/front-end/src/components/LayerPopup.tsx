@@ -5,7 +5,7 @@ type LayerPopupProps = {
 	open: boolean
 	/** 팝업 헤더 제목 */
 	title: string
-	/** 닫기 콜백 (백드롭/닫기 버튼) */
+	/** 닫기 콜백 (헤더 닫기 버튼 / 푸터 버튼) */
 	onClose: () => void
 	/** 본문 내용 */
 	children: React.ReactNode
@@ -23,8 +23,11 @@ type LayerPopupProps = {
 
 /**
  * 레이어 팝업 공통 컴포넌트.
- * - 백드롭 클릭 / 헤더 닫기 버튼으로 onClose 호출
+ * - 헤더 닫기 버튼 / 푸터 버튼으로만 onClose 호출
  * - body는 form-table 등으로 2열 폼 구성 권장
+ *
+ * 백드롭 클릭으로는 닫지 않는다. 폼을 채우는 중 배경을 한 번 잘못 누르면
+ * 확인 없이 입력 내용이 전부 사라지기 때문이다(이 컴포넌트를 쓰는 화면 23곳 공통).
  */
 export const LayerPopup: React.FC<LayerPopupProps> = ({
 	open,
@@ -43,7 +46,7 @@ export const LayerPopup: React.FC<LayerPopupProps> = ({
 		: (widePlus300 ? 'layer-popup-wide-plus300' : (wide ? 'layer-popup-wide' : ''))
 	return (
 		<>
-			<div className="layer-backdrop" onClick={onClose} aria-hidden />
+			<div className="layer-backdrop" aria-hidden />
 			<div
 				className={`layer-popup ${wideClass}`}
 				role="dialog"

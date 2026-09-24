@@ -1,4 +1,4 @@
-# 운영(hkstsdemo) — mvn package -Pprod 빌드 시 활성화
+# 운영 — mvn package -Pprod 빌드 시 활성화
 # 비밀번호는 JAR에 넣지 말고 SPRING_DATASOURCE_PASSWORD 환경 변수로 주입
 
 server:
@@ -11,22 +11,23 @@ server:
 
 file:
   upload:
-    path: /home/hkstsdemo/uploads
+    path: ${FILE_UPLOAD_PATH:/home/ulmfe/uploads}
 
 app:
   security:
     csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
     csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:true}
   cors:
+    # 운영: 180.210.117.80 / use.go.kr
     allowed-origins:
-      - https://hkstsdemo.hk-test.co.kr
-      - http://hkstsdemo.hk-test.co.kr
+      - https://use.go.kr
+      - http://use.go.kr
 
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://127.0.0.1:3306/hkstsdemo?allowPublicKeyRetrieval=true&useSSL=false}
-    username: ${SPRING_DATASOURCE_USERNAME:hkstsdemou}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://6abffbf5-aa3a-4f5e-925d-4dcbd41cc3a2.internal.kr1.mysql.rds.gov-nhncloudservice.com:11306/ulmfe?allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:ulmfe}
     password: ${SPRING_DATASOURCE_PASSWORD:}
 
 logging:
@@ -39,4 +40,3 @@ logging:
 mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
-

@@ -95,6 +95,25 @@ public class LearningReservationDAO extends EgovAbstractMapper {
 		return update(NS + "updateActualStudentCount", rsvtSn);
 	}
 
+	public List<String> selectOpenedBonusClasses(Integer rsvtSn) {
+		return selectList(NS + "selectOpenedBonusClasses", rsvtSn);
+	}
+
+	public int insertBonusOpen(Integer rsvtSn, String clasNm) {
+		return insert(NS + "insertBonusOpen", bonusParam(rsvtSn, clasNm));
+	}
+
+	public int deleteBonusOpen(Integer rsvtSn, String clasNm) {
+		return delete(NS + "deleteBonusOpen", bonusParam(rsvtSn, clasNm));
+	}
+
+	private Map<String, Object> bonusParam(Integer rsvtSn, String clasNm) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("rsvtSn", rsvtSn);
+		param.put("clasNm", clasNm);
+		return param;
+	}
+
 	private Map<String, Object> searchParam(
 		String lrnSttsCd,
 		String prgrmTypeCd,

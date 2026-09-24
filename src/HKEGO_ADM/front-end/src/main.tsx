@@ -10,12 +10,14 @@ import { CodePage } from './pages/CodePage'
 import { BbsMasterPage } from './pages/BbsMasterPage'
 import { BbsPostPage } from './pages/BbsPostPage'
 import { BannerPage } from './pages/BannerPage'
+import { ClosedDayPage } from './pages/ClosedDayPage'
 import { PopupPage } from './pages/PopupPage'
 import { SiteBasicSettingPage } from './pages/SiteBasicSettingPage'
 import { AccessEnvironmentPage } from './pages/AccessEnvironmentPage'
 import { HomepageMenuPage } from './pages/HomepageMenuPage'
 import { HomepageHistoryPage } from './pages/HomepageHistoryPage'
 import { OrgChartPage } from './pages/OrgChartPage'
+import { CiPage } from './pages/CiPage'
 import { TermsPage } from './pages/TermsPage'
 import { SearchPageManagementPage } from './pages/SearchPageManagementPage'
 import { UserInfoPage } from './pages/UserInfoPage'
@@ -31,6 +33,7 @@ import { EvaluationFormPage } from './pages/EvaluationFormPage'
 import { SurveyFormPage } from './pages/SurveyFormPage'
 import { EducationContentPage } from './pages/EducationContentPage'
 import { EducationProgramPage } from './pages/EducationProgramPage'
+import { EduProgramIntroPage } from './pages/EduProgramIntroPage'
 import { EsdQuestionBankPage } from './pages/EsdQuestionBankPage'
 import { LearningCalendarPage } from './pages/LearningCalendarPage'
 import { LearningFieldStatusPage } from './pages/LearningFieldStatusPage'
@@ -39,6 +42,8 @@ import { LearningReservationPage } from './pages/LearningReservationPage'
 import { LearningSupportMaterialPage } from './pages/LearningSupportMaterialPage'
 import { AdminManageRoute } from './components/AdminManageRoute'
 import { ForbiddenPage } from './pages/ForbiddenPage'
+import { NotFoundPage } from './pages/NotFoundPage'
+import { API_BASE_URL, BASE_PATH, appPath } from './config'
 
 const CSRF_HEADER = 'X-XSRF-TOKEN'
 const CSRF_COOKIE = 'XSRF-TOKEN'
@@ -76,7 +81,17 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 	}
 
 	if (needsCsrf) {
-		const token = getCsrfToken()
+		let token = getCsrfToken()
+		if (!token) {
+			// 토큰 없이 보내면 403 이 오고 아래에서 /admin/forbidden 으로 튕겨 작성 중인 내용이 사라진다.
+			// 세션 조회 응답 헤더로 토큰을 먼저 회수한다(SpaCsrfHeaderFilter 가 모든 응답에 붙인다).
+			await originalFetch(`${API_BASE_URL}/api/admin/auth/session`, { credentials: 'include' })
+				.then((res) => rememberCsrfToken(res.headers.get(CSRF_HEADER)))
+				.catch(() => {
+					/* 토큰 확보 실패는 아래 원래 요청의 응답 코드로 드러난다 */
+				})
+			token = getCsrfToken()
+		}
 		if (token) {
 			const headers = new Headers(mergedInit.headers ?? (input instanceof Request ? input.headers : undefined))
 			headers.set(CSRF_HEADER, token)
@@ -88,10 +103,11 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 	rememberCsrfToken(response.headers.get(CSRF_HEADER))
 
 	if (response.status === 401 && isAdminApi && !isAuthApi) {
-		window.location.replace('/admin/login')
+		// 이유를 붙여 보낸다. AdminLayout 의 타이머 만료 경로와 같은 파라미터를 쓴다.
+		window.location.replace(appPath('/admin/login?expired=1'))
 	}
 	if (response.status === 403 && isAdminApi && !isAuthApi) {
-		window.location.replace('/admin/forbidden')
+		window.location.replace(appPath('/admin/forbidden'))
 	}
 
 	return response
@@ -99,7 +115,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
 const App: React.FC = () => {
 	return (
-		<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+		<BrowserRouter basename={BASE_PATH || undefined} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
 			<Routes>
 				<Route path="/admin/login" element={<LoginPage />} />
 				<Route path="/admin/dashboard" element={<DashboardPage />} />
@@ -130,8 +146,10 @@ const App: React.FC = () => {
 				<Route path="/admin/popups" element={<PopupPage />} />
 				<Route path="/admin/history" element={<HomepageHistoryPage />} />
 				<Route path="/admin/org-chart" element={<OrgChartPage />} />
+				<Route path="/admin/ci" element={<CiPage />} />
 				<Route path="/admin/terms" element={<TermsPage />} />
 				<Route path="/admin/search-pages" element={<SearchPageManagementPage />} />
+				<Route path="/admin/closed-days" element={<ClosedDayPage />} />
 				<Route
 					path="/admin/users"
 					element={
@@ -150,6 +168,7 @@ const App: React.FC = () => {
 				<Route path="/admin/library-books" element={<LibraryBookPage />} />
 				<Route path="/admin/exploration-programs" element={<EducationProgramPage programType="EXPLORE" />} />
 				<Route path="/admin/mission-programs" element={<EducationProgramPage programType="MISSION" />} />
+				<Route path="/admin/edu-program-intros" element={<EduProgramIntroPage />} />
 				<Route path="/admin/esd-question-bank" element={<EsdQuestionBankPage />} />
 				<Route path="/admin/evaluation-forms" element={<EvaluationFormPage />} />
 				<Route path="/admin/survey-forms" element={<SurveyFormPage />} />
@@ -159,7 +178,8 @@ const App: React.FC = () => {
 				<Route path="/admin/field-operation-status" element={<LearningFieldStatusPage />} />
 				<Route path="/admin/learning-results" element={<LearningResultPage />} />
 				<Route path="/admin/learning-support-materials" element={<LearningSupportMaterialPage />} />
-				<Route path="*" element={<Navigate to="/admin/login" replace />} />
+				<Route path="/" element={<Navigate to="/admin/login" replace />} />
+				<Route path="*" element={<NotFoundPage />} />
 			</Routes>
 		</BrowserRouter>
 	)

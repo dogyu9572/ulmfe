@@ -65,7 +65,7 @@
 	.board_top .select_tab .btn {font-size:15px;}
 /* 공통-넘치는 테이블 */
 	.over_scroll {position:relative;}
-	.over_scroll:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:url('/pub/images/icon_hand.svg') no-repeat rgba(0,0,0,.5) 50% 50%/ auto 81px; z-index:3; pointer-events:none; transition:.5s linear;}
+	.over_scroll:before {content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:url('../images/icon_hand.svg') no-repeat rgba(0,0,0,.5) 50% 50%/ auto 81px; z-index:3; pointer-events:none; transition:.5s linear;}
 	.over_scroll.on:before {opacity:0;}
 	.over_scroll .scroll {overflow:auto hidden;}
 	.over_scroll .scroll > * {width:1024px;}

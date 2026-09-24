@@ -1,6 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+
+/*
+ * 좌측 메뉴도 prefetch 를 끈다. 같은 섹션의 형제 페이지를 미리 받아오면서
+ * 그 페이지들의 이미지 preload 힌트까지 현재 문서로 딸려 오기 때문이다.
+ * 1F 를 여는데 2F·3F·별관·야외 사진을 미리 받던 것이 그 때문이었다.
+ */
 import { useState } from 'react'
 import { SITE_MENUS } from './siteNavigation'
 
@@ -29,7 +35,7 @@ export default function SubpageAside({ menuIndex, currentHref, title, descriptio
 					<div className={`sub${menuIndex + 1} on`}>
 						<ul className="snb">
 							{menu.children.map((child) => (
-								<li className={currentHref === child.href ? 'on' : ''} key={child.href}><Link href={child.href} onClick={() => setOpen(false)}>{child.label}</Link></li>
+								<li className={currentHref === child.href ? 'on' : ''} key={child.href}><Link href={child.href} prefetch={false} onClick={() => setOpen(false)}>{child.label}</Link></li>
 							))}
 						</ul>
 					</div>

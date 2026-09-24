@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AdminLayout } from '../components/AdminLayout'
@@ -129,7 +130,8 @@ function toggleEtcCsv(s: string, code: string): string {
 }
 
 type ListResponse = {
-	posts: BbsPostDto[]
+	list?: BbsPostDto[]
+	posts?: BbsPostDto[]
 	totalCount: number
 	page: number
 	size: number
@@ -413,22 +415,44 @@ export const BbsPostPage: React.FC = () => {
 		}
 	}, [])
 
-	const fetchList = useCallback(async () => {
+	/**
+	 * 검색·초기화 버튼은 state 반영을 기다리지 않고 바로 조회해야 하므로 override 로 조건을 직접 넘긴다.
+	 * override 를 주지 않으면 현재 state 를 그대로 쓴다.
+	 */
+	const fetchList = useCallback(async (override?: {
+		page?: number
+		keyword?: string
+		type?: string
+		category?: string
+		start?: string
+		end?: string
+	}) => {
 		if (!bbsId) return
 		setError(null)
 		try {
+			const targetPage = override?.page ?? page
+			const targetKeyword = override?.keyword ?? searchKeyword
+			const targetType = override?.type ?? searchType
+			const targetCategory = override?.category ?? searchCategory
+			const targetStart = override?.start ?? startDate
+			const targetEnd = override?.end ?? endDate
+			const rangeWarning = checkDateRange(targetStart, targetEnd, '등록일')
+			if (rangeWarning) {
+				setError(rangeWarning)
+				return
+			}
 			const params = new URLSearchParams()
-			params.set('page', String(page))
+			params.set('page', String(targetPage))
 			params.set('size', String(pageSize))
-			if (searchKeyword.trim()) {
-				params.set('searchType', searchType)
-				params.set('searchKeyword', searchKeyword.trim())
+			if (targetKeyword.trim()) {
+				params.set('searchType', targetType)
+				params.set('searchKeyword', targetKeyword.trim())
 			}
-			if (!isNoticeBoard && searchCategory.trim()) {
-				params.set('category', searchCategory.trim())
+			if (!isNoticeBoard && targetCategory.trim()) {
+				params.set('category', targetCategory.trim())
 			}
-			if (startDate) params.set('startDate', startDate)
-			if (endDate) params.set('endDate', endDate)
+			if (targetStart) params.set('startDate', targetStart)
+			if (targetEnd) params.set('endDate', targetEnd)
 			const res = await fetch(
 				`${BACKEND}/api/admin/bbs-post/${encodeURIComponent(bbsId)}?${params.toString()}`,
 				{ credentials: 'include' }
@@ -439,7 +463,7 @@ export const BbsPostPage: React.FC = () => {
 				return
 			}
 			const data = result.data as ListResponse
-			setList(data.posts ?? [])
+			setList(data.list ?? data.posts ?? [])
 			setTotalCount(data.totalCount ?? 0)
 		} catch {
 			setError('게시글 목록 조회 중 오류가 발생했습니다.')
@@ -455,7 +479,11 @@ export const BbsPostPage: React.FC = () => {
 			fetchBbsMasterForPost(bbsId)
 			fetchList()
 		}
-	}, [bbsId, fetchBbsMasterForPost, fetchList])
+		// fetchList 는 검색 조건까지 의존성으로 갖는다. 여기서 함께 추적하면 타이핑 한 글자마다
+		// 목록이 다시 불려 검색 버튼이 무의미해진다. 조회 트리거는 게시판·페이지·페이지크기 변경으로 한정하고
+		// 검색 조건 반영은 검색/초기화 버튼이 담당한다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [bbsId, page, pageSize])
 
 	useEffect(() => {
 		if (!bbsMaster) return
@@ -922,7 +950,17 @@ export const BbsPostPage: React.FC = () => {
 			setError('제목을 입력하세요.')
 			return
 		}
+		// 분류를 쓰는 게시판인데 미선택으로 저장하면 어느 분류 탭에도 잡히지 않는 게시글이 생긴다.
+		if (showCategoryField && !String(currentForm.category ?? '').trim()) {
+			setError('분류를 선택하세요.')
+			return
+		}
 		let pstCn = getCurrentPostContent(currentForm.pstCn ?? '')
+		// 에디터는 빈 상태에서도 <p><br></p> 같은 껍데기를 남기므로 태그를 걷어내고 판정한다.
+		if (!isQnaBoard && !pstCn.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()) {
+			setError(`${contentFieldLabel}을 입력하세요.`)
+			return
+		}
 		// img src에서 도메인 제거 → /uploads/... 만 저장 (사용자페이지 공통 노출용)
 		pstCn = (pstCn || '').replace(/src="(https?:\/\/[^"]*)(\/uploads\/[^"]+)"/gi, 'src="$2"')
 		const payload: Partial<BbsPostDto> & { bbsId: string; pstCn: string } = { ...currentForm, pstCn, bbsId }
@@ -1111,14 +1149,25 @@ export const BbsPostPage: React.FC = () => {
 		}
 	}
 
-	const handleSearch = () => setPage(1)
+	const handleSearch = () => {
+		// setPage(1) 은 조회 effect 를 트리거한다. 이미 1페이지면 effect 가 돌지 않으므로 직접 조회한다.
+		if (page === 1) {
+			void fetchList({ page: 1 })
+		} else {
+			setPage(1)
+		}
+	}
 	const clearSearch = () => {
 		setSearchKeyword('')
 		setSearchCategory('')
 		setStartDate('')
 		setEndDate('')
 		setSearchType('title')
-		setPage(1)
+		if (page === 1) {
+			void fetchList({ page: 1, keyword: '', type: 'title', category: '', start: '', end: '' })
+		} else {
+			setPage(1)
+		}
 	}
 
 	const handleToggleSelect = (pstSn: string, checked: boolean) => {
@@ -1512,7 +1561,7 @@ export const BbsPostPage: React.FC = () => {
 							</tr>
 						)}
 						<tr>
-							<th>{titleFieldLabel}</th>
+							<th>{titleFieldLabel}{isQnaBoard ? null : <span className="required"> *</span>}</th>
 							<td colSpan={3}>
 								<input
 									name="pstTtl"
@@ -1902,10 +1951,8 @@ export const BbsPostPage: React.FC = () => {
 									<tr>
 										<th>{contentFieldLabel}</th>
 										<td colSpan={3}>
-											<div
-												className="bbs-post-qna-content"
-												dangerouslySetInnerHTML={{ __html: form.pstCn || '' }}
-											/>
+											{/* 사용자가 작성한 문의 본문이라 HTML로 해석하지 않는다. 저장형 XSS 경로가 된다. */}
+											<div className="bbs-post-qna-content">{form.pstCn || ''}</div>
 										</td>
 									</tr>
 									<tr>
@@ -1960,7 +2007,7 @@ export const BbsPostPage: React.FC = () => {
 								</>
 							) : (
 								<tr>
-									<th>{contentFieldLabel}</th>
+									<th>{contentFieldLabel}<span className="required"> *</span></th>
 									<td colSpan={3}>
 										<div className="bbs-post-summernote-wrap">
 											<textarea
@@ -1982,7 +2029,7 @@ export const BbsPostPage: React.FC = () => {
 									type="text"
 									className="bbs-post-author-input"
 									value={form.wrtrNm ?? ''}
-									onChange={(e) => setForm({ ...form, wrtrNm: e.target.value })}
+									readOnly
 								/>
 							</td>
 							<th>작성자ID</th>
@@ -1992,7 +2039,7 @@ export const BbsPostPage: React.FC = () => {
 									type="text"
 									className="bbs-post-author-input"
 									value={form.wrtrId ?? ''}
-									onChange={(e) => setForm({ ...form, wrtrId: e.target.value })}
+									readOnly
 								/>
 							</td>
 						</tr>

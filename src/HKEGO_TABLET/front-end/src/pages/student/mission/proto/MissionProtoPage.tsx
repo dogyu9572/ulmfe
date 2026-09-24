@@ -1,7 +1,7 @@
 // 미션 학생화면 동작 프로토타입 페이지 — 목 데이터 기반 scene 오케스트레이션 + 시연 도구 (세션·API 무의존)
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { MISSION_PROGRAMS } from '../../../../state/missionPuzzleData'
+import { MISSION_PROGRAMS, missionProgramTitle } from '../../../../state/missionPuzzleData'
 import { PuzzleRunner } from '../puzzles/PuzzleRunner'
 import { DemoState, ProtoModal, ProtoQuestText, ProtoStepBar } from '../puzzles/puzzleShared'
 import { MissionProtoSidebar } from './MissionProtoSidebar'
@@ -28,6 +28,8 @@ export const MissionProtoPage = () => {
 		return Number.isInteger(raw) && raw >= 0 && raw <= lastScene ? raw : 0
 	})
 	const [stickers, setStickers] = useState(() => Math.min(Math.max(scene - 1, 0), program.zones.length))
+	// 존 안의 특정 문항으로 바로 들어가는 시연·캡쳐용 진입점. 앞 문항을 푼 것으로 표시해 러너가 건너뛰게 한다
+	const [puzzleStart, setPuzzleStart] = useState(() => Math.max(0, Number(searchParams.get('puzzle')) || 0))
 	const [showAnswer, setShowAnswer] = useState(true)
 	const [fastForward, setFastForward] = useState(false)
 	const [jumpOpen, setJumpOpen] = useState(false)
@@ -39,11 +41,12 @@ export const MissionProtoPage = () => {
 		return () => window.clearInterval(timer)
 	}, [])
 
-	const demo: DemoState = { showAnswer, fastForward, speed: 10 }
+	const demo: DemoState = { showAnswer, fastForward, speed: 10, proto: true }
 	const remain = remainLabelOf(elapsedSec)
 
 	const goScene = (next: number, nextStickers?: number) => {
 		setScene(next)
+		setPuzzleStart(0)
 		if (typeof nextStickers === 'number') setStickers(Math.min(Math.max(nextStickers, 0), program.zones.length))
 		setRunKey((key) => key + 1)
 		window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -82,7 +85,7 @@ export const MissionProtoPage = () => {
 				)}
 
 				{zone && (
-					<><PuzzleRunner key={`${scene}-${runKey}`} zone={zone} quizBank={program.quizBank} demo={demo} stepBar={{ remain }} onZoneComplete={() => goScene(scene + 1, stickers + 1)} /><div className="mproto_skiprow"><button type="button" className="mproto_tool" onClick={() => goScene(scene + 1, stickers + 1)}>생략하고 다음 →</button></div></>
+					<><PuzzleRunner key={`${scene}-${runKey}-${puzzleStart}`} zone={zone} quizBank={program.quizBank} demo={demo} stepBar={{ remain, step: scene, title: missionProgramTitle(program.name) }} solvedAnswers={Object.fromEntries(zone.puzzles.slice(0, puzzleStart).map((item) => [item.id, 'skip']))} onZoneComplete={() => goScene(scene + 1, stickers + 1)} /><div className="mproto_skiprow"><button type="button" className="mproto_tool" onClick={() => goScene(scene + 1, stickers + 1)}>생략하고 다음 →</button></div></>
 				)}
 
 				{scene === lastScene && (

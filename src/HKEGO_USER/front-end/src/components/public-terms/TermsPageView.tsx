@@ -1,4 +1,8 @@
-import type { PublicTerms } from '@/lib/publicApi'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { getPublicTerms, type PublicTerms, resolvePublicHtmlMediaUrls } from '@/lib/publicApi'
+import { withBasePath } from '@/lib/basePath'
 
 const TERMS_NAVIGATION = [
 	{ code: 'USE', label: '이용약관', href: '/terms/policy' },
@@ -22,12 +26,26 @@ const formatEffectiveDate = (value: string | null) => {
 }
 
 export default function TermsPageView({
-	activeTypeCode,
-	terms
+	activeTypeCode
 }: {
 	activeTypeCode: PublicTerms['termsTypeCode']
-	terms: PublicTerms | null
 }) {
+	const [terms, setTerms] = useState<PublicTerms | null>(null)
+
+	useEffect(() => {
+		let cancelled = false
+		void getPublicTerms(activeTypeCode)
+			.then((data) => {
+				if (!cancelled) setTerms(data)
+			})
+			.catch(() => {
+				if (!cancelled) setTerms(null)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [activeTypeCode])
+
 	const activeIndex = TERMS_NAVIGATION.findIndex((item) => item.code === activeTypeCode)
 	const emailType = activeTypeCode === 'EMAIL'
 	const effectiveDate = formatEffectiveDate(terms?.registeredAt ?? null)
@@ -51,14 +69,14 @@ export default function TermsPageView({
 									index === activeIndex - 1 ? 'no_before' : ''
 								].filter(Boolean).join(' ') || undefined}
 							>
-								<a href={item.href}>{item.code === 'PRIVACY' ? <strong>{item.label}</strong> : item.label}</a>
+								<a href={withBasePath(item.href)}>{item.code === 'PRIVACY' ? <strong>{item.label}</strong> : item.label}</a>
 							</li>
 						))}
 					</ul>
 				</nav>
 			</div>
 			{terms ? (
-				<div className={`gbox terms_box${emailType ? ' email_box' : ''}`} dangerouslySetInnerHTML={{ __html: termsHtml }} />
+				<div className={`gbox terms_box${emailType ? ' email_box' : ''}`} dangerouslySetInnerHTML={{ __html: resolvePublicHtmlMediaUrls(termsHtml) }} />
 			) : (
 				<div className={`gbox terms_box${emailType ? ' email_box' : ''}`}><p>등록된 약관이 없습니다.</p></div>
 			)}

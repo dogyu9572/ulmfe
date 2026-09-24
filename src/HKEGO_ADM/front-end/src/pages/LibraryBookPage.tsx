@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 import { ListPagination } from '../components/ListPagination'
 import { AdminLayout } from '../components/AdminLayout'
 import { CrudPageCard } from '../components/CrudPageCard'
@@ -88,10 +88,11 @@ function formatDate(value: string | null | undefined): string {
 	return String(value).slice(0, 10)
 }
 
-function formatNewBookPeriod(row: LibraryBook): string {
-	if (!row.newBookYr) return '-'
-	return row.newBookMm ? `${row.newBookYr}.${row.newBookMm}` : row.newBookYr
-}
+// 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
+// function formatNewBookPeriod(row: LibraryBook): string {
+// 	if (!row.newBookYr) return '-'
+// 	return row.newBookMm ? `${row.newBookYr}.${row.newBookMm}` : row.newBookYr
+// }
 
 function renderThumb(url: string) {
 	if (!url) {
@@ -117,8 +118,9 @@ const renderYnToggle = (
 	</button>
 )
 
-const monthOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
-const newBookYearOptions = Array.from({ length: 201 }, (_, i) => String(2100 - i))
+// 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
+// const monthOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+// const newBookYearOptions = Array.from({ length: 201 }, (_, i) => String(2100 - i))
 
 export const LibraryBookPage: React.FC = () => {
 	const [list, setList] = useState<LibraryBook[]>([])
@@ -133,13 +135,14 @@ export const LibraryBookPage: React.FC = () => {
 	const [expsrYnFilter, setExpsrYnFilter] = useState('')
 	const [rcmdtnYnFilter, setRcmdtnYnFilter] = useState(false)
 	const [rcmdtnClsfFilter, setRcmdtnClsfFilter] = useState('')
-	const [newBookYrFilter, setNewBookYrFilter] = useState('')
-	const [newBookMmFilter, setNewBookMmFilter] = useState('')
+	// 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
+	// const [newBookYrFilter, setNewBookYrFilter] = useState('')
+	// const [newBookMmFilter, setNewBookMmFilter] = useState('')
 	const [searchType, setSearchType] = useState('all')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
 	const [totalCount, setTotalCount] = useState(0)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [selectedBookSns, setSelectedBookSns] = useState<Set<number>>(new Set())
 
 	const [categoryOptions, setCategoryOptions] = useState<CodeDetail[]>([])
@@ -161,24 +164,39 @@ export const LibraryBookPage: React.FC = () => {
 		[form.relatedBooks]
 	)
 
-	const buildSearchParams = useCallback((targetPage: number) => {
+	const buildSearchParams = useCallback((targetPage: number, targetSize = pageSize, filters?: Partial<{
+		expsrYn: string
+		rcmdtnYn: boolean
+		rcmdtnClsfCd: string
+		searchType: string
+		searchKeyword: string
+	}>) => {
 		const qs = new URLSearchParams()
 		qs.set('page', String(targetPage))
-		qs.set('size', String(pageSize))
-		if (expsrYnFilter) qs.set('expsrYn', expsrYnFilter)
-		if (rcmdtnYnFilter) qs.set('rcmdtnYn', 'Y')
-		if (rcmdtnClsfFilter) qs.set('rcmdtnClsfCd', rcmdtnClsfFilter)
-		if (newBookYrFilter.trim()) qs.set('newBookYr', newBookYrFilter.trim())
-		if (newBookMmFilter) qs.set('newBookMm', newBookMmFilter)
-		if (searchType) qs.set('searchType', searchType)
-		if (searchKeyword.trim()) qs.set('searchKeyword', searchKeyword.trim())
+		qs.set('size', String(targetSize))
+		const next = {
+			expsrYn: expsrYnFilter,
+			rcmdtnYn: rcmdtnYnFilter,
+			rcmdtnClsfCd: rcmdtnClsfFilter,
+			searchType,
+			searchKeyword,
+			...filters
+		}
+		if (next.expsrYn) qs.set('expsrYn', next.expsrYn)
+		if (next.rcmdtnYn) qs.set('rcmdtnYn', 'Y')
+		if (next.rcmdtnClsfCd) qs.set('rcmdtnClsfCd', next.rcmdtnClsfCd)
+		// 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
+		// if (newBookYrFilter.trim()) qs.set('newBookYr', newBookYrFilter.trim())
+		// if (newBookMmFilter) qs.set('newBookMm', newBookMmFilter)
+		if (next.searchType) qs.set('searchType', next.searchType)
+		if (next.searchKeyword.trim()) qs.set('searchKeyword', next.searchKeyword.trim())
 		return qs.toString()
 	}, [
 		expsrYnFilter,
 		rcmdtnYnFilter,
 		rcmdtnClsfFilter,
-		newBookYrFilter,
-		newBookMmFilter,
+		// newBookYrFilter,
+		// newBookMmFilter,
 		searchType,
 		searchKeyword,
 		pageSize
@@ -210,10 +228,10 @@ export const LibraryBookPage: React.FC = () => {
 		setThumbMap(nextMap)
 	}, [])
 
-	const fetchList = useCallback(async (targetPage = page) => {
+	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, filters?: Parameters<typeof buildSearchParams>[2]) => {
 		setError(null)
 		try {
-			const qs = buildSearchParams(targetPage)
+			const qs = buildSearchParams(targetPage, targetSize, filters)
 			const res = await fetch(`${BACKEND}/api/admin/library-books?${qs}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<LibraryBook>> = await res.json()
 			if (!result.success || !result.data) {
@@ -229,7 +247,7 @@ export const LibraryBookPage: React.FC = () => {
 		} catch {
 			setError('도서 목록 조회 중 오류가 발생했습니다.')
 		}
-	}, [buildSearchParams, loadThumbs, page])
+	}, [buildSearchParams, loadThumbs, page, pageSize])
 
 	const fetchCategories = useCallback(async () => {
 		try {
@@ -267,8 +285,11 @@ export const LibraryBookPage: React.FC = () => {
 	}, [fetchSession])
 
 	useEffect(() => {
+		// fetchList 가 필터 state 를 의존성으로 갖는 탓에, 필터를 바꿀 때마다 이 effect 가 다시 돌아
+		// 검색 클릭과 맞물리면 page 요청이 진동했다. 필터 반영은 검색 버튼이 담당한다.
 		void fetchList(page)
-	}, [fetchList, page])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [page])
 
 	useEffect(() => {
 		return () => {
@@ -279,8 +300,23 @@ export const LibraryBookPage: React.FC = () => {
 	const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
 	const handleSearch = () => {
+		// setPage(1) 은 조회 effect 를 트리거한다. 이미 1페이지면 effect 가 돌지 않으므로 직접 조회한다.
+		if (page === 1) {
+			void fetchList(1)
+		} else {
+			setPage(1)
+		}
+	}
+
+	const resetFilters = () => {
+		setExpsrYnFilter('')
+		setRcmdtnYnFilter(false)
+		setRcmdtnClsfFilter('')
+		setSearchType('all')
+		setSearchKeyword('')
 		setPage(1)
-		void fetchList(1)
+		// 지워진 조건을 직접 넘긴다. state 반영을 기다리면 이번 조회에는 옛 값이 실린다.
+		void fetchList(1, pageSize, { expsrYn: '', rcmdtnYn: false, rcmdtnClsfCd: '', searchType: 'all', searchKeyword: '' })
 	}
 
 	const resetImageState = () => {
@@ -575,8 +611,11 @@ export const LibraryBookPage: React.FC = () => {
 						<select
 							value={pageSize}
 							onChange={(e) => {
-								setPageSize(Number(e.target.value))
+								const nextSize = Number(e.target.value)
+								setPageSize(nextSize)
 								setPage(1)
+								// 조회 effect 는 page 만 본다. 1페이지에서 크기만 바꾸면 effect 가 돌지 않아 직접 조회한다.
+								void fetchList(1, nextSize)
 							}}
 							className="list-page-size-select"
 							aria-label="페이지당 목록 개수"
@@ -626,6 +665,7 @@ export const LibraryBookPage: React.FC = () => {
 							))}
 						</select>
 					</div>
+					{/* 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
 					<div className="bbs-post-filter-row">
 						<label className="bbs-post-filter-label">새로 들어온 도서</label>
 						<input
@@ -652,6 +692,7 @@ export const LibraryBookPage: React.FC = () => {
 							))}
 						</select>
 					</div>
+					*/}
 					<div className="bbs-post-filter-row">
 						<label className="bbs-post-filter-label">노출여부</label>
 						<select
@@ -691,6 +732,7 @@ export const LibraryBookPage: React.FC = () => {
 					</div>
 					<div className="bbs-post-filter-actions">
 						<button type="button" className="admin-list-btn-sky" onClick={handleSearch} disabled={loading}>검색</button>
+						<button type="button" className="admin-filter-btn-reset" onClick={resetFilters} disabled={loading}>초기화</button>
 					</div>
 				</div>
 
@@ -708,7 +750,9 @@ export const LibraryBookPage: React.FC = () => {
 							<th style={{ width: 130 }}>출판사</th>
 							<th style={{ width: 90 }}>사서 추천도서</th>
 							<th style={{ width: 90 }}>추천도서 정렬</th>
+							{/* 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
 							<th style={{ width: 100 }}>새로 들어온 도서</th>
+							*/}
 							<th style={{ width: 80 }}>노출여부</th>
 							<th style={{ width: 100 }}>작성자</th>
 							<th style={{ width: 110 }}>등록일</th>
@@ -735,7 +779,9 @@ export const LibraryBookPage: React.FC = () => {
 								<td>{row.pblcoNm || '-'}</td>
 								<td>{row.rcmdtnYn === 'Y' ? 'Y' : '-'}</td>
 								<td>{row.rcmdtnYn === 'Y' ? row.rcmdtnSortSeq : '-'}</td>
+								{/* 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
 								<td>{formatNewBookPeriod(row)}</td>
+								*/}
 								<td>{row.expsrYn}</td>
 								<td>{row.wrtrNm || '-'}</td>
 								<td>{formatDate(row.regYmd)}</td>
@@ -751,7 +797,7 @@ export const LibraryBookPage: React.FC = () => {
 						))}
 						{list.length === 0 && (
 							<tr>
-								<td colSpan={15} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
+								<td colSpan={14} style={{ textAlign: 'center' }}>데이터가 없습니다.</td>
 							</tr>
 						)}
 					</tbody>
@@ -906,7 +952,7 @@ export const LibraryBookPage: React.FC = () => {
 						</tr>
 						<tr>
 							<th>추천도서 슬라이드 정렬</th>
-							<td>
+							<td colSpan={3}>
 								<input
 									type="number"
 									value={form.rcmdtnSortSeq ?? 0}
@@ -914,6 +960,7 @@ export const LibraryBookPage: React.FC = () => {
 								/>
 								<p className="muted">숫자가 높을수록 슬라이드 앞쪽에 표시됩니다.</p>
 							</td>
+							{/* 새로 들어온 도서 메뉴는 자료실로 대체 (복구 가능성 있어 주석 유지)
 							<th>새로 들어온 도서</th>
 							<td>
 								<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -943,6 +990,7 @@ export const LibraryBookPage: React.FC = () => {
 									</select>
 								</div>
 							</td>
+							*/}
 						</tr>
 						<tr>
 							<th>관련자료(도서)</th>

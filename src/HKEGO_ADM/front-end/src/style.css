@@ -3840,6 +3840,19 @@ h6 {
 	white-space: nowrap;
 }
 
+/*
+ * 긴 텍스트 목록 셀(utils/listLongText.tsx).
+ * table-layout 이 fixed 가 아닌 표에서는 td 에 건 max-width 가 듣지 않으므로
+ * 셀 안의 span 을 블록으로 만들어 폭을 제한한다.
+ */
+.table td .list-long-text {
+	display: block;
+	max-width: 520px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .table-actions {
 	white-space: nowrap;
 }
@@ -5050,6 +5063,37 @@ h6 {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+.learning-calendar-day em.is-explore {
+	background: #e6f6ee;
+	color: #0f7b53;
+}
+.learning-calendar-legend {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+.learning-calendar-legend span {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	color: #4b5563;
+	font-size: 12px;
+}
+.learning-calendar-legend span::before {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 3px;
+	content: '';
+}
+.learning-calendar-legend span.is-mission::before {
+	background: #eaf2ff;
+	box-shadow: inset 0 0 0 1px #1d4ed8;
+}
+.learning-calendar-legend span.is-explore::before {
+	background: #e6f6ee;
+	box-shadow: inset 0 0 0 1px #0f7b53;
+}
 .learning-calendar-day small {
 	display: inline-block;
 	margin-top: 4px;
@@ -5303,15 +5347,21 @@ h6 {
 }
 .education-program-eval-picker-row {
 	display: grid;
-	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-columns: auto minmax(0, 1fr) auto;
 	align-items: center;
 	gap: 8px;
 }
-.education-program-eval-picker-row .admin-list-btn-sky {
+.education-program-eval-picker-row .admin-list-btn-sky,
+.education-program-eval-picker-row .admin-footer-btn-delete {
 	height: 28px;
 	margin: 0;
 	padding: 0 10px;
 	white-space: nowrap;
+}
+/* 선택 결과는 「추가」·「삭제」로만 바꾼다. 직접 타이핑하면 이름만 바뀌고 참조 SN이 남는다. */
+.education-program-eval-picker-row input[readonly] {
+	background: #f9fafb;
+	cursor: default;
 }
 .education-program-list-note {
 	margin: -2px 0 12px;
@@ -6190,6 +6240,8 @@ input.bbs-post-regdt-input {
 
 .bbs-post-qna-content {
 	min-height: 120px;
+	/* HTML 해석 없이 평문으로 보여주므로 줄바꿈을 살린다 */
+	white-space: pre-wrap;
 	padding: 12px;
 	border: 1px solid #e5e7eb;
 	border-radius: 6px;
@@ -6631,6 +6683,16 @@ input.bbs-post-regdt-input {
 .org-chart-member-input {
 	width: 100%;
 }
+.org-chart-member-task {
+	box-sizing: border-box;
+	padding: 6px 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 4px;
+	font-family: inherit;
+	font-size: 13px;
+	line-height: 1.5;
+	resize: vertical;
+}
 .org-chart-member-order-cell {
 	display: inline-flex;
 	align-items: center;
@@ -6846,6 +6908,46 @@ input.bbs-post-regdt-input {
 
 .learning-result-download-actions {
 	justify-content: flex-start;
+}
+
+.learning-result-answer-table {
+	table-layout: fixed;
+}
+
+.learning-result-answer-table .learning-result-answer-step-col {
+	width: 90px;
+}
+
+.learning-result-answer-table .learning-result-answer-category-col {
+	width: 120px;
+}
+
+.learning-result-answer-table .learning-result-answer-question-col {
+	width: 32%;
+}
+
+.learning-result-answer-table th,
+.learning-result-answer-table td {
+	white-space: pre-wrap;
+	word-break: keep-all;
+	overflow-wrap: anywhere;
+}
+
+.learning-result-answer-table .learning-result-answer {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.learning-result-answer-table .learning-result-answer p {
+	margin: 0;
+	white-space: pre-wrap;
+}
+
+.learning-result-answer-table .learning-result-answer a {
+	max-width: 100%;
+	overflow-wrap: anywhere;
 }
 
 .field-status-badge {

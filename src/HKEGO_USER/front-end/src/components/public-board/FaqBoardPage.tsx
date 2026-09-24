@@ -1,35 +1,32 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import FaqBoard from './FaqBoard'
-import type { PageSearchParams } from '@/content/pageRegistry'
-import type { BoardListParams } from '@/lib/publicApi'
-import { getPublicBoardCategoriesServer, getPublicBoardPostsServer } from '@/lib/publicApiServer'
+import { getPublicBoardCategories, type PublicBoardCategory } from '@/lib/publicApi'
 
-type Props = { searchParams: PageSearchParams }
+export default function FaqBoardPage() {
+	const [categories, setCategories] = useState<PublicBoardCategory[]>([])
 
-function firstValue(value: string | string[] | undefined): string {
-	return (Array.isArray(value) ? value[0] : value)?.trim() ?? ''
-}
-
-export default async function FaqBoardPage({ searchParams }: Props) {
-	const query = await searchParams
-	const pageValue = Number(firstValue(query.page))
-	const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1
-	const searchTypeValue = firstValue(query.search_condition || query.searchType)
-	const searchType: NonNullable<BoardListParams['searchType']> =
-		searchTypeValue === 'title' || searchTypeValue === 'content' ? searchTypeValue : 'all'
-	const keyword = firstValue(query.search_keyword || query.keyword)
-	const category = firstValue(query.category)
-	const [initialResult, categories] = await Promise.all([
-		getPublicBoardPostsServer('FAQ01', { page, size: 10, searchType, keyword, category }).catch(() => undefined),
-		getPublicBoardCategoriesServer('FAQ01').catch(() => [])
-	])
+	useEffect(() => {
+		let cancelled = false
+		void getPublicBoardCategories('FAQ01')
+			.then((data) => {
+				if (!cancelled) setCategories(data)
+			})
+			.catch(() => {
+				if (!cancelled) setCategories([])
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [])
 
 	return (
 		<FaqBoard
-			initialResult={initialResult}
 			categories={categories}
-			initialSearchType={searchType}
-			initialKeyword={keyword}
-			initialCategory={category}
+			initialSearchType="all"
+			initialKeyword=""
+			initialCategory=""
 		/>
 	)
 }

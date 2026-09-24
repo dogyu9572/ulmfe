@@ -196,7 +196,7 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 	const title = quest?.title || ''
 	const location = quest?.place || ''
 	const timerStorageKey = flowSession ? `hkegoTabletMissionTimer:${flowSession.rsvtSn}:${selectedStudentKey}:${routeIndex}` : ''
-	const { isTimeLimitMet, remainingLabel } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
+	const { isTimeLimitMet, remainingLabel, getElapsedSeconds } = useQuestTimeLimit(timerStorageKey, quest?.limitMin)
 	useEffect(() => {
 		if (!draftStorageKey) return
 		const cards = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('.a_card_box[data-question-index]') ?? [])
@@ -274,6 +274,7 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 				routeIndex,
 				routeName: zoneName,
 				totalRouteCount: routeItems.length,
+				elapsedSeconds: getElapsedSeconds(),
 				answers
 			}
 			if (Object.keys(filesByFieldName).length > 0) {
@@ -308,7 +309,7 @@ export const MissionStepQuestPage = ({ routeIndex, submitPath, pageKey }: { rout
 						<div className="con">{renderQuestionControl(question, index, pageKey, answerForQuestion(visibleAnswersByQuestion, content.cntnSn, question) || '')}</div>
 					</div>
 				)) : <div className="wbox a_card_box">
-					<h3 className="tit">관리자에 연결된 콘텐츠가 없습니다.</h3>
+					<h3 className="tit">표시할 활동 내용이 없습니다.</h3>
 				</div>}
 				<div className="btns_btm"><button type="button" className="btn btn_kwg" onClick={() => navigate(-1)}>이전</button><button type="button" className="btn btn_wbb" onClick={handleSubmit} disabled={saving}>{saving ? '저장 중' : '제출'}</button></div>
 			</div>

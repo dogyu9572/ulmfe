@@ -1,41 +1,33 @@
-import type { PageContentProps } from '@/content/pageRegistry'
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { SITE_MENUS } from '@/components/siteNavigation'
 import type { PublicSearchPage } from '@/lib/publicApi'
-import { getPublicSearchPagesServer } from '@/lib/publicApiServer'
+import { getPublicSearchPages } from '@/lib/publicApi'
+import { BASE_PATH, withBasePath } from '@/lib/basePath'
 
-const SEARCH_CATEGORIES = [
-	'울산광역시미래교육관 소개',
-	'전시소개',
-	'교육프로그램 소개',
-	'학습지원 자료실',
-	'소식',
-	'고객지원',
-	'갤러리',
-	'도서관'
-] as const
+/** 검색 결과 탭은 대메뉴와 같은 이름·같은 순서를 쓴다. */
+const SEARCH_CATEGORIES = SITE_MENUS.map((menu) => menu.label)
 
-type SearchCategory = typeof SEARCH_CATEGORIES[number]
+const CATEGORY_BY_SECTION = new Map(SITE_MENUS.map((menu) => [menu.section, menu.label]))
+
+/** 개편 전 주소로 저장된 검색 페이지를 현재 섹션으로 옮겨 읽는다. */
+const LEGACY_SECTION_ALIASES = new Map([
+	['exhibition', 'exhibit'],
+	['resource', 'archive'],
+	['support', 'news'],
+	['gallery', 'news']
+])
 
 const normalizeCategoryName = (value: string) => value.replace(/\s+/g, '')
 
-const CATEGORY_BY_NAME = new Map<string, SearchCategory>(
+const CATEGORY_BY_NAME = new Map<string, string>(
 	SEARCH_CATEGORIES.map((category) => [normalizeCategoryName(category), category])
 )
 
 CATEGORY_BY_NAME.set(normalizeCategoryName('울산미래교육관'), SEARCH_CATEGORIES[0])
 CATEGORY_BY_NAME.set(normalizeCategoryName('울산광역시미래교육관'), SEARCH_CATEGORIES[0])
-
-const CATEGORY_BY_PATH_PREFIX: Array<[string, SearchCategory]> = [
-	['/about/', SEARCH_CATEGORIES[0]],
-	['/exhibit/', SEARCH_CATEGORIES[1]],
-	['/exhibition/', SEARCH_CATEGORIES[1]],
-	['/program/', SEARCH_CATEGORIES[2]],
-	['/archive/', SEARCH_CATEGORIES[3]],
-	['/resource/', SEARCH_CATEGORIES[3]],
-	['/news/', SEARCH_CATEGORIES[4]],
-	['/support/', SEARCH_CATEGORIES[5]],
-	['/gallery/', SEARCH_CATEGORIES[6]],
-	['/library/', SEARCH_CATEGORIES[7]]
-]
 
 const PAGE_PATH_ALIASES = new Map([
 	['/exhibition/floor1', '/exhibit/floor_1f'],
@@ -49,21 +41,43 @@ const PAGE_PATH_ALIASES = new Map([
 	['/resource/exploration', '/archive/elementary'],
 	['/resource/mission', '/archive/mission'],
 	['/news/exhibition', '/news/exhibit'],
-	['/gallery/photo', '/gallery/index']
+	['/support/faq', '/news/faq'],
+	['/gallery/photo', '/news/gallery'],
+	['/gallery/index', '/news/gallery']
 ])
 
 const pagePath = (value: string) => {
 	try {
-		return new URL(value, 'https://ulmfe-user.hk-test.co.kr').pathname
+		let pathname = new URL(value, 'https://use.go.kr').pathname
+		if (BASE_PATH && (pathname === BASE_PATH || pathname.startsWith(`${BASE_PATH}/`))) {
+			pathname = pathname.slice(BASE_PATH.length) || '/'
+		}
+		return pathname
 	} catch {
 		return ''
 	}
 }
 
 const resultCategory = (result: PublicSearchPage) => {
-	const path = pagePath(result.pageUrl)
-	const pathCategory = CATEGORY_BY_PATH_PREFIX.find(([prefix]) => path.startsWith(prefix))?.[1]
+	const section = pagePath(result.pageUrl).split('/')[1] ?? ''
+	const pathCategory = CATEGORY_BY_SECTION.get(LEGACY_SECTION_ALIASES.get(section) ?? section)
 	return pathCategory ?? CATEGORY_BY_NAME.get(normalizeCategoryName(result.menu1DepthName)) ?? null
+}
+
+const KNOWN_SITE_HOSTS = new Set([
+	'ulmfe-user.hk-test.co.kr',
+	'use.go.kr',
+	'dev.use.go.kr',
+	'localhost',
+	'127.0.0.1'
+])
+
+const normalizeAppPath = (pathname: string) => {
+	let path = pathname || '/'
+	if (BASE_PATH && (path === BASE_PATH || path.startsWith(`${BASE_PATH}/`))) {
+		path = path.slice(BASE_PATH.length) || '/'
+	}
+	return PAGE_PATH_ALIASES.get(path) ?? path
 }
 
 const stripHtml = (value: string) => value
@@ -78,14 +92,16 @@ const stripHtml = (value: string) => value
 const safePageHref = (value: string) => {
 	const href = value.trim()
 	try {
+		// DB 에 절대 URL(https://ulmfe-user.hk-test.co.kr/...) 이 들어 있어도
+		// 현재 호스트(localhost / use.go.kr/usfec) 기준으로 상대 경로로 바꾼다.
 		if (href.startsWith('/') && !href.startsWith('//')) {
-			const url = new URL(href, 'https://ulmfe-user.hk-test.co.kr')
-			return `${PAGE_PATH_ALIASES.get(url.pathname) ?? url.pathname}${url.search}${url.hash}`
+			const url = new URL(href, 'https://use.go.kr')
+			return withBasePath(`${normalizeAppPath(url.pathname)}${url.search}${url.hash}`)
 		}
 		if (/^https?:\/\//i.test(href)) {
 			const url = new URL(href)
-			if (url.hostname === 'ulmfe-user.hk-test.co.kr') {
-				url.pathname = PAGE_PATH_ALIASES.get(url.pathname) ?? url.pathname
+			if (KNOWN_SITE_HOSTS.has(url.hostname)) {
+				return withBasePath(`${normalizeAppPath(url.pathname)}${url.search}${url.hash}`)
 			}
 			return url.toString()
 		}
@@ -94,9 +110,6 @@ const safePageHref = (value: string) => {
 	}
 	return '#'
 }
-
-const singleQueryValue = (value: string | string[] | undefined) =>
-	Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
 
 function SearchResultBox({ category, results, index }: {
 	category: string
@@ -113,7 +126,7 @@ function SearchResultBox({ category, results, index }: {
 			{results.length > 0 ? (
 				<ul className="search_list">
 					{results.map((result) => (
-						<li key={result.searchPageId}>
+						<li key={`${result.searchPageId}:${result.pageUrl}`}>
 							<a href={safePageHref(result.pageUrl)}>
 								<h3>{result.title}</h3>
 								<p>{stripHtml(result.content)}</p>
@@ -133,21 +146,40 @@ function SearchResultBox({ category, results, index }: {
 	)
 }
 
-export default async function TotalSearchIndexContent({ searchParams }: PageContentProps) {
-	const params = await searchParams
-	const keyword = singleQueryValue(params.search_keyword).trim().slice(0, 100)
-	const results = keyword ? await getPublicSearchPagesServer(keyword).catch(() => []) : []
-	const groupedResults = SEARCH_CATEGORIES.map((category) => ({
+export default function TotalSearchIndexContent() {
+	const params = useSearchParams()
+	const keyword = (params.get('search_keyword') ?? '').trim().slice(0, 100)
+	const [results, setResults] = useState<PublicSearchPage[]>([])
+
+	useEffect(() => {
+		let cancelled = false
+		if (!keyword) {
+			setResults([])
+			return
+		}
+		void getPublicSearchPages(keyword)
+			.then((data) => {
+				if (!cancelled) setResults(data)
+			})
+			.catch(() => {
+				if (!cancelled) setResults([])
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [keyword])
+
+	const groupedResults = useMemo(() => SEARCH_CATEGORIES.map((category) => ({
 		category,
 		results: results.filter((result) => resultCategory(result) === category)
-	}))
+	})), [results])
 	const visibleResultCount = groupedResults.reduce((count, group) => count + group.results.length, 0)
 
 	return (
 		<section className="total_search_wrap inner" aria-labelledby="total-search-title">
 			<h1 id="total-search-title" className="subtitle">통합검색</h1>
 			<div className="board_top center_type">
-				<form action="/total_search/index" method="get" className="search_wrap">
+				<form action={withBasePath('/total_search/index')} method="get" className="search_wrap">
 					<fieldset>
 						<legend className="sound_only">게시글 검색</legend>
 						<div className="search_area wlong">
@@ -172,3 +204,4 @@ export default async function TotalSearchIndexContent({ searchParams }: PageCont
 		</section>
 	)
 }
+

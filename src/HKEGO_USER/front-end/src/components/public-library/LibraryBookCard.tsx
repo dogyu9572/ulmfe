@@ -1,4 +1,6 @@
 import type { PublicLibraryBook } from '@/lib/publicApi'
+import { resolvePublicMediaUrl } from '@/lib/publicApi'
+import { withBasePath } from '@/lib/basePath'
 
 type Props = {
 	book: PublicLibraryBook
@@ -13,9 +15,9 @@ export default function LibraryBookCard({ book, detailPath = '/library/search_vi
 
 	return (
 		<li>
-			<a href={`${detailPath}?book_id=${book.bookId}`}>
+			<a href={withBasePath(`${detailPath}?book_id=${book.bookId}`)}>
 				<span aria-hidden="true" className="imgfit">
-					{book.imageUrl ? <img src={book.imageUrl} alt="" /> : null}
+					{book.imageUrl ? <img src={resolvePublicMediaUrl(book.imageUrl)} alt="" /> : null}
 					<span className="hover">
 						<span>자세히 보기</span>
 						{description ? <p>{description}</p> : null}

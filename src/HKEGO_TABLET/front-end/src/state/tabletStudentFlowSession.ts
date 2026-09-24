@@ -2,6 +2,8 @@ import { TabletContent, TabletProgressLog, TabletQuestionnaireQuestion, TabletSa
 import { stripEmphasisMarkers } from '../utils/emphasisText'
 
 const STORAGE_KEY = 'hkegoTabletStudentFlowSession'
+// 앱이 종료돼도 이어서 진행할 수 있도록 localStorage에 두되, 공용 태블릿이므로 마지막 활동에서 1시간이 지나면 버린다
+const STORAGE_TTL_MS = 60 * 60 * 1000
 
 const normalizeTeamName = (value?: string | null) => {
 	const normalized = (value || '').trim()
@@ -83,6 +85,8 @@ export type TabletStudentFlowSession = {
 	savedAnswers: TabletSavedAnswer[]
 	evaluationQuestions: TabletQuestionnaireQuestion[]
 	surveyQuestions: TabletQuestionnaireQuestion[]
+	/** 저장 시각(ms) — 만료 판정에만 쓴다 */
+	savedAt?: number
 }
 
 const readJson = (value: string | null): TabletStudentFlowSession | null => {
@@ -90,7 +94,26 @@ const readJson = (value: string | null): TabletStudentFlowSession | null => {
 	try {
 		const parsed = JSON.parse(value) as TabletStudentFlowSession
 		if (!parsed?.rsvtSn || !Array.isArray(parsed.selectedStudents) || parsed.selectedStudents.length === 0) return null
+		if (!parsed.savedAt || Date.now() - parsed.savedAt > STORAGE_TTL_MS) return null
 		return parsed
+	} catch {
+		return null
+	}
+}
+
+/**
+ * localStorage로 옮기기 전(sessionStorage 시절)에 시작된 세션을 한 번만 넘겨받는다.
+ * 옛 기록에는 savedAt이 없어 그대로는 만료로 판정되므로, 넘겨받는 시점을 마지막 활동으로 삼는다.
+ * 이 이전 처리가 없으면 배포 순간 진행 중이던 태블릿이 다음 새로고침에서 출석 화면으로 되돌아간다.
+ */
+const migrateLegacyFlowSession = () => {
+	const legacy = window.sessionStorage.getItem(STORAGE_KEY)
+	if (!legacy) return null
+	window.sessionStorage.removeItem(STORAGE_KEY)
+	try {
+		const migrated = JSON.stringify({ ...JSON.parse(legacy), savedAt: Date.now() })
+		window.localStorage.setItem(STORAGE_KEY, migrated)
+		return readJson(migrated)
 	} catch {
 		return null
 	}
@@ -98,7 +121,15 @@ const readJson = (value: string | null): TabletStudentFlowSession | null => {
 
 export const readTabletStudentFlowSession = () => {
 	if (typeof window === 'undefined') return null
-	return readJson(window.sessionStorage.getItem(STORAGE_KEY))
+	const flowSession = readJson(window.localStorage.getItem(STORAGE_KEY)) ?? migrateLegacyFlowSession()
+	if (!flowSession) {
+		window.localStorage.removeItem(STORAGE_KEY)
+		return null
+	}
+	// 읽는 것도 활동이므로 만료 시점을 뒤로 민다. 서버 조회가 실패해 저장이 건너뛰어져도 진행 중인 세션이 끊기지 않는다
+	const refreshed = { ...flowSession, savedAt: Date.now() }
+	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshed))
+	return refreshed
 }
 
 export const saveTabletStudentFlowSession = (session: TabletSession, selectedStudentSns: number[]) => {
@@ -132,15 +163,26 @@ export const saveTabletStudentFlowSession = (session: TabletSession, selectedStu
 		progressLogs: session.progressLogs ?? [],
 		savedAnswers: session.savedAnswers ?? [],
 		evaluationQuestions: session.evaluationQuestions ?? [],
-		surveyQuestions: session.surveyQuestions ?? []
+		surveyQuestions: session.surveyQuestions ?? [],
+		savedAt: Date.now()
 	}
-	window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(flowSession))
+	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(flowSession))
 	return flowSession
 }
 
 export const clearTabletStudentFlowSession = () => {
 	if (typeof window === 'undefined') return
+	window.localStorage.removeItem(STORAGE_KEY)
 	window.sessionStorage.removeItem(STORAGE_KEY)
+}
+
+/**
+ * 학습을 마치고 태블릿을 반납하는 지점에서 부른다.
+ * 공용 태블릿이라 학생 명단·학번·제출 답안이 다음 그룹에게 남지 않도록, 키오스크로 돌아가기 전에 지운다.
+ */
+export const finishTabletStudentFlow = (navigate: (path: string) => void) => {
+	clearTabletStudentFlowSession()
+	navigate('/select-user')
 }
 
 export const studentFlowDisplayName = (session: TabletStudentFlowSession | null) => {
@@ -446,6 +488,31 @@ export const studentFlowExploreThoughtRows = (session: TabletStudentFlowSession 
 	return (step?.thoughts ?? []).map((thought) => thought.text).filter(Boolean)
 }
 
+/**
+ * 도입 영상 시청 여부. 유튜브 임베드는 재생 위치를 읽을 수 없으므로
+ * 재생 화면을 열고 나왔는지만 기록한다. 재생 시간까지 필요해지면
+ * YouTube IFrame API 를 붙여 진행률을 받아야 한다.
+ */
+const introVideoWatchedKey = (rsvtSn: number, videoUrl: string) => `video_watched_${rsvtSn}_${videoUrl}`
+
+export const isIntroVideoWatched = (rsvtSn: number, videoUrl: string) => {
+	if (!videoUrl) return false
+	try {
+		return window.sessionStorage.getItem(introVideoWatchedKey(rsvtSn, videoUrl)) === '1'
+	} catch {
+		return false
+	}
+}
+
+export const markIntroVideoWatched = (rsvtSn: number, videoUrl: string) => {
+	if (!videoUrl) return
+	try {
+		window.sessionStorage.setItem(introVideoWatchedKey(rsvtSn, videoUrl), '1')
+	} catch {
+		// 저장에 실패해도 학습 진행은 막지 않는다
+	}
+}
+
 export const studentFlowExploreStepByCode = (session: TabletStudentFlowSession | null, stepCode: string) => studentFlowProgramSteps(session).find((step) => step.step === stepCode) ?? null
 
 export const studentFlowExploreQuestByRouteIndex = (session: TabletStudentFlowSession | null, routeIndex: number): TabletProgramQuest | null => {
@@ -497,11 +564,18 @@ export const studentFlowCompletedExploreStepCodes = (session: TabletStudentFlowS
 		.map((log) => log.stepCd))
 }
 
+/** 값에 단위가 이미 붙어 있으면 그대로 쓴다. 학년/반은 '5' 로도 '5학년' 으로도 들어온다. */
+const withUnit = (value: string | null | undefined, unit: string) => {
+	const text = (value ?? '').trim()
+	if (!text) return ''
+	return text.endsWith(unit) ? text : `${text}${unit}`
+}
+
 export const studentFlowClassName = (session: TabletStudentFlowSession | null) => {
 	const firstStudent = session?.selectedStudents[0]
 	const school = session?.schlNm || ''
-	const grade = session?.scyrNm ? `${session.scyrNm}학년` : ''
-	const className = firstStudent?.clasNm ? `${firstStudent.clasNm}반` : ''
+	const grade = withUnit(session?.scyrNm, '학년')
+	const className = withUnit(firstStudent?.clasNm, '반')
 	return [school, grade, className].filter(Boolean).join(' ')
 }
 

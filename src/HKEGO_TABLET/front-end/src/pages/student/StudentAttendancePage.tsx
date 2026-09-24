@@ -16,21 +16,19 @@ export const StudentAttendancePage = () => {
 		if (loadedRef.current) return
 		loadedRef.current = true
 		void fetchTabletSession()
-				.then((nextSession) => {
-					setSession(nextSession)
-					setCheckedIds(nextSession.students
-						.filter((student) => student.atndYn === 'Y')
-						.slice(0, 1)
-						.map((student) => String(student.stdntSn)))
-				})
+				.then((nextSession) => setSession(nextSession))
 				.catch((error) => window.alert(error instanceof Error ? error.message : '예약 정보를 조회하지 못했습니다.'))
 				.finally(() => setLoaded(true))
 	}, [])
 
 	const students = useMemo(() => session?.students ?? [], [session])
 
+	// 태블릿 한 대를 여러 학생이 함께 쓸 수 있어 복수 선택을 허용한다.
+	// 이후 학습 세션도 selectedStudents 를 배열로 다루므로 여기서 1건으로 좁히면 안 된다.
 	const handleCheck = (id: string, checked: boolean) => {
-		setCheckedIds(checked ? [id] : [])
+		setCheckedIds((previous) => checked
+			? (previous.includes(id) ? previous : [...previous, id])
+			: previous.filter((value) => value !== id))
 	}
 
 	const handleNext = async () => {
@@ -81,8 +79,7 @@ export const StudentAttendancePage = () => {
 								return (
 									<li key={id}>
 										<input
-											type="radio"
-											name="studentNumber"
+											type="checkbox"
 											id={id}
 											checked={checkedIds.includes(id)}
 											onChange={(event) => handleCheck(id, event.currentTarget.checked)}

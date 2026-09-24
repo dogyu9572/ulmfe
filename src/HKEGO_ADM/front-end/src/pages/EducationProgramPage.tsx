@@ -6,7 +6,7 @@ import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
 import { API_BASE_URL } from '../config'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 
 type ProgramType = 'EXPLORE' | 'MISSION'
 
@@ -325,7 +325,8 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 	const [useYnFilter, setUseYnFilter] = useState('')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	// select 옵션이 20 부터라 기본값을 10 으로 두면 표시(20)와 실제 조회(10)가 어긋난다.
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [totalCount, setTotalCount] = useState(0)
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 	const [programImageFile, setProgramImageFile] = useState<File | null>(null)
@@ -444,7 +445,7 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 	useEffect(() => {
 		setForm(defaultForm(programType))
 		setSelectedIds(new Set())
-		void fetchList(1, DEFAULT_LIST_PAGE_SIZE)
+		void fetchList(1, PAGE_SIZE_OPTIONS[0])
 	}, [programType])
 
 		const showPopupError = (value: string) => {
@@ -620,6 +621,11 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 		}
 		setForm({ ...form, evalJson: JSON.stringify(nextEvalInfo) })
 		setEvaluationPickerOpen(false)
+	}
+
+	// 이름만 지우면 태블릿이 참조하는 SN이 남아 설문이 계속 출제된다. 항상 짝으로 비운다.
+	const clearEvaluationSelection = (kind: EvaluationPickerKind) => {
+		setForm({ ...form, evalJson: JSON.stringify({ ...evalInfo, [kind]: '', [`${kind}Sn`]: null }) })
 	}
 
 	const saveProgram = async () => {
@@ -886,21 +892,24 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 					<span>학생 평가지</span>
 					<div className="education-program-eval-picker-row">
 						<button type="button" className="admin-list-btn-sky" onClick={() => openEvaluationPicker('studentEvaluation')}>추가</button>
-						<input type="text" value={evalInfo.studentEvaluation} onChange={(e) => setForm({ ...form, evalJson: JSON.stringify({ ...evalInfo, studentEvaluation: e.target.value }) })} placeholder="평가지를 등록해 주세요." />
+						<input type="text" value={evalInfo.studentEvaluation} readOnly placeholder="평가지를 등록해 주세요." />
+						<button type="button" className="admin-footer-btn-delete" onClick={() => clearEvaluationSelection('studentEvaluation')} disabled={!evalInfo.studentEvaluation}>삭제</button>
 					</div>
 				</label>
 				<label>
 					<span>학생 만족도 설문지</span>
 					<div className="education-program-eval-picker-row">
 						<button type="button" className="admin-list-btn-sky" onClick={() => openEvaluationPicker('survey')}>추가</button>
-						<input type="text" value={evalInfo.survey} onChange={(e) => setForm({ ...form, evalJson: JSON.stringify({ ...evalInfo, survey: e.target.value }) })} placeholder="설문지를 등록해 주세요." />
+						<input type="text" value={evalInfo.survey} readOnly placeholder="설문지를 등록해 주세요." />
+						<button type="button" className="admin-footer-btn-delete" onClick={() => clearEvaluationSelection('survey')} disabled={!evalInfo.survey}>삭제</button>
 					</div>
 				</label>
 				<label>
 					<span>선생님 운영 평가지</span>
 					<div className="education-program-eval-picker-row">
 						<button type="button" className="admin-list-btn-sky" onClick={() => openEvaluationPicker('teacherEvaluation')}>추가</button>
-						<input type="text" value={evalInfo.teacherEvaluation} onChange={(e) => setForm({ ...form, evalJson: JSON.stringify({ ...evalInfo, teacherEvaluation: e.target.value }) })} placeholder="평가지를 등록해 주세요." />
+						<input type="text" value={evalInfo.teacherEvaluation} readOnly placeholder="평가지를 등록해 주세요." />
+						<button type="button" className="admin-footer-btn-delete" onClick={() => clearEvaluationSelection('teacherEvaluation')} disabled={!evalInfo.teacherEvaluation}>삭제</button>
 					</div>
 				</label>
 			</div>
@@ -1028,8 +1037,8 @@ export const EducationProgramPage: React.FC<EducationProgramPageProps> = ({ prog
 						<label className="bbs-post-filter-label">운영중</label>
 						<select value={useYnFilter} onChange={(e) => setUseYnFilter(e.target.value)} className="bbs-post-filter-select">
 							<option value="">전체</option>
-							<option value="Y">Y</option>
-							<option value="N">N</option>
+							<option value="Y">운영중</option>
+							<option value="N">미운영</option>
 						</select>
 					</div>
 					<div className="bbs-post-filter-actions">

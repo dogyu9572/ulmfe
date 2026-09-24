@@ -1,7 +1,9 @@
 package egovframework.let.adm.web;
 
 import egovframework.com.cmm.ApiResponse;
+import jakarta.servlet.http.HttpSession;
 import egovframework.let.adm.service.vo.BbsPostVO;
+import egovframework.let.adm.service.EgovBbsMasterService;
 import egovframework.let.adm.service.EgovBbsPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,21 @@ import java.util.Map;
 public class EgovBbsPostManageApiController {
 
 	private final EgovBbsPostService bbsPostService;
+	private final EgovBbsMasterService bbsMasterService;
+
+	/** 등록자·수정자·작성자는 요청 본문이 아니라 세션에서 가져온다. */
+	private String sessionAdminId(HttpSession session) {
+		return sessionAttribute(session, "adminId");
+	}
+
+	private String sessionAdminName(HttpSession session) {
+		return sessionAttribute(session, "adminName");
+	}
+
+	private String sessionAttribute(HttpSession session, String name) {
+		Object value = session == null ? null : session.getAttribute(name);
+		return value == null ? null : value.toString();
+	}
 
 	/**
 	 * 게시글 목록 조회 (관리자용, 페이징, 검색)
@@ -38,7 +55,8 @@ public class EgovBbsPostManageApiController {
 			int totalCount = bbsPostService.getBbsPostCountForAdmin(
 					bbsId, searchType, searchKeyword, category, startDate, endDate);
 			Map<String, Object> data = new HashMap<>();
-			data.put("posts", posts);
+			data.put("list", posts);
+			data.put("posts", posts); // 하위 호환
 			data.put("totalCount", totalCount);
 			data.put("page", page);
 			data.put("size", size);
@@ -46,7 +64,7 @@ public class EgovBbsPostManageApiController {
 			return ApiResponse.success("게시글 목록 조회 성공", data);
 		} catch (Exception e) {
 			log.error("게시글 목록 조회 오류: bbsId={}", bbsId, e);
-			return ApiResponse.error("게시글 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시글 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -63,7 +81,7 @@ public class EgovBbsPostManageApiController {
 			return ApiResponse.success("게시글 상세 조회 성공", post);
 		} catch (Exception e) {
 			log.error("게시글 상세 조회 오류: bbsId={}, postId={}", bbsId, postId, e);
-			return ApiResponse.error("게시글 상세 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시글 상세 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -80,7 +98,7 @@ public class EgovBbsPostManageApiController {
 			return ApiResponse.success("게시글 등록 성공", created);
 		} catch (Exception e) {
 			log.error("게시글 등록 오류: bbsId={}", bbsId, e);
-			return ApiResponse.error("게시글 등록 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시글 등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -91,15 +109,17 @@ public class EgovBbsPostManageApiController {
 	public ApiResponse<BbsPostVO> updateBbsPost(
 			@PathVariable String bbsId,
 			@PathVariable String postId,
-			@RequestBody BbsPostVO bbsPost) {
+			@RequestBody BbsPostVO bbsPost,
+			HttpSession session) {
 		try {
 			bbsPost.setBbsId(bbsId);
 			bbsPost.setPostId(postId);
+			bbsPost.setMdtr(sessionAdminId(session));
 			BbsPostVO updated = bbsPostService.updateBbsPost(bbsPost);
 			return ApiResponse.success("게시글 수정 성공", updated);
 		} catch (Exception e) {
 			log.error("게시글 수정 오류: bbsId={}, postId={}", bbsId, postId, e);
-			return ApiResponse.error("게시글 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시글 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -110,15 +130,19 @@ public class EgovBbsPostManageApiController {
 	public ApiResponse<BbsPostVO> updateBbsPostAnswer(
 			@PathVariable String bbsId,
 			@PathVariable String postId,
-			@RequestBody BbsPostVO bbsPost) {
+			@RequestBody BbsPostVO bbsPost,
+			HttpSession session) {
 		try {
 			bbsPost.setBbsId(bbsId);
 			bbsPost.setPostId(postId);
+			bbsPost.setMdtr(sessionAdminId(session));
+			bbsPost.setAnswrId(sessionAdminId(session));
+			bbsPost.setAnswrNm(sessionAdminName(session));
 			BbsPostVO updated = bbsPostService.updateBbsPostAnswer(bbsPost);
 			return ApiResponse.success("답변 저장 성공", updated);
 		} catch (Exception e) {
 			log.error("게시글 답변 저장 오류: bbsId={}, postId={}", bbsId, postId, e);
-			return ApiResponse.error("답변 저장 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "답변 저장 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -134,7 +158,7 @@ public class EgovBbsPostManageApiController {
 			return ApiResponse.success("게시글 삭제 성공", null);
 		} catch (Exception e) {
 			log.error("게시글 삭제 오류: bbsId={}, postId={}", bbsId, postId, e);
-			return ApiResponse.error("게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "게시글 삭제 중 오류가 발생했습니다."));
 		}
 	}
 }

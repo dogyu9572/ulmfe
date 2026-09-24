@@ -1,8 +1,9 @@
-import LibraryBookCard from '@/components/public-library/LibraryBookCard'
-import type { PageContentProps } from '@/content/pageRegistry'
-import { getPublicLibraryBookServer } from '@/lib/publicApiServer'
+'use client'
 
-const singleValue = (value: string | string[] | undefined) => Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import LibraryBookCard from '@/components/public-library/LibraryBookCard'
+import { getPublicLibraryBook, resolvePublicMediaUrl, type PublicLibraryBook } from '@/lib/publicApi'
 
 function MultilineText({ text }: { text: string }) {
 	return text.split(/\r?\n/).map((line, index, lines) => (
@@ -13,12 +14,42 @@ function MultilineText({ text }: { text: string }) {
 	))
 }
 
-export default async function LibraryBookDetailPage({ searchParams }: PageContentProps) {
-	const params = await searchParams
-	const bookId = Number(singleValue(params.book_id))
-	const book = Number.isInteger(bookId) && bookId > 0
-		? await getPublicLibraryBookServer(bookId).catch(() => null)
-		: null
+export default function LibraryBookDetailPage() {
+	const params = useSearchParams()
+	const bookId = Number(params.get('book_id'))
+	const [book, setBook] = useState<PublicLibraryBook | null>(null)
+	const [loaded, setLoaded] = useState(false)
+
+	useEffect(() => {
+		let cancelled = false
+		if (!Number.isInteger(bookId) || bookId <= 0) {
+			setBook(null)
+			setLoaded(true)
+			return
+		}
+		setLoaded(false)
+		void getPublicLibraryBook(bookId)
+			.then((data) => {
+				if (!cancelled) setBook(data)
+			})
+			.catch(() => {
+				if (!cancelled) setBook(null)
+			})
+			.finally(() => {
+				if (!cancelled) setLoaded(true)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [bookId])
+
+	if (!loaded) {
+		return (
+			<section className="library_wrap inner" aria-labelledby="page-title">
+				<h1 id="page-title" className="subtitle">도서 상세</h1>
+			</section>
+		)
+	}
 
 	if (!book) {
 		return (
@@ -44,7 +75,7 @@ export default async function LibraryBookDetailPage({ searchParams }: PageConten
 		<section className="library_wrap inner" aria-labelledby="page-title">
 			<div className="library_view_wrap">
 				<div className="book_view_top">
-					<div aria-hidden="true" className="imgfit">{book.imageUrl ? <img src={book.imageUrl} alt="" /> : null}</div>
+					<div aria-hidden="true" className="imgfit">{book.imageUrl ? <img src={resolvePublicMediaUrl(book.imageUrl)} alt="" /> : null}</div>
 					<div className="txt">
 						<h1 id="page-title" className="tit">{book.title}</h1>
 						<ul className="writer_info flex colm">

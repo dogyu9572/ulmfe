@@ -5,9 +5,10 @@ import { CrudPageCard } from '../components/CrudPageCard'
 import { LayerPopup } from '../components/LayerPopup'
 import { ListPagination } from '../components/ListPagination'
 import { RowActionButtons } from '../components/RowActionButtons'
+import { checkDateRange } from '../utils/dateRangeGuard'
 import { API_BASE_URL } from '../config'
 import { formatListToolbarInfo } from '../utils/listToolbarInfo'
-import { DEFAULT_LIST_PAGE_SIZE, type PagedListData } from '../utils/listPaginationConstants'
+import { type PagedListData } from '../utils/listPaginationConstants'
 
 type ApiResponse<T> = {
 	success: boolean
@@ -154,7 +155,8 @@ export const LearningReservationPage: React.FC = () => {
 	const [searchType, setSearchType] = useState('all')
 	const [searchKeyword, setSearchKeyword] = useState('')
 	const [page, setPage] = useState(1)
-	const [pageSize, setPageSize] = useState(DEFAULT_LIST_PAGE_SIZE)
+	// select 옵션이 20 부터라 기본값을 10 으로 두면 표시(20)와 실제 조회(10)가 어긋난다.
+	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0])
 	const [totalCount, setTotalCount] = useState(0)
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 	const [reservationImportFile, setReservationImportFile] = useState<File | null>(null)
@@ -165,7 +167,9 @@ export const LearningReservationPage: React.FC = () => {
 
 	const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [pageSize, totalCount])
 	const allSelected = list.length > 0 && list.every((row) => row.rsvtSn != null && selectedIds.has(row.rsvtSn))
-	const filteredProgramOptions = programOptions.filter((program) => !form.prgrmTypeCd || program.prgrmTypeCd === form.prgrmTypeCd)
+	const filteredProgramOptions = form.prgrmTypeCd
+		? programOptions.filter((program) => program.prgrmTypeCd === form.prgrmTypeCd)
+		: []
 
 	const buildSearchParams = useCallback((targetPage: number, targetSize = pageSize, filters?: Partial<{
 		lrnSttsCd: string
@@ -198,6 +202,16 @@ export const LearningReservationPage: React.FC = () => {
 
 	const fetchList = useCallback(async (targetPage = page, targetSize = pageSize, filters?: Parameters<typeof buildSearchParams>[2]) => {
 		setError(null)
+		// 초기화는 filters 로 빈 조건을 넘긴다. 화면에 남은 옛 날짜가 아니라 실제로 보낼 값을 검증한다.
+		const rangeWarning = checkDateRange(
+			filters ? (filters.startRsvtYmd ?? '') : startRsvtYmd,
+			filters ? (filters.endRsvtYmd ?? '') : endRsvtYmd,
+			'예약일'
+		)
+		if (rangeWarning) {
+			setError(rangeWarning)
+			return
+		}
 		try {
 			const res = await fetch(`${BACKEND}/api/admin/learning-reservations?${buildSearchParams(targetPage, targetSize, filters)}`, { credentials: 'include' })
 			const result: ApiResponse<PagedListData<Reservation>> = await res.json()
@@ -234,7 +248,7 @@ export const LearningReservationPage: React.FC = () => {
 
 	useEffect(() => {
 		void fetchPrograms()
-		void fetchList(1, DEFAULT_LIST_PAGE_SIZE)
+		void fetchList(1, PAGE_SIZE_OPTIONS[0])
 	}, [])
 
 	const showPopupError = (value: string) => {
@@ -611,7 +625,7 @@ export const LearningReservationPage: React.FC = () => {
 							<th style={{ width: 130 }}>예약 일시</th>
 							<th style={{ width: 90 }}>구분</th>
 							<th>프로그램명</th>
-							<th style={{ width: 80 }}>인원</th>
+							<th style={{ width: 90 }}>실제 인원</th>
 							<th style={{ width: 90 }}>학생 명단</th>
 							<th style={{ width: 90 }}>학습상태</th>
 							<th style={{ width: 110 }}>등록일</th>
@@ -714,7 +728,11 @@ export const LearningReservationPage: React.FC = () => {
 							</td>
 							<th>프로그램명 <span className="required">*</span></th>
 							<td>
-								<select value={form.prgrmSn ?? ''} onChange={(e) => setForm({ ...form, prgrmSn: e.target.value ? Number(e.target.value) : null })}>
+								<select
+									value={form.prgrmSn ?? ''}
+									disabled={!form.prgrmTypeCd}
+									onChange={(e) => setForm({ ...form, prgrmSn: e.target.value ? Number(e.target.value) : null })}
+								>
 									<option value="">선택</option>
 									{filteredProgramOptions.map((program) => (
 										<option key={`${program.prgrmTypeCd}-${program.prgrmSn}`} value={program.prgrmSn}>{program.prgrmNm}</option>

@@ -1,12 +1,13 @@
+import { pubUrl } from '../../config'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { useQuestTimeLimit } from '../../hooks/useQuestTimeLimit'
 import { useRequiredTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
-import { studentFlowExploreIntroStep, studentFlowExploreThoughtRows, studentFlowExploreVideoRows } from '../../state/tabletStudentFlowSession'
+import { isIntroVideoWatched, studentFlowExploreIntroStep, studentFlowExploreThoughtRows, studentFlowExploreVideoRows } from '../../state/tabletStudentFlowSession'
 import { videoThumbnailUrls } from '../../utils/youtube'
 
-const fallbackVideoImages = ['/pub/images/img_start_video01.webp', '/pub/images/img_start_video02.webp', '/pub/images/img_start_video03.webp']
+const fallbackVideoImages = [pubUrl('/pub/images/img_start_video01.webp'), pubUrl('/pub/images/img_start_video02.webp'), pubUrl('/pub/images/img_start_video03.webp')]
 
 export const QuestIntroPage = () => {
 	const navigate = useNavigate()
@@ -45,13 +46,14 @@ export const QuestIntroPage = () => {
 							const thumbnailUrls = videoThumbnailUrls(video.videoUrl)
 							const thumbnailSrc = thumbnailUrls.primary || fallbackImage
 							const thumbnailFallbackSrc = thumbnailUrls.fallback || fallbackImage
+							// 외부 영상도 앱 안에서 본다. 여기서 곧장 유튜브로 보내면 학습 중인 태블릿이 앱을 벗어난다.
+							const watchPath = `/student/quest_video?v=${index}`
+							const watchedPercent = isIntroVideoWatched(flowSession.rsvtSn, video.videoUrl || '') ? 100 : 0
 							return (
 								<li className={videoClasses[index] || `c${index + 1}`} key={`${video.contentName}-${index}`}>
-									<a href={video.videoUrl || '/student/quest_video'} onClick={(event) => {
-										if (!video.videoUrl || video.videoUrl.startsWith('/')) {
-											event.preventDefault()
-											navigate(video.videoUrl || '/student/quest_video')
-										}
+									<a href={watchPath} onClick={(event) => {
+										event.preventDefault()
+										navigate(watchPath)
 									}}>
 										<div className="type">{video.cardCategory || video.contentType || `영상 ${index + 1}`}</div>
 										<div className="img" aria-hidden="true"><img src={thumbnailSrc} alt="" referrerPolicy="no-referrer" onError={(event) => {
@@ -65,19 +67,19 @@ export const QuestIntroPage = () => {
 											<div className="time">{introStep?.limitMin ? `${introStep.limitMin}분` : ''}</div>
 											<h3 className="tit">{video.contentName || `영상 ${index + 1}`}</h3>
 											<div className="line_area">
-												<div className="pct"><strong>0</strong>%</div>
-												<div className="bar" style={{ width: '0%' }}><div className="pct" aria-hidden="true"><strong>0</strong>%</div></div>
+												<div className="pct"><strong>{watchedPercent}</strong>%</div>
+												<div className="bar" style={{ width: `${watchedPercent}%` }}><div className="pct" aria-hidden="true"><strong>{watchedPercent}</strong>%</div></div>
 											</div>
 										</div>
 									</a>
 								</li>
 							)
-						}) : <li className="c1"><div className="txt"><h3 className="tit">관리자에 등록된 영상이 없습니다.</h3></div></li>}
+						}) : <li className="c1"><div className="txt"><h3 className="tit">등록된 영상이 없습니다.</h3></div></li>}
 					</ul>
 
 					<div className="stit icon_think">생각해봐요!</div>
 					<ul className="think_list">
-						{thoughts.length > 0 ? thoughts.map((thought) => <li key={thought}><span>{thought}</span><i aria-hidden="true"></i></li>) : <li><span>관리자에 등록된 생각해보기 문항이 없습니다.</span><i aria-hidden="true"></i></li>}
+						{thoughts.length > 0 ? thoughts.map((thought) => <li key={thought}><span>{thought}</span><i aria-hidden="true"></i></li>) : <li><span>생각해볼 질문이 아직 없습니다.</span><i aria-hidden="true"></i></li>}
 					</ul>
 
 					<div className="video_check">

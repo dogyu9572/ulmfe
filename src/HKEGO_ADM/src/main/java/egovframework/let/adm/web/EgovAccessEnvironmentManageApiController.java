@@ -33,7 +33,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속 환경설정을 조회했습니다.", accessEnvironmentService.getSetting());
 		} catch (Exception e) {
 			log.error("접속 환경설정 조회 오류", e);
-			return ApiResponse.error("접속 환경설정 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 환경설정 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -43,7 +43,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속시간 설정이 저장되었습니다.", accessEnvironmentService.saveSetting(setting));
 		} catch (Exception e) {
 			log.error("접속시간 설정 저장 오류", e);
-			return ApiResponse.error("접속시간 설정 저장 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속시간 설정 저장 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -59,7 +59,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속 IP 목록을 조회했습니다.", result);
 		} catch (Exception e) {
 			log.error("접속 IP 목록 조회 오류", e);
-			return ApiResponse.error("접속 IP 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 IP 목록 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -73,7 +73,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속 IP 정보를 조회했습니다.", allowedIp);
 		} catch (Exception e) {
 			log.error("접속 IP 상세 조회 오류", e);
-			return ApiResponse.error("접속 IP 상세 조회 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 IP 상세 조회 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -83,7 +83,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속 IP가 등록되었습니다.", accessEnvironmentService.saveAllowedIp(allowedIp));
 		} catch (Exception e) {
 			log.error("접속 IP 등록 오류", e);
-			return ApiResponse.error("접속 IP 등록 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 IP 등록 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -94,7 +94,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속 IP가 수정되었습니다.", accessEnvironmentService.saveAllowedIp(allowedIp));
 		} catch (Exception e) {
 			log.error("접속 IP 수정 오류", e);
-			return ApiResponse.error("접속 IP 수정 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 IP 수정 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -105,7 +105,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("접속 IP가 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("접속 IP 삭제 오류", e);
-			return ApiResponse.error("접속 IP 삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 IP 삭제 중 오류가 발생했습니다."));
 		}
 	}
 
@@ -116,7 +116,7 @@ public class EgovAccessEnvironmentManageApiController {
 			return ApiResponse.success("선택한 접속 IP가 삭제되었습니다.", null);
 		} catch (Exception e) {
 			log.error("접속 IP 선택삭제 오류", e);
-			return ApiResponse.error("접속 IP 선택삭제 중 오류가 발생했습니다: " + e.getMessage());
+			return ApiResponse.error(ApiResponse.messageOf(e, "접속 IP 선택삭제 중 오류가 발생했습니다."));
 		}
 	}
 }

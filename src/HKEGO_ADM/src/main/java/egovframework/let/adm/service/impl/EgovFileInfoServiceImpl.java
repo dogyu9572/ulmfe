@@ -229,6 +229,24 @@ public class EgovFileInfoServiceImpl extends EgovAbstractServiceImpl implements 
 	}
 
 	@Transactional
+	@Override
+	public void deleteFileGroup(String atchFileMngNo) {
+		if (atchFileMngNo == null || atchFileMngNo.isBlank()) {
+			return;
+		}
+		try {
+			List<FileInfoVO> files = fileInfoDAO.selectFileInfoListById(atchFileMngNo);
+			if (files == null || files.isEmpty()) {
+				return;
+			}
+			for (FileInfoVO file : files) {
+				deleteFileInfoByIdAndSn(atchFileMngNo, file.getFileSeq());
+			}
+		} catch (Exception e) {
+			log.warn("파일 그룹 정리 실패: atchFileMngNo={}, msg={}", atchFileMngNo, e.getMessage());
+		}
+	}
+
 	public void deleteFileInfoByIdAndSn(String fiId, Integer fiSn) {
 		if (fiId == null || fiId.isBlank() || fiSn == null || fiSn < 0) {
 			throw new RuntimeException("삭제할 파일 정보가 올바르지 않습니다.");

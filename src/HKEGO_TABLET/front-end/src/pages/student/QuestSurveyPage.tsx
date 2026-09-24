@@ -1,15 +1,12 @@
+import { pubUrl } from '../../config'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchPublicQuestionnaire, submitTabletMissionFinal, TabletQuestionnaire, TabletQuestionnaireQuestion } from '../../api/tabletApi'
+import { fetchPublicQuestionnaire, submitPublicQuestionnaire, submitTabletMissionFinal, TabletQuestionnaire, TabletQuestionnaireQuestion } from '../../api/tabletApi'
 import { StudentCaseHeader } from '../../components/tablet/StudentCaseHeader'
 import { useTabletStudentFlowSession } from '../../hooks/useTabletStudentFlowSession'
-import { studentFlowDisplayName } from '../../state/tabletStudentFlowSession'
+import { finishTabletStudentFlow, studentFlowDisplayName } from '../../state/tabletStudentFlowSession'
 import { stripEmphasisMarkers } from '../../utils/emphasisText'
-
-const LIKERT5_LABELS = ['매우 그렇다', '그렇다', '보통이다', '아니다', '매우 아니다']
-const LEVEL5_LABELS = ['상', '중상', '중', '중하', '하']
-
-const answerLabels = (answerType: string) => answerType === 'LEVEL5' ? LEVEL5_LABELS : LIKERT5_LABELS
+import { questionnaireAnswerLabels } from '../../utils/questionnaireLabels'
 
 type QuestSurveyPageProps = {
 	linkCode?: string
@@ -19,9 +16,10 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 	const navigate = useNavigate()
 	const flowSession = useTabletStudentFlowSession()
 	const alertedRef = useRef(false)
-	const previewMode = Boolean(linkCode)
+	// 링크·QR 접속 = 익명 응답 모드. 예약·학생 세션 없이 제출한다.
+	const linkMode = Boolean(linkCode)
 	const [questionnaire, setQuestionnaire] = useState<TabletQuestionnaire | null>(null)
-	const [loadingPreview, setLoadingPreview] = useState(previewMode)
+	const [loadingPreview, setLoadingPreview] = useState(linkMode)
 	const [loadError, setLoadError] = useState('')
 	const [answers, setAnswers] = useState<Record<number, string>>({})
 	const [saving, setSaving] = useState(false)
@@ -48,23 +46,23 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 	}, [linkCode])
 
 	useEffect(() => {
-		if (previewMode || flowSession !== null || alertedRef.current) return
+		if (linkMode || flowSession !== null || alertedRef.current) return
 		alertedRef.current = true
 		window.alert('출석 학생을 선택해주세요.')
 		navigate('/student/attendance', { replace: true })
-	}, [flowSession, navigate, previewMode])
+	}, [flowSession, navigate, linkMode])
 
 	useEffect(() => {
-		if (previewMode || !flowSession) return
+		if (linkMode || !flowSession) return
 		const saved = Object.fromEntries(flowSession.savedAnswers
 			.filter((answer) => answer.ansTypeCd === 'SURVEY' && answer.qstnSn != null)
 			.map((answer) => [answer.qstnSn as number, answer.ansCn]))
 		setAnswers(saved)
-	}, [flowSession, previewMode])
+	}, [flowSession, linkMode])
 
 	const questions = useMemo<TabletQuestionnaireQuestion[]>(
-		() => previewMode ? questionnaire?.questions ?? [] : flowSession?.surveyQuestions ?? [],
-		[flowSession?.surveyQuestions, previewMode, questionnaire?.questions]
+		() => linkMode ? questionnaire?.questions ?? [] : flowSession?.surveyQuestions ?? [],
+		[flowSession?.surveyQuestions, linkMode, questionnaire?.questions]
 	)
 	const pageTitle = questionnaire?.qstnrNm
 		|| questions[0]?.qstnrNm
@@ -76,31 +74,40 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 	}
 
 	const submitSurvey = async () => {
-		if (previewMode || !flowSession || saving) return
+		if (saving) return
+		if (!linkMode && !flowSession) return
+		if (questions.length === 0) {
+			window.alert('연결된 설문 문항이 없습니다.')
+			return
+		}
 		const unansweredIndex = questions.findIndex((question) => !(answers[question.qstnSn] || '').trim())
 		if (unansweredIndex >= 0) {
 			window.alert(`${questions[unansweredIndex].qstnNo || unansweredIndex + 1}번 문항에 답변해 주세요.`)
 			return
 		}
-		if (questions.length === 0) {
-			window.alert('연결된 설문 문항이 없습니다.')
-			return
-		}
 
 		setSaving(true)
 		try {
-			await submitTabletMissionFinal(flowSession.rsvtSn, {
-				studentSns: flowSession.selectedStudents.map((student) => student.stdntSn),
-				heroName: '',
-				updateSurvey: true,
-				evaluationAnswers: [],
-				surveyAnswers: questions.map((question) => ({
-					qstnrSn: question.qstnrSn,
+			if (linkMode) {
+				// 익명 제출. 문항 지문은 서버가 자기 값으로 채우므로 번호와 답변만 보낸다.
+				await submitPublicQuestionnaire(linkCode as string, questions.map((question) => ({
 					qstnSn: question.qstnSn,
-					qstnCn: question.qstnCn,
 					ansCn: answers[question.qstnSn]
-				}))
-			})
+				})))
+			} else {
+				await submitTabletMissionFinal(flowSession!.rsvtSn, {
+					studentSns: flowSession!.selectedStudents.map((student) => student.stdntSn),
+					heroName: '',
+					updateSurvey: true,
+					evaluationAnswers: [],
+					surveyAnswers: questions.map((question) => ({
+						qstnrSn: question.qstnrSn,
+						qstnSn: question.qstnSn,
+						qstnCn: question.qstnCn,
+						ansCn: answers[question.qstnSn]
+					}))
+				})
+			}
 			setCompletedOpen(true)
 		} catch (error) {
 			window.alert(error instanceof Error ? error.message : '설문 답변을 저장하지 못했습니다.')
@@ -109,12 +116,12 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 		}
 	}
 
-	if (!previewMode && flowSession === undefined) return null
+	if (!linkMode && flowSession === undefined) return null
 
 	return (
-		<main className={`container${previewMode ? ' off' : ''}`} id="mainContent">
+		<main className={`container${linkMode ? ' off' : ''}`} id="mainContent">
 			<h1 className="sound_only">{pageTitle}</h1>
-			{!previewMode && <StudentCaseHeader />}
+			{!linkMode && <StudentCaseHeader />}
 
 			<section className="basic_board">
 				<div className="student_title">
@@ -129,7 +136,11 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 								{loadingPreview && <div className="star_box"><p className="tac">문항을 불러오는 중입니다.</p></div>}
 								{loadError && <div className="star_box"><p className="tac">{loadError}</p></div>}
 
-								{!loadingPreview && !loadError && questions.length > 0 && (
+								{linkMode && completedOpen && (
+									<div className="star_box"><p className="tac">응답이 제출되었습니다. 참여해 주셔서 감사합니다.</p></div>
+								)}
+
+								{!(linkMode && completedOpen) && !loadingPreview && !loadError && questions.length > 0 && (
 									<div className="star_box">
 										<h3 className="titbox">오늘 하루의 활동을 평가해 봅시다.</h3>
 										<ul className="conbox limt">
@@ -146,14 +157,13 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 																value={answers[question.qstnSn] || ''}
 																onChange={(event) => updateAnswer(question.qstnSn, event.target.value)}
 																placeholder="답변을 입력해 주세요."
-																disabled={previewMode}
 															/>
 														</>
 													) : (
 														<>
 															<div className="tit">{question.qstnCn}</div>
 													<ul className="checkradio_select set5">
-														{answerLabels(question.ansTypeCd).map((label, labelIndex) => {
+														{questionnaireAnswerLabels(question.ansTypeCd).map((label, labelIndex) => {
 															const id = `question_${question.qstnSn}_${labelIndex}`
 															return <li className="box" key={id}>
 																<input
@@ -163,7 +173,6 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 																	value={label}
 																	checked={answers[question.qstnSn] === label}
 																	onChange={() => updateAnswer(question.qstnSn, label)}
-																	disabled={previewMode}
 																/>
 																<label htmlFor={id}><span><i></i>{label}</span></label>
 															</li>
@@ -184,15 +193,17 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 						</div>
 					</div>
 
-					<div className="btns_btm">
-						<button type="button" className="btn btn_wbb" onClick={() => void submitSurvey()} disabled={previewMode || saving || questions.length === 0}>
-							{previewMode ? '미리보기' : saving ? '저장 중' : '작성'}
-						</button>
-					</div>
+					{!(linkMode && completedOpen) && (
+						<div className="btns_btm">
+							<button type="button" className="btn btn_wbb" onClick={() => void submitSurvey()} disabled={saving || questions.length === 0}>
+								{saving ? '제출 중' : '제출'}
+							</button>
+						</div>
+					)}
 				</div>
 			</section>
 
-			{!previewMode && flowSession && (
+			{!linkMode && flowSession && (
 				<div className={`popup pop_completed${completedOpen ? ' is-active' : ''}`} id="pop_completed">
 					<div className="dm" onClick={() => setCompletedOpen(false)}></div>
 					<div className="inbox">
@@ -201,14 +212,14 @@ export const QuestSurveyPage = ({ linkCode }: QuestSurveyPageProps) => {
 						<div className="con scroll_wrap">
 							<div className="scroll">
 								<div className="flex_center">
-									<div className="imgbox"><img src="/pub/images/img_sample_completed.webp" alt="" /></div>
+									<div className="imgbox"><img src={pubUrl("/pub/images/img_sample_completed.webp")} alt="" /></div>
 								</div>
 								<div className="txt">
-									<div className="tt">{studentFlowDisplayName(flowSession)} 학생은 이제 멋진 <strong>'미래 마을 디자이너'</strong>입니다!</div>
-									<p>4개 구역을 모두 돌며 살기 좋은 도시의 조건을 탐색하고,<br />우리가 꿈꾸는 미래 울산의 모습을 멋지게 완성했어요.<br />세션을 종료하고 태블릿을 반납해주세요.</p>
+									<div className="tt">{studentFlowDisplayName(flowSession)} 학생, <strong>{flowSession.prgrmNm?.trim() || '오늘의 활동'}</strong> 활동을 모두 마쳤어요!</div>
+									<p>모든 구역을 돌며 사건의 단서를 찾아 해결했어요.<br />세션을 종료하고 태블릿을 반납해주세요.</p>
 								</div>
 								<div className="btns_btm">
-									<button type="button" className="btn btn_wbb" onClick={() => navigate('/select-user')}>교육 완료 하기</button>
+									<button type="button" className="btn btn_wbb" onClick={() => finishTabletStudentFlow(navigate)}>교육 완료 하기</button>
 								</div>
 								<p className="tac p_end">세션 종료 시, 키오스크 화면으로 이동합니다.</p>
 							</div>

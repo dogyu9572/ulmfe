@@ -14,5 +14,5 @@ public interface EgovBannerService {
 	BannerVO createBanner(BannerDto dto);
 	BannerVO updateBanner(Integer bnrIdx, BannerDto dto);
 	void deleteBanner(Integer bnrIdx);
-	void updateBannerSeq(Integer bnrIdx, Integer bnrSeq);
+	void updateBannerSeq(Integer bnrSn, Integer sortSeq);
 }

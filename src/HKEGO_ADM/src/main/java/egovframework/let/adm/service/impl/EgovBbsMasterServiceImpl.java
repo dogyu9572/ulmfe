@@ -24,19 +24,20 @@ public class EgovBbsMasterServiceImpl extends EgovAbstractServiceImpl implements
 	@Resource(name = "bbsMasterDAO")
 	private BbsMasterDAO bbsMasterDAO;
 
-	public Map<String, Object> getBbsMasterListPage(int page, int size) {
+	public Map<String, Object> getBbsMasterListPage(int page, int size, String useYn) {
 		int safePage = Math.max(1, page);
 		int safeSize = Math.min(Math.max(1, size), 100);
 		int offset = (safePage - 1) * safeSize;
-		int totalCount = bbsMasterDAO.countBbsMasterList();
-		List<BbsMasterVO> list = bbsMasterDAO.selectBbsMasterList(offset, safeSize);
+		String filter = (useYn != null && !useYn.isBlank()) ? useYn.trim() : null;
+		int totalCount = bbsMasterDAO.countBbsMasterList(filter);
+		List<BbsMasterVO> list = bbsMasterDAO.selectBbsMasterList(offset, safeSize, filter);
 		return PageListResult.of(list, totalCount, safePage, safeSize);
 	}
 
 	public BbsMasterVO getBbsMasterById(String bbsId) {
 		BbsMasterVO result = bbsMasterDAO.selectBbsMasterById(bbsId);
 		if (result == null) {
-			throw new RuntimeException("게시판 마스터를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("게시판 마스터를 찾을 수 없습니다.");
 		}
 		return result;
 	}

@@ -56,10 +56,12 @@ export const VisitCountStatsPage: React.FC = () => {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	const buildSearchParams = () => {
+	const buildSearchParams = (override?: { start?: string; end?: string }) => {
 		const params = new URLSearchParams()
-		if (startDate) params.set('startDate', startDate)
-		if (endDate) params.set('endDate', endDate)
+		const from = override?.start ?? startDate
+		const to = override?.end ?? endDate
+		if (from) params.set('startDate', from)
+		if (to) params.set('endDate', to)
 		return params
 	}
 
@@ -71,12 +73,12 @@ export const VisitCountStatsPage: React.FC = () => {
 		return true
 	}
 
-	const fetchStats = async () => {
+	const fetchStats = async (override?: { start?: string; end?: string }) => {
 		setError(null)
-		if (!validateDates()) return
+		if (!override && !validateDates()) return
 		try {
 			setLoading(true)
-			const response = await fetch(`${API_BASE_URL}/api/admin/visitor-stats?${buildSearchParams().toString()}`, {
+			const response = await fetch(`${API_BASE_URL}/api/admin/visitor-stats?${buildSearchParams(override).toString()}`, {
 				credentials: 'include'
 			})
 			const result: ApiResponse<VisitCountStats> = await response.json()
@@ -119,8 +121,12 @@ export const VisitCountStatsPage: React.FC = () => {
 	}
 
 	const reset = () => {
-		setStartDate(firstDayOfMonthIso())
-		setEndDate(lastDayOfMonthIso())
+		// state 만 되돌리면 화면 조건과 표가 어긋난다. 기본 기간으로 즉시 다시 조회한다.
+		const start = firstDayOfMonthIso()
+		const end = lastDayOfMonthIso()
+		setStartDate(start)
+		setEndDate(end)
+		void fetchStats({ start, end })
 	}
 
 	useEffect(() => {
@@ -157,8 +163,8 @@ export const VisitCountStatsPage: React.FC = () => {
 					<thead>
 						<tr>
 							<th>프로그램 구분</th>
-							<th>예약 학교 수(명)</th>
-							<th>방문 학교 수(명)</th>
+							<th>예약 학교 수(개교)</th>
+							<th>방문 학교 수(개교)</th>
 							<th>예약 학생 수(명)</th>
 							<th>출석완료 학생 수(명)</th>
 						</tr>
@@ -190,7 +196,7 @@ export const VisitCountStatsPage: React.FC = () => {
 							<th>학교명</th>
 							<th style={{ width: 220 }}>학년/반</th>
 							<th style={{ width: 120 }}>방문횟수</th>
-							<th style={{ width: 160 }}>총 방문 학생 수</th>
+							<th style={{ width: 160 }}>명단 학생 수</th>
 							<th style={{ width: 160 }}>출석완료 학생 수</th>
 							<th style={{ width: 140 }}>마지막 방문</th>
 						</tr>

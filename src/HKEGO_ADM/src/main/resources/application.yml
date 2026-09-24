@@ -1,10 +1,17 @@
 server:
-  port: 9013
+  port: 9031
   address: 0.0.0.0
   servlet:
+    # 운영 공개 path: https://use.go.kr/usfec-adm
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/usfec-adm}
+    # 외부 톰캣이 HTML을 ISO-8859-1로 주면 정적 한글이 깨진다. 응답 charset을 UTF-8로 고정한다.
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     session:
       timeout: 30m
-      # 마리나·다른 앱과 기본 JSESSIONID가 충돌하지 않도록 데모관리자 전용 쿠키명 사용
+      # 사용자·태블릿 앱과 기본 JSESSIONID가 충돌하지 않도록 관리자 전용 쿠키명 사용
       cookie:
         name: ${APP_SESSION_COOKIE_NAME:HKEGO_ADM_SESSIONID}
         http-only: true
@@ -13,11 +20,11 @@ server:
 
 file:
   upload:
-    path: /home/hksts-webapp/uploads
+    path: ${FILE_UPLOAD_PATH:/home/ulmfe/uploads}
 
 app:
   crypto:
-    secret-key: ${APP_CRYPTO_SECRET_KEY:CHANGE_ME_32_BYTE_SECRET_KEY_123}
+    secret-key: ${APP_CRYPTO_SECRET_KEY:}
   auth:
     admin-manage-roles: ${APP_AUTH_ADMIN_MANAGE_ROLES:SUPER,MANAGER}
     super-role-code: ${APP_AUTH_SUPER_ROLE_CODE:SUPER}
@@ -26,18 +33,18 @@ app:
     login-lock-minutes: ${APP_SECURITY_LOGIN_LOCK_MINUTES:15}
     csrf-cookie-same-site: ${APP_CSRF_COOKIE_SAME_SITE:Lax}
     csrf-cookie-secure: ${APP_CSRF_COOKIE_SECURE:false}
+  # 포트: 백엔드 9031 / 프론트 9131 · 공개 path /usfec-adm
   cors:
     allowed-origins:
-      - http://localhost:3013
-      - http://127.0.0.1:3013
-      - http://192.168.0.5:3013
-      - http://106.240.255.10:3013
-      - http://106.240.255.10:9013
-      - http://localhost:3014
-      - http://127.0.0.1:3014
-      - http://192.168.0.5:3014
-      - http://hkstsdemo.hk-test.co.kr
-      - https://hkstsdemo.hk-test.co.kr
+      - http://localhost:9131
+      - http://127.0.0.1:9131
+      - http://192.168.0.5:9131
+      - http://106.240.255.10:9131
+      - http://106.240.255.10:9031
+      - https://ulmfe-adm.hk-test.co.kr
+      - http://ulmfe-adm.hk-test.co.kr
+      - https://use.go.kr
+      - https://dev.use.go.kr
 
 spring:
   servlet:
@@ -59,6 +66,19 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:p6spy:mariadb://127.0.0.1:3306/ulmfe}
     username: ${SPRING_DATASOURCE_USERNAME:ulmfe}
     password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      # 관리자·사용자·태블릿이 같은 MySQL 을 쓰므로 앱당 기본 10(Hikari)을 두지 않는다.
+      # 요청이 없어도 풀이 유휴 연결을 유지하므로, 세 앱 합계가 max_connections 에 가깝지 않게 제한한다.
+      pool-name: HKEGO_ADM
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:5}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:1}
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      # DB 서버 OS 가 UTC 라 NOW()·CURRENT_TIMESTAMP 가 UTC 로 저장됐다.
+      # 애플리케이션 코드는 Asia/Seoul 을 쓰므로 두 기준이 어긋났다.
+      # 커넥션마다 세션 타임존을 한국 시간으로 맞춘다.
+      # 컬럼이 전부 datetime 이라 이미 저장된 값의 해석은 바뀌지 않는다.
+      connection-init-sql: SET time_zone = '+09:00'
 
 
 Globals:

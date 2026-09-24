@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="egovframework.let.usr.service.impl.PublicClosedDayDAO">
+
+	<select id="selectClosedDaysInRange" resultType="egovframework.let.usr.service.vo.PublicClosedDayVO">
+		SELECT
+			CLSR_SE_CD,
+			BGNG_YMD,
+			END_YMD
+		FROM CLSR_DAY_MST
+		WHERE DEL_DT IS NULL
+		  AND USE_YN = 'Y'
+		  AND END_YMD &gt;= #{startDate}
+		  AND BGNG_YMD &lt;= #{endDate}
+		ORDER BY BGNG_YMD
+	</select>
+
+	<select id="selectRegularClosedDayCode" resultType="string">
+		SELECT RGLR_CLSR_DAY_CD
+		FROM SITE_BASIC_STNG
+		WHERE STNG_ID = 'DEFAULT'
+	</select>
+
+</mapper>

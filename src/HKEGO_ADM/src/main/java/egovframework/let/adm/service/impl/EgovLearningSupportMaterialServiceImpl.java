@@ -2,9 +2,12 @@ package egovframework.let.adm.service.impl;
 
 import egovframework.let.adm.service.EgovLearningSupportMaterialService;
 import egovframework.let.adm.service.vo.EducationProgramVO;
+import egovframework.let.adm.service.EgovFileInfoService;
+import egovframework.let.adm.service.vo.FileInfoVO;
 import egovframework.let.adm.service.vo.LearningSupportMaterialVO;
 import egovframework.let.adm.service.vo.PageListResult;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +17,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+@Slf4j
 @Service("egovLearningSupportMaterialService")
 public class EgovLearningSupportMaterialServiceImpl extends EgovAbstractServiceImpl implements EgovLearningSupportMaterialService {
 	@Resource(name = "learningSupportMaterialDAO")
 	private LearningSupportMaterialDAO learningSupportMaterialDAO;
 
+	@Resource(name = "egovFileInfoService")
+	private EgovFileInfoService fileInfoService;
+
 	public Map<String, Object> getLearningSupportMaterialListPage(
 		String lrnTypeCd,
+		String zoneCd,
 		String dataTypeCd,
 		String startRegYmd,
 		String endRegYmd,
@@ -33,11 +41,11 @@ public class EgovLearningSupportMaterialServiceImpl extends EgovAbstractServiceI
 		int safeSize = Math.min(Math.max(1, size), 100);
 		int offset = (safePage - 1) * safeSize;
 		int totalCount = learningSupportMaterialDAO.countList(
-			normalize(lrnTypeCd), normalize(dataTypeCd), normalize(startRegYmd), normalize(endRegYmd),
+			normalize(lrnTypeCd), normalize(zoneCd), normalize(dataTypeCd), normalize(startRegYmd), normalize(endRegYmd),
 			normalize(searchType), normalize(searchKeyword)
 		);
 		List<LearningSupportMaterialVO> list = learningSupportMaterialDAO.selectList(
-			normalize(lrnTypeCd), normalize(dataTypeCd), normalize(startRegYmd), normalize(endRegYmd),
+			normalize(lrnTypeCd), normalize(zoneCd), normalize(dataTypeCd), normalize(startRegYmd), normalize(endRegYmd),
 			normalize(searchType), normalize(searchKeyword), offset, safeSize
 		);
 		return PageListResult.of(list, totalCount, safePage, safeSize);
@@ -82,14 +90,17 @@ public class EgovLearningSupportMaterialServiceImpl extends EgovAbstractServiceI
 
 	@Transactional
 	public void deleteLearningSupportMaterial(String pstSn) {
-		if (learningSupportMaterialDAO.findById(normalizeRequired(pstSn, "자료")) == null) {
+		LearningSupportMaterialVO target = learningSupportMaterialDAO.findById(normalizeRequired(pstSn, "자료"));
+		if (target == null) {
 			throw new IllegalArgumentException("학습지원 자료를 찾을 수 없습니다.");
 		}
 		int rows = learningSupportMaterialDAO.delete(pstSn);
 		if (rows <= 0) {
 			throw new IllegalStateException("학습지원 자료 삭제에 실패했습니다.");
 		}
+		fileInfoService.deleteFileGroup(target.getAtchFileMngNo());
 	}
+
 
 	public List<EducationProgramVO> getActiveProgramOptions() {
 		return learningSupportMaterialDAO.selectActiveProgramOptions();
@@ -115,6 +126,7 @@ public class EgovLearningSupportMaterialServiceImpl extends EgovAbstractServiceI
 			.pstTtl(pstTtl)
 			.pstCn(normalize(material.getPstCn()))
 			.lrnTypeCd(lrnTypeCd)
+			.zoneCd(normalize(material.getZoneCd()))
 			.dataTypeCd(dataTypeCd)
 			.prgrmTypeCd(normalize(material.getPrgrmTypeCd()))
 			.prgrmSn(material.getPrgrmSn())

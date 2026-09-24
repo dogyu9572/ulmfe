@@ -17,9 +17,10 @@ import lombok.RequiredArgsConstructor;
 @Service("egovPublicBoardService")
 @RequiredArgsConstructor
 public class EgovPublicBoardServiceImpl implements EgovPublicBoardService {
-	private static final Set<String> PUBLIC_BOARD_IDS = Set.of("ZEHSB", "EXHBT", "EVENT", "FAQ01", "GALRY", "LRNSUP");
+	private static final Set<String> PUBLIC_BOARD_IDS = Set.of("ZEHSB", "EXHBT", "EVENT", "FAQ01", "GALRY", "LRNSUP", "LBARC");
 	private static final Set<String> SEARCH_TYPES = Set.of("all", "title", "content");
 	private static final Set<String> LEARNING_SUPPORT_PROGRAM_TYPES = Set.of("EXPLORE", "MISSION");
+	private static final Set<String> LEARNING_SUPPORT_ZONES = Set.of("FUTURE", "EARTH", "SOCIETY");
 
 	private final PublicBoardDAO publicBoardDAO;
 	private final EgovPublicFileService publicFileService;
@@ -33,6 +34,7 @@ public class EgovPublicBoardServiceImpl implements EgovPublicBoardService {
 		String searchType,
 		String keyword,
 		String category,
+		String zone,
 		String programType
 	) {
 		String safeBoardId = requirePublicBoard(boardId);
@@ -41,13 +43,15 @@ public class EgovPublicBoardServiceImpl implements EgovPublicBoardService {
 		String safeSearchType = normalizeSearchType(searchType);
 		String safeKeyword = trimToNull(keyword);
 		String safeCategory = trimToNull(category);
+		String safeZone = normalizeZone(safeBoardId, zone);
 		String safeProgramType = normalizeProgramType(safeBoardId, programType);
-		int totalCount = publicBoardDAO.countPosts(safeBoardId, safeSearchType, safeKeyword, safeCategory, safeProgramType);
+		int totalCount = publicBoardDAO.countPosts(safeBoardId, safeSearchType, safeKeyword, safeCategory, safeZone, safeProgramType);
 		List<PublicBoardPostVO> posts = publicBoardDAO.selectPosts(
 				safeBoardId,
 				safeSearchType,
 				safeKeyword,
 				safeCategory,
+				safeZone,
 				safeProgramType,
 				(safePage - 1) * safeSize,
 				safeSize
@@ -108,6 +112,17 @@ public class EgovPublicBoardServiceImpl implements EgovPublicBoardService {
 		String normalized = programType == null ? "" : programType.trim().toUpperCase(Locale.ROOT);
 		if (!LEARNING_SUPPORT_PROGRAM_TYPES.contains(normalized)) {
 			throw new IllegalArgumentException("학습지원 자료의 프로그램 구분이 필요합니다.");
+		}
+		return normalized;
+	}
+
+	private String normalizeZone(String boardId, String zone) {
+		if (!"LRNSUP".equals(boardId)) return null;
+		String normalized = trimToNull(zone);
+		if (normalized == null) return null;
+		normalized = normalized.toUpperCase(Locale.ROOT);
+		if (!LEARNING_SUPPORT_ZONES.contains(normalized)) {
+			throw new IllegalArgumentException("학습지원 자료의 체험터 구역이 올바르지 않습니다.");
 		}
 		return normalized;
 	}

@@ -167,6 +167,10 @@ export const LearningCalendarPage: React.FC = () => {
 						<button type="button" className="admin-filter-btn-reset" onClick={() => setMonth(addMonths(month, 1))} disabled={loading}>다음</button>
 						<button type="button" className="admin-list-btn-sky" onClick={() => { const now = todayYmd(); setMonth(now.slice(0, 7)); setSelectedDate(now) }} disabled={loading}>오늘</button>
 					</div>
+					<div className="learning-calendar-legend">
+						<span className="is-mission">미션</span>
+						<span className="is-explore">사건탐구</span>
+					</div>
 				</div>
 
 				<div className="learning-calendar-summary">
@@ -232,7 +236,7 @@ export const LearningCalendarPage: React.FC = () => {
 										onClick={() => setSelectedDate(day.ymd)}
 									>
 										<span>{day.day}</span>
-										{dayRows.slice(0, 3).map((row) => <em key={row.rsvtSn ?? row.rsvtNo}>{row.schlNm}</em>)}
+										{dayRows.slice(0, 3).map((row) => <em key={row.rsvtSn ?? row.rsvtNo} className={row.prgrmTypeCd === 'EXPLORE' ? 'is-explore' : 'is-mission'}>{row.schlNm}</em>)}
 										{dayRows.length > 3 && <small>+{dayRows.length - 3}</small>}
 									</button>
 								)

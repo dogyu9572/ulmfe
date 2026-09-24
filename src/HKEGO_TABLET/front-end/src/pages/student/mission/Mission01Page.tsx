@@ -1,10 +1,11 @@
+import { pubUrl } from '../../../config'
 import { useNavigate } from 'react-router-dom'
 import { useRequiredTabletStudentFlowSession } from '../../../hooks/useTabletStudentFlowSession'
 import { studentFlowExploreIntroStep, studentFlowExploreThoughtRows, studentFlowExploreVideoRows } from '../../../state/tabletStudentFlowSession'
 import { youtubeThumbnailUrls } from '../../../utils/youtube'
 import { MissionShell } from './missionShared'
 
-const fallbackVideoImage = '/pub/images/img_start_vission_video.webp'
+const fallbackVideoImage = pubUrl('/pub/images/img_start_vission_video.webp')
 
 export const Mission01Page = () => {
 	const navigate = useNavigate()
@@ -47,11 +48,11 @@ export const Mission01Page = () => {
 								</div>
 							</a>
 						</li>
-					) : <li className="w100p"><div className="txt"><h3 className="tit">관리자에 등록된 영상이 없습니다.</h3></div></li>}
+					) : <li className="w100p"><div className="txt"><h3 className="tit">등록된 영상이 없습니다.</h3></div></li>}
 				</ul>
 				<div className="stit icon_think">생각해봐요!</div>
 				<ul className="think_list">
-					{thoughts.length > 0 ? thoughts.map((thought) => <li key={thought}><span>{thought}</span><i aria-hidden="true"></i></li>) : <li><span>관리자에 등록된 생각해보기 문항이 없습니다.</span><i aria-hidden="true"></i></li>}
+					{thoughts.length > 0 ? thoughts.map((thought) => <li key={thought}><span>{thought}</span><i aria-hidden="true"></i></li>) : <li><span>생각해볼 질문이 아직 없습니다.</span><i aria-hidden="true"></i></li>}
 				</ul>
 				<a href="/student/mission02" className="btn btn_wbb flex_center btn_next_page mt" onClick={(event) => {
 					event.preventDefault()

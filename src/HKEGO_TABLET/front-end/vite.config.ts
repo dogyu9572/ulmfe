@@ -1,3 +1,4 @@
+import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
@@ -5,12 +6,18 @@ const backendTarget = process.env.TABLET_BACKEND_URL ?? 'http://127.0.0.1:9033'
 const devHost = process.env.TABLET_FRONTEND_HOST ?? '127.0.0.1'
 const devPort = Number(process.env.TABLET_FRONTEND_PORT ?? '9133')
 const hmrHost = process.env.TABLET_HMR_HOST
+/** 운영 path: https://use.go.kr/usfec-tab */
+const basePath = (process.env.VITE_BASE_PATH ?? '/usfec-tab').replace(/\/+$/, '') || ''
 
-/** 개발·preview 공통: API·업로드 파일은 로컬 백엔드로 프록시 */
-const backendDevProxy = {
-	'/api': { target: backendTarget, changeOrigin: true },
-	'/uploads': { target: backendTarget, changeOrigin: true }
-} as const
+const backendDevProxy = basePath
+	? {
+			[`${basePath}/api`]: { target: backendTarget, changeOrigin: true },
+			[`${basePath}/uploads`]: { target: backendTarget, changeOrigin: true }
+		}
+	: {
+			'/api': { target: backendTarget, changeOrigin: true },
+			'/uploads': { target: backendTarget, changeOrigin: true }
+		}
 
 const listen = {
 	host: devHost,
@@ -19,7 +26,21 @@ const listen = {
 	allowedHosts: true as const
 }
 
+/** index.html 의 /pub/... 절대경로에 basePath 를 붙인다. (%BASE_URL% 미치환 대비) */
+function rewritePublicAssetPaths(base: string): Plugin {
+	const prefix = base ? `${base}/` : '/'
+	return {
+		name: 'rewrite-public-asset-paths',
+		transformIndexHtml(html) {
+			return html
+				.replaceAll('%BASE_URL%', prefix)
+				.replace(/(href|src)=["']\/pub\//g, `$1="${prefix}pub/`)
+		}
+	}
+}
+
 export default defineConfig({
+	base: basePath ? `${basePath}/` : '/',
 	server: {
 		...listen,
 		hmr: hmrHost
@@ -35,5 +56,5 @@ export default defineConfig({
 		...listen,
 		proxy: backendDevProxy
 	},
-	plugins: [react()]
+	plugins: [react(), rewritePublicAssetPaths(basePath)]
 })

@@ -3,6 +3,8 @@
 import { type MouseEvent, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { deletePublicQna, getPublicQna, type PublicQnaDetail } from '@/lib/publicQnaApi'
+import { withBasePath } from '@/lib/basePath'
+import { resolvePublicHtmlMediaUrls } from '@/lib/publicApi'
 import { QNA_LIST_RETURN_KEY, qnaListHref, qnaPageHref } from './qnaNavigation'
 
 function formatDate(value: string | null) {
@@ -83,7 +85,7 @@ export default function QnaDetail() {
 				<div className="cont" style={{ whiteSpace: 'pre-wrap' }}>{post?.content || ''}</div>
 				{canManage && (
 					<div className="btns_writer" style={!hasAnswer ? { borderBottom: 'none' } : undefined}>
-						<a href={qnaPageHref('/support/qna_modify', postId, paramsSnapshot)} className="btn btn_modify">수정</a>
+						<a href={withBasePath(qnaPageHref('/support/qna_modify', postId, paramsSnapshot))} className="btn btn_modify">수정</a>
 						<button type="button" className="btn btn_del" onClick={remove} disabled={deleting}>{deleting ? '삭제 중' : '삭제'}</button>
 					</div>
 				)}
@@ -93,12 +95,12 @@ export default function QnaDetail() {
 							<div className="writer"><span>A</span>{post.answererName || '울산광역시미래교육관'}</div>
 							<div className="date"><strong>등록일</strong><span>{formatDate(post.answerDate)}</span></div>
 						</div>
-						<div className="con" dangerouslySetInnerHTML={{ __html: post.answerContent }} />
+						<div className="con" dangerouslySetInnerHTML={{ __html: resolvePublicHtmlMediaUrls(post.answerContent) }} />
 					</div>
 				)}
 			</div>
 			{error && post && <p role="alert" className="tac" style={{ color: '#e5484d' }}>{error}</p>}
-			<div className="board_bottom flex_center"><a href={listHref} className="btn btn_wbb btn_large" onClick={returnToList}>목록</a></div>
+			<div className="board_bottom flex_center"><a href={withBasePath(listHref)} className="btn btn_wbb btn_large" onClick={returnToList}>목록</a></div>
 		</section>
 	)
 }

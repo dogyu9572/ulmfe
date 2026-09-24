@@ -13,6 +13,7 @@
 	<groupId>egovframework</groupId>
 	<artifactId>hkego-adm</artifactId>
 	<version>1.0.0</version>
+	<packaging>war</packaging>
 	<name>HKEGO Admin System</name>
 	<description>HKSTS_ADM 기반 eGov 적용 관리자 시스템</description>
 
@@ -22,6 +23,8 @@
 		<skipFrontend>true</skipFrontend>
 		<!-- skipFrontend=true 이면 static/ 정리 (true 로 두면 antrun 생략) -->
 		<skipFrontendCleanup>false</skipFrontendCleanup>
+		<!-- mvn spring-boot:run 기본 프로파일 (-Dspring-boot.run.profiles=dev|prod 로 변경 가능) -->
+		<spring-boot.run.profiles>awsdev</spring-boot.run.profiles>
 	</properties>
 
 	<repositories>
@@ -52,6 +55,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Validation -->
@@ -143,6 +151,13 @@
 			<version>5.2.5</version>
 		</dependency>
 
+		<!-- jsoup (관리자 HTML 본문 sanitizer) -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.21.2</version>
+		</dependency>
+
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -159,6 +174,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>usfec-adm</finalName>
 		<plugins>
 			<!-- Windows: spring-boot:run 실행 중 target/static 잠금 시 clean 실패 방지 -->
 			<plugin>
@@ -266,12 +282,49 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<profiles>
+						<profile>${spring-boot.run.profiles}</profile>
+					</profiles>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
-		<!-- 운영 JAR: mvn clean package -Pprod -->
+		<!-- AWS 개발 WAR: mvn clean package -Pawsdev -->
+		<profile>
+			<id>awsdev</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>src/main/resources-profile/awsdev</directory>
+						<filtering>false</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		<!-- 개발서버 WAR: mvn clean package -Pdev -->
+		<profile>
+			<id>dev</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>src/main/resources-profile/dev</directory>
+						<filtering>false</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		<!-- 운영 WAR: mvn clean package -Pprod -->
 		<profile>
 			<id>prod</id>
 			<build>

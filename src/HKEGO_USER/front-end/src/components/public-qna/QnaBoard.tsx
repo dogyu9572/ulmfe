@@ -10,6 +10,7 @@ import {
 	type PublicQnaSummary,
 	type QnaSearchType
 } from '@/lib/publicQnaApi'
+import { withBasePath } from '@/lib/basePath'
 import { QNA_LIST_RETURN_KEY, qnaListHref, qnaListQuery, qnaPageHref } from './qnaNavigation'
 
 const PAGE_SIZE = 10
@@ -179,7 +180,7 @@ export default function QnaBoard() {
 								return (
 									<tr key={post.postId} className={post.passwordProtected ? 'lock' : undefined}>
 										<td className="board_num">{rowNumber}</td>
-										<td className="board_tit"><a href={qnaPageHref('/support/qna_view', post.postId, new URLSearchParams(params.toString()))} onClick={(event) => { event.preventDefault(); openPost(post) }}>{post.newYn === 'Y' && <span className="sound_only">[새 글]</span>}{post.title}</a></td>
+										<td className="board_tit"><a href={withBasePath(qnaPageHref('/support/qna_view', post.postId, new URLSearchParams(params.toString())))} onClick={(event) => { event.preventDefault(); openPost(post) }}>{post.newYn === 'Y' && <span className="sound_only">[새 글]</span>}{post.title}</a></td>
 										<td className="board_writer"><span className="sound_only">작성자:</span>{post.writerNameMasked || ''}</td>
 										<td className="board_date"><span className="sound_only">등록일:</span>{formatDate(post.registeredAt)}</td>
 										<td className="board_review"><span className="sound_only">답변상태</span><span className={`review ${done ? 'end' : 'ing'}`}>{done ? '답변완료' : '답변대기'}</span></td>
@@ -192,7 +193,7 @@ export default function QnaBoard() {
 					</table>
 				</div>
 				<div className="board_bottom">
-					<a href={qnaPageHref('/support/qna_write', '', new URLSearchParams(params.toString()))} className="btn btn_wbb btn_abso btn_writer">글쓰기</a>
+					<a href={withBasePath(qnaPageHref('/support/qna_write', '', new URLSearchParams(params.toString())))} className="btn btn_wbb btn_abso btn_writer">글쓰기</a>
 					<BoardPagination page={page} totalPages={totalPages} buildHref={buildHref} />
 				</div>
 			</section>

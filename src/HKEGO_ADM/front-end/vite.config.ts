@@ -5,12 +5,19 @@ const backendTarget = process.env.ADM_BACKEND_URL ?? 'http://127.0.0.1:9031'
 const devHost = process.env.ADM_FRONTEND_HOST ?? '127.0.0.1'
 const devPort = Number(process.env.ADM_FRONTEND_PORT ?? '9131')
 const hmrHost = process.env.ADM_HMR_HOST
+/** 운영 path: https://use.go.kr/usfec-adm */
+const basePath = (process.env.VITE_BASE_PATH ?? '/usfec-adm').replace(/\/+$/, '') || ''
 
-/** 개발·preview 공통: API·업로드 파일은 로컬 백엔드로 프록시 */
-const backendDevProxy = {
-	'/api': { target: backendTarget, changeOrigin: true },
-	'/uploads': { target: backendTarget, changeOrigin: true }
-} as const
+/** 개발: Vite 가 /usfec-adm/api 를 Spring(context-path 포함)으로 그대로 전달 */
+const backendDevProxy = basePath
+	? {
+			[`${basePath}/api`]: { target: backendTarget, changeOrigin: true },
+			[`${basePath}/uploads`]: { target: backendTarget, changeOrigin: true }
+		}
+	: {
+			'/api': { target: backendTarget, changeOrigin: true },
+			'/uploads': { target: backendTarget, changeOrigin: true }
+		}
 
 const listen = {
 	host: devHost,
@@ -20,6 +27,7 @@ const listen = {
 }
 
 export default defineConfig({
+	base: basePath ? `${basePath}/` : '/',
 	server: {
 		...listen,
 		hmr: hmrHost
